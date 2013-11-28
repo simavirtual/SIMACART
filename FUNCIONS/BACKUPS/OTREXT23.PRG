@@ -282,14 +282,16 @@ FUNCTION FOtrExt23(aParam1,aParam2,aParam3,;
 	  RETURN NIL
        ENDIF
        RESTSCREEN(0,0,24,79,cSavPan)
-       ActivaPrn(lShared,cNomSis,PathSis,fSimCar,'cColaAcCar','Car')
 *>>>>FIN ANALISIS DE DECISION
 
 *>>>>ACTIVACION DE LA IMPRESORA
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.)
+
+	  FilePrn := BAN->cCodigoBan+'BANGRU'
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
+
 	  IF EMPTY(nOpcPrn)
 	     CloseDbf('GRU')
 	     SELECT TRA
@@ -325,8 +327,12 @@ FUNCTION FOtrExt23(aParam1,aParam2,aParam3,;
 			' JORNADA: '+cJorTxt+'. A¥O: '+cAnoUsr,;
 			nNroPag++,;
 			cTotPagina(nTotReg),lTamAnc}
+
+/*
 	    cCodIni := DRAFT_ON+PICA+CONDEN_ON
 	    cCodFin := NEGRA_OF+DOBGOL_OF
+*/
+
 **********FIN DEFINCION DEL ENCABEZADO
 
 **********ENCABEZADOS DE COLUMNA

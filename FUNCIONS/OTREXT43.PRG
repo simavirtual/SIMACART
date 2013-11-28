@@ -298,7 +298,6 @@ FUNCTION FOtrExt43(aParam1,aParam2,aParam3,;
 	    IF lLocCodigo('cCodigoTra','TMV',cCodTra)
 	       lSumar := TMV->lSumarTra
 	    ELSE
-wait 'OJO'
 	       cError('EL CODIGO: '+cCodTra+;
 		      ' NO EXISTE SE ASUME COMO UN DEBITO')
 	       lSumar := .F.

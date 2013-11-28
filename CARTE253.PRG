@@ -35,7 +35,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
 *>>>>DECLARACION DE VARIABLES
        #INCLUDE "EPSONFX.PRG"  // Impresora EPSON FX
-       #INCLUDE "ARC-CART.PRG"      // Archivos del Sistema
+       #INCLUDE "ARC-FACT.PRG"              // Archivos del Sistema
 
        #DEFINE nALUGRU 1                    // Posici¢n alumnos del grupo
        #DEFINE nNOPAGO 2                    // Posici¢n alumnos no pagaron
@@ -61,6 +61,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        LOCAL dFecIni := CTOD('00/00/00')    // Fecha Inicial
        LOCAL dFecFin := CTOD('00/00/00')    // Fecha Final
        LOCAL lFechOk := .T.                 // Fecha de Acuerdo al intervalo
+       LOCAL lAllGru := .F.                 // .T. Todos los Grupos
 
        LOCAL nNroPag := 1                   // N£mero de p gina
        LOCAL lTamAnc := .F.                 // .T. Tama¤o Ancho
@@ -103,7 +104,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
        LOCAL aPagMes[13]                    // Pagos por Meses
        LOCAL aAboMes[13]                    // Abonos por Meses
-       LOCAL aParMes[13]                    // Abonos por Meses
+       LOCAL aParMes[13]                    // Pagos Parciales por Meses
        LOCAL aVlrPag := {}                  // Total Pagos
        LOCAL nTotAbo := 0                   // Total Abonos
        LOCAL lPagMes := .F.                 // .T. Hay pagos descriminados por meses
@@ -316,6 +317,8 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileCon,'CON',NIL,lShared,nModCry})
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileDes,'DES',NIL,lShared,nModCry})
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileTar,'TAR',NIL,lShared,nModCry})
+
+       AADD(aUseDbf,{.T.,cPatSis+'\'+FileCnc,'CNC',NIL,lShared,nModCry})
 *>>>>FIN AREAS DE TRABAJO
 
 *>>>>SELECION DE LAS AREAS DE TRABAJO
@@ -406,7 +409,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *>>>>FIN GRABACION DE LOS CONCEPTOS A IMPRIMIR
 
 *>>>>CAPTURA DE LOS GRUPOS POR INTERVALO
-       IF !lIntervGru(nFilInf+1,nColInf,@nRegIni,@nRegFin)
+       IF !lIntervGru(nFilInf+1,nColInf,@nRegIni,@nRegFin,@lAllGru)
 	  CloseAll(aUseDbf)
 	  IF !lFileDelete(FileTem)
 	     cError('NO SE BORRO EL ARCHIVO TEMPORAL')
@@ -573,7 +576,6 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *>>>>FIN ANALISIS PARA CENTRAR EL INFORME
 
 *>>>>ACTIVACION DE LA IMPRESORA
-       ActivaPrn(lSiRed,cNomSis,PathSis,fSimCar,'cColaAcCar','Car')
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
@@ -902,14 +904,16 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
 *                             TOTALIZACION DEL PAGO
 				aVlrPagos(PAG->dFecPagPag,;
-					  PAG->nVlrPagPag,@aVlrPag,1)
+					  PAG->nVlrPagPag,@aVlrPag,1,;
+					  PAG->cCodigoBan)
 
 				aPagMes[nMesPag] += PAG->nVlrPagPag
 				IF PAG->cEstadoPag == 'A'
 				   aPagMes[nMesPag] += nVlrInt
 
 				   aVlrPagos(PAG->dFecPagPag,;
-					     nVlrInt,@aVlrPag,1)
+					     nVlrInt,@aVlrPag,1,;
+					     PAG->cCodigoBan)
 				ENDIF
 *                             FIN TOTALIZACION DEL PAGO
 
@@ -1519,6 +1523,9 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        ENDFOR
        cTxtPrn := 'TOTALES         '+cRegPrint(aTitulo,aNroCol)
        lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
+       lPrnReg(02,nColCab,'ESTUDIANTES='+STR(nPagTot,4),;
+	       bPagina,bDerAut,bCabeza)
 *>>>>FIN IMPRESION DEL GRAN TOTAL
 
 *>>>>IMPRESION DEL TOTALES POR MESES
@@ -1549,18 +1556,20 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        AADD(aNroCol,16)
        AADD(aCamXml,'TOTALES')
 
-       lPrnReg(02,nColCab,'ESTUDIANTES='+STR(nPagTot,4),;
-	       bPagina,bDerAut,bCabeza)
-
        cTxtPrn := 'GRANDES TOTALES '+cRegPrint(aTitulo,aNroCol)
        lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
 
        FOR i := 1 TO LEN(aVlrPag)
 
+
+
 	   aTitulo := {}
 	   aTitPrn := {}
+
+
 	   AADD(aTitPrn,STR(aVlrPag[i][1],4)+' '+;
-			cMes(aVlrPag[i][2],3))
+			cMes(aVlrPag[i][2],3)+SPACE(02)+aVlrPag[i][7])
+
 
 	   IF nSuma(aVlrPag,3) # 0
 	      AADD(aTitulo,TRANS(aVlrPag[i][3],"####,###,###")) // Recibos
@@ -1582,7 +1591,8 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 			      aVlrPag[i][5],"####,###,###")) // Totales
 
 	   cTxtPrn := STR(aVlrPag[i][1],4)+' '+;
-		      cMes(aVlrPag[i][2],3)+SPACE(08)+;
+		      cMes(aVlrPag[i][2],3)+SPACE(02)+;
+		      aVlrPag[i][7]+SPACE(04)+;
 		      cRegPrint(aTitulo,aNroCol)
 
 	   lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
@@ -1687,7 +1697,34 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
        AADD(aTitPrn,'')  // Url
        AADD(aRegPrn,aTitPrn)
+
 *>>>>FIN IMPRESION DEL TOTALES POR MESES
+
+
+
+*>>>>GRABACION DEL TOTAL PAGOS
+       IF lLocCodigo('nNroMesCnc','CNC',nMesIniTpa)
+
+	  IF lAllGru
+
+	     IF CNC->nTotPagCnc == aTotal[LEN(aTotal)]
+		lSavPagVal(nMesIniTpa,aTotal[LEN(aTotal)],;
+			   lShared,.F.,cNomUsr)
+	     ELSE
+		SET DEVICE TO SCREEN
+		cError('PAGOS DESCUADRADOS CON LA FACTURACION')
+		SET DEVICE TO PRINT
+	     ENDIF
+
+	  ENDIF
+       ELSE
+	  SET DEVICE TO SCREEN
+	  cError('NO SE HA CREADO EL MES DE '+cMes(nMesIniTpa,3)+' '+;
+		 'DE LA CONCIALIACION')
+	  SET DEVICE TO PRINT
+       ENDIF
+*>>>>FIN GRABACION DEL TOTAL PAGOS
+
 
 *>>>>IMPRESION DERECHOS
        DerechosPrn(cNomSis,cNomEmp,n17Stan)

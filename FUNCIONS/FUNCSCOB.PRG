@@ -300,6 +300,7 @@ FUNCTION MantenCob(aParam1,aParam2,aParam3)
        nMesIni := nMesano(nFilInf+1,IF(nColInf+49>80,31,nColInf),;
 			     'Por Favor Seleccione el Mes',.T.)
        RESTSCREEN(0,0,24,79,cSavPan)
+
        IF nMesIni == 0
 	  CloseAll()
 	  RETURN NIL

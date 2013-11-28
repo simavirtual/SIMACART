@@ -119,18 +119,18 @@ FUNCTION Carte_203(aParam1,aParam2,aParam3,cModem)
 
 *>>>>DECLARCION Y EJECUCION DEL MENU
        cSavPan := SAVESCREEN(0,0,24,79)
-       aMenus := {'1<MOVIMIENTO DIARIO     >',;
-		  '2<MOVIMIENTO FACTURACION>',;
-		  '3<EXTRACTO BANCARIO     >',;
-		  '4<TIPOS DE TRANSACIONES >',;
-		  '5<CONCEPTOS TRANSACIONES>',;
-		  '6<CUENTAS CONTABILIDAD  >'}
+       aMenus := {'1<MOVIMIENTO DIARIO      >',;
+		  '2<MOVIMIENTO FACTURACION >',;
+		  '3<EXTRACTO BANCARIO      >',;
+		  '4<TIPOS DE TRANSACCIONES >',;
+		  '5<CONCEPTOS TRANSACCIONES>',;
+		  '6<CUENTAS CONTABILIDAD   >'}
 
        aAyuda := {'Procesa los Movimientos del d¡a',;
 		  'Procesa los Movimientos para la Facturaci¢n del mes',;
-		  'Procesa los Movimientos del Estracto Bancario',;
-		  'Permite Consultar e Incluir los tipos de Transaciones',;
-		  'Permite Consultar e Incluir los Conceptos de las Transaciones',;
+		  'Procesa los Movimientos del Extracto Bancario',;
+		  'Permite Consultar e Incluir los tipos de Transacciones',;
+		  'Permite Consultar e Incluir los Conceptos de las Transacciones',;
 		  'Permite Consultar e Incluir las Cuentas de Contabilidad'}
 *>>>>FIN DECLARCION Y EJECUCION DEL MENU
 
@@ -181,8 +181,7 @@ FUNCTION Carte_203(aParam1,aParam2,aParam3,cModem)
 	      *Mantenimiento del archivo Conceptos de Transaciones
 
 	  CASE nNroOpc == 6
-	       MantenPuc(aParam1,aParam2,aParam3,;
-			 cModem)
+	       MantenPuc(aParam1,aParam2,aParam3,cModem)
 	      *Mantenimientos del Archivo de Cuentas del Puc
 
 	  ENDCASE

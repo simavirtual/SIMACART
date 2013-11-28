@@ -1480,6 +1480,16 @@ FUNCTION oConBrwPag(nFilSup,nColSup,nFilInf,nColInf,lModReg)
      *ÀDefinici¢n Columna
 */
 
+       oColumn := TBCOLUMNNEW('CODIGO;BANCO',{||PAG->cCodigoBan})
+       IF lModReg
+	  oColumn:Cargo := {{'MODI',.T.},{'ALIAS','PAG'},{'FIELD','cCodigoBan'},;
+			    {'PICTURE','@!'}}
+       ELSE
+	  oColumn:Cargo := {{'MODI',.F.}}
+       ENDIF
+       oBrowse:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
        IF lModReg
 	  oColumn := TBCOLUMNNEW('NOVEDAD;DATACREDITO',{||PAG->cNovRepPag})
 	  oColumn:Cargo := {{'MODI',.T.},{'ALIAS','PAG'},{'FIELD','cNovRepPag'},;
@@ -1548,16 +1558,6 @@ FUNCTION oConBrwPag(nFilSup,nColSup,nFilInf,nColInf,lModReg)
        oColumn	     := TBCOLUMNNEW('RECIBO No',{||PAG->nNroFacCaA})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','PAG'},{'FIELD','nNroFacCaA'},;
 			 {'PICTURE','999999999999'}}
-       oBrowse:ADDCOLUMN(oColumn)
-     *ÀDefinici¢n Columna
-
-       oColumn := TBCOLUMNNEW('CODIGO;BANCO',{||PAG->cCodigoBan})
-       IF lModReg
-	  oColumn:Cargo := {{'MODI',.T.},{'ALIAS','PAG'},{'FIELD','cCodigoBan'},;
-			    {'PICTURE','@!'}}
-       ELSE
-	  oColumn:Cargo := {{'MODI',.F.}}
-       ENDIF
        oBrowse:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 

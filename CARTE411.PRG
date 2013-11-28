@@ -97,6 +97,7 @@ FUNCTION Carte_411(aParam1,aParam2,aParam3)
        LOCAL aCamXml := {}                  // Campo Xml
        LOCAL aRegXml := {}                  // Registros de Impresion
        LOCAL PathAct := ''                  // Path Actual
+       LOCAL aTotDia := {}                  // Total por edades
        LOCAL GetList := {}                  // Variable del sistema
      *ÀVariables espec¡ficas
 
@@ -601,7 +602,8 @@ FUNCTION Carte_411(aParam1,aParam2,aParam3)
 				GRU->cCodigoGru,nColCab,;
 				aTitulo,aNroCol,bPagina,bDerAut,;
 				bCabeza,nMesIniTpa,dFecPrn,lPrnFec,;
-				@nNroAlu,aConGru,nTipPrn,aRegXml)
+				@nNroAlu,aConGru,nTipPrn,aRegXml,aTotDia)
+
 	    nTotDeu += nDeuGru
 	    nDeuNiv += nDeuGru
 
@@ -768,6 +770,70 @@ FUNCTION Carte_411(aParam1,aParam2,aParam3)
        ENDIF
 *>>>>FIN IMPRESION DE LOS TOTALES
 
+*>>>>ENCABEZADOS DE TOTALES
+       IF nTipPrn == 0 .OR. nTipPrn == 1
+
+	  aNroCol := {04,14,14,14}
+	  aTitulo := {'EDAD',;
+		      'SALDO',;
+		      'DEUDA',;
+		      'MORA'}
+	  cCabCol := cRegPrint(aTitulo,aNroCol)
+
+	  lPrnReg(02,nColCab,REPL('=',LEN(cCabCol)),bPagina,bDerAut,bCabeza)
+	  lPrnReg(01,nColCab,cCabCol,bPagina,bDerAut,bCabeza)
+	  lPrnReg(01,nColCab,REPL('=',LEN(cCabCol)),bPagina,bDerAut,bCabeza)
+
+       ENDIF
+*>>>>FIN ENCABEZADOS DE TOTALES
+
+*>>>>CARTERA POR EDADES
+       IF nTipPrn == 0 .OR. nTipPrn == 1
+
+	  aTotDia := ASORT(aTotDia,,,{|x,y|x[1] < y[1]})
+	  FOR i := 1 TO LEN(aTotDia)
+
+	      aTitulo := {}
+	      AADD(aTitulo,STR(aTotDia[i,1],4))
+	      AADD(aTitulo,TRANS(aTotDia[i,2]+;
+				 aTotDia[i,3],'####,###,###'))
+	      AADD(aTitulo,TRANS(aTotDia[i,2],'####,###,###'))
+	      AADD(aTitulo,TRANS(aTotDia[i,3],'####,###,###'))
+
+	      cTxtPrn := cRegPrint(aTitulo,aNroCol)
+	      lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
+	  ENDFOR
+
+       ENDIF
+*>>>>FIN CARTERA POR EDADES
+
+*>>>>TOTALES
+       IF nTipPrn == 0 .OR. nTipPrn == 1
+
+	  aTitulo := {}
+	  AADD(aTitulo,REPL('-',aNroCol[1]))
+	  AADD(aTitulo,REPL('-',aNroCol[2]))
+	  AADD(aTitulo,REPL('-',aNroCol[3]))
+	  AADD(aTitulo,REPL('-',aNroCol[4]))
+
+	  cTxtPrn := cRegPrint(aTitulo,aNroCol)
+	  lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
+	  aTitulo := {}
+	  AADD(aTitulo,'TOT.')
+	  AADD(aTitulo,TRANS(nSuma(aTotDia,2)+;
+			     nSuma(aTotDia,3),'####,###,###'))
+	  AADD(aTitulo,TRANS(nSuma(aTotDia,2),'####,###,###'))
+	  AADD(aTitulo,TRANS(nSuma(aTotDia,3),'####,###,###'))
+
+	  cTxtPrn := cRegPrint(aTitulo,aNroCol)
+	  lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
+       ENDIF
+*>>>>FIN TOTALES
+
+
 *>>>>IMPRESION DEL PAGO POR CONCEPTOS
        IF .NOT. EMPTY(aTotCon)
 
@@ -888,7 +954,7 @@ SINTAXIS:
 FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 		  cCodGru,nColCab,aTitulo,aNroCol,bPagina,bDerAut,;
 		  bCabeza,nMesIni,dFecPrn,lPrnFec,nNroAlu,aConGru,;
-		  nTipPrn,aRegXml)
+		  nTipPrn,aRegXml,aTotDia)
 
 *>>>>DESCRIPCION DE PARAMETROS
 /*     aParam1                              // Parametros Generales
@@ -905,7 +971,8 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
        lPrnFec                              // .T. Imprimir por Fechas
        nNroAlu                              // N£mero de Alumnos
        nTipPrn			            // Tipo de Informe
-       aRegXml                              // Registro de Impresi¢n */
+       aRegXml                              // Registro de Impresi¢n
+       aTotDia                              // Total por edades */
 *>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
@@ -1182,7 +1249,6 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 **********FIN ANALISIS DEL PAGO
 
 
-
 **********DESCRIMIMACION DEL SALDO
 	    IF CAA->lPrnConCaA .AND. nSdoActTcl+nSdoMorTcl # 0
 	       lHayErr := !lVlrConSdo(nSdoActTcl,nSdoMorTcl,aConAlu,;
@@ -1272,6 +1338,47 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 	    ENDIF
 **********FIN AVANCE DEL SIGUIENTE CLIENTE
 
+**********DESCRIMIMACION DEL SALDO
+	    IF !CAA->lPrnConCaA
+
+	       nDiaMor := 0
+	       IF nSdoActTcl+nSdoMorTcl # 0
+
+		  lHayErr := !lVlrConSdo(nSdoActTcl,nSdoMorTcl,aConAlu,;
+					 @nDiaMor,@nMesSdo)
+
+	       ENDIF
+
+	       aConAlu := {}  // Borra la descriminaci¢n de los conceptos
+
+	    ENDIF
+**********FIN DESCRIMIMACION DEL SALDO
+
+**********LOCALIZACION DE LOS DIAS EN MORA
+	    IF !CAA->lPrnConCaA
+
+	       IF EMPTY(aTotDia)
+		  AADD(aTotDia,{nDiaMor,;          // 1. Dias en mora
+				     0,;           // 2. Deuda
+				     0})           // 3. Mora
+		  i := LEN(aTotDia)
+	       ELSE
+		  i := ASCAN(aTotDia,{|aArr|aArr[1] == nDiaMor})
+		  IF i == 0
+		     AADD(aTotDia,{nDiaMor,;       // 1. Dias en mora
+					0,;        // 2. Deuda
+					0})        // 3. Mora
+		      i := LEN(aTotDia)
+		  ENDIF
+	       ENDIF
+
+	       aTotDia[i,2] += nSdoActTcl	        // 2. Deuda
+	       aTotDia[i,3] += nSdoMorTcl	        // 3. Mora
+
+	    ENDIF
+**********FIN LOCALIZACION DE LOS DIAS EN MORA
+
+
 **********IMPRESION DEL CONTENIDO DEL INFORME
 	    IF nTipPrn == 0 .OR. nTipPrn == 1
 
@@ -1291,7 +1398,7 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 	    DO CASE
 	    CASE nTipPrn == 0
 
-		 AADD(aTitulo,SPACE(04)) // EDAD DE LA CARTERA
+		 AADD(aTitulo,STR(nDiaMor,3)) // EDAD DE LA CARTERA
 		 AADD(aTitulo,SUBS(&cNalias->cNomPadEst,1,18))
 		 AADD(aTitulo,&cNalias->cTelPadEst)
 		 AADD(aTitulo,SUBS(&cNalias->cNomMadEst,1,18))

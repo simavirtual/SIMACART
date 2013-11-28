@@ -27,6 +27,15 @@
        fi \SimaClip.v52\sima.fun\eCartOnl
      #ÀFunciones Generadas
 
+       fi \SimaClip.v52\sima.fun\gCartMvt
+       fi \SimaClip.v52\sima.fun\eCartMvt
+
+       fi \SimaClip.v52\sima.fun\gCartCtT
+
+       fi \SimaClip.v52\sima.fun\gCartCnc
+       fi \SimaClip.v52\sima.fun\eCartCnc
+     #ÀFunciones A¤o
+
        fi \SimaClip.v52\sima.fun\SimaFun
        fi \SimaClip.v52\sima.fun\SimaAlu
        fi \SimaClip.v52\sima.fun\SimaGru

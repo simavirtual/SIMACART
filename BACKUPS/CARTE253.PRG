@@ -103,7 +103,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
        LOCAL aPagMes[13]                    // Pagos por Meses
        LOCAL aAboMes[13]                    // Abonos por Meses
-       LOCAL aParMes[13]                    // Abonos por Meses
+       LOCAL aParMes[13]                    // Pagos Parciales por Meses
        LOCAL aVlrPag := {}                  // Total Pagos
        LOCAL nTotAbo := 0                   // Total Abonos
        LOCAL lPagMes := .F.                 // .T. Hay pagos descriminados por meses
@@ -573,7 +573,6 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *>>>>FIN ANALISIS PARA CENTRAR EL INFORME
 
 *>>>>ACTIVACION DE LA IMPRESORA
-       ActivaPrn(lSiRed,cNomSis,PathSis,fSimCar,'cColaAcCar','Car')
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
@@ -902,14 +901,16 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
 *                             TOTALIZACION DEL PAGO
 				aVlrPagos(PAG->dFecPagPag,;
-					  PAG->nVlrPagPag,@aVlrPag,1)
+					  PAG->nVlrPagPag,@aVlrPag,1,;
+					  PAG->cCodigoBan)
 
 				aPagMes[nMesPag] += PAG->nVlrPagPag
 				IF PAG->cEstadoPag == 'A'
 				   aPagMes[nMesPag] += nVlrInt
 
 				   aVlrPagos(PAG->dFecPagPag,;
-					     nVlrInt,@aVlrPag,1)
+					     nVlrInt,@aVlrPag,1,;
+					     PAG->cCodigoBan)
 				ENDIF
 *                             FIN TOTALIZACION DEL PAGO
 
@@ -1519,6 +1520,9 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        ENDFOR
        cTxtPrn := 'TOTALES         '+cRegPrint(aTitulo,aNroCol)
        lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
+       lPrnReg(02,nColCab,'ESTUDIANTES='+STR(nPagTot,4),;
+	       bPagina,bDerAut,bCabeza)
 *>>>>FIN IMPRESION DEL GRAN TOTAL
 
 *>>>>IMPRESION DEL TOTALES POR MESES
@@ -1549,18 +1553,20 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        AADD(aNroCol,16)
        AADD(aCamXml,'TOTALES')
 
-       lPrnReg(02,nColCab,'ESTUDIANTES='+STR(nPagTot,4),;
-	       bPagina,bDerAut,bCabeza)
-
        cTxtPrn := 'GRANDES TOTALES '+cRegPrint(aTitulo,aNroCol)
        lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
 
        FOR i := 1 TO LEN(aVlrPag)
 
+
+
 	   aTitulo := {}
 	   aTitPrn := {}
+
+
 	   AADD(aTitPrn,STR(aVlrPag[i][1],4)+' '+;
-			cMes(aVlrPag[i][2],3))
+			cMes(aVlrPag[i][2],3)+SPACE(02)+aVlrPag[i][7])
+
 
 	   IF nSuma(aVlrPag,3) # 0
 	      AADD(aTitulo,TRANS(aVlrPag[i][3],"####,###,###")) // Recibos
@@ -1582,7 +1588,8 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 			      aVlrPag[i][5],"####,###,###")) // Totales
 
 	   cTxtPrn := STR(aVlrPag[i][1],4)+' '+;
-		      cMes(aVlrPag[i][2],3)+SPACE(08)+;
+		      cMes(aVlrPag[i][2],3)+SPACE(02)+;
+		      aVlrPag[i][7]+SPACE(04)+;
 		      cRegPrint(aTitulo,aNroCol)
 
 	   lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
@@ -1687,6 +1694,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
        AADD(aTitPrn,'')  // Url
        AADD(aRegPrn,aTitPrn)
+
 *>>>>FIN IMPRESION DEL TOTALES POR MESES
 
 *>>>>IMPRESION DERECHOS

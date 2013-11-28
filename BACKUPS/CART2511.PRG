@@ -27,8 +27,8 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 *>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
-       #INCLUDE "EPSONFX.PRG"  // Impresora EPSON FX
-       #INCLUDE "ARC-FACT.PRG"      // Archivos del Sistema
+       #INCLUDE "EPSONFX.PRG"               // Impresora EPSON FX
+       #INCLUDE "ARC-FACT.PRG"              // Archivos del Sistema
 
        #DEFINE nDEUANT 1                    // Deuda Anterior
        #DEFINE nMORANT 2                    // Mora Anterior
@@ -778,6 +778,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 		      nVlrDes := PAG->nVlrDesPag+PAG->nDesGenPag
 		      nVlrRec := PAG->nVlrRecPag+PAG->nRecGenPag
 		      nVlrBec := PAG->nVlrBecPag
+
 		      nTotDes += nVlrDes
 		      nTotRec += nVlrRec
 		      nTotBec += nVlrBec
@@ -1020,6 +1021,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 *-------------------CALCULO DE OTROS TOTALES
 		      aRegEst[nDEUANT] += PAG->nSdoAnoPag
 		      aRegEst[nMORANT] += PAG->nMorAnoPag
+
 		      DO CASE
 		      CASE PAG->cEstadoPag == 'P' .OR.;
 			   PAG->cEstadoPag == 'A'

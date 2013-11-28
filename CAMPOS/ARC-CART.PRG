@@ -39,6 +39,9 @@ OBJETIVOS:
        LOCAL lSiRed  := .T.                 // .T. Apertura de Archivos MultiUsuario
        LOCAL lNoRed  := .T.                 // .F. Apertura de Archivo MonoUsuario
 
+       LOCAL fileMvt := 'MOVICONT'               // Ej: MOVICONT.DAT
+     *ÀMovimientos Contables
+
 
        LOCAL PathPrn := 'PRINTER'           // Path para impresiones
        LOCAL PathDoc := 'c:\misdoc'         // Path de Documentos del sima
@@ -173,6 +176,12 @@ OBJETIVOS:
        LOCAL PathOnl := ''
        LOCAL FileOnl := 'ONL'                            // Pagos en l¡nea
      *ÀPagos en l¡nea
+
+       LOCAL FileCtt := 'CUENTAT'+ExtFile
+     *ÀCuenta T
+
+       LOCAL FileMvt := 'MOVICONT'+ExtFile               // Ej: MOVICONT.DAT
+     *ÀMovimientos Contables
 *>>>>DECLARACION DE ARCHIVOS DEL SISTEMA
 
 *>>>>DECLARACION DE ARCHIVOS COMPARTIDOS

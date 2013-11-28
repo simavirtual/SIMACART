@@ -487,8 +487,15 @@ FUNCTION CarVsBan(aParam1,aParam2,aParam3,;
 				     cFecha(dFecFin),''),;
 		   nNroPag++,;
 		   NIL,lTamAnc}
+
+/*
        cCodIni := DRAFT_ON+ELITE+CONDEN_ON
        cCodFin := NEGRA_OF+DOBGOL_OF
+*/
+
+       cCodIni := PCL({'DraftOn','Pica','CondenOn'})
+       cCodFin := PCL({'NegraOf','DobGolOf'})
+
 *>>>>FIN DEFINCION DEL ENCABEZADO
 
 *>>>>ENCABEZADOS DE COLUMNA
@@ -523,7 +530,7 @@ FUNCTION CarVsBan(aParam1,aParam2,aParam3,;
 	  SET DEVICE TO PRINT
        ELSE
 
-	  FilePrn := 'INBANPAG'
+	  FilePrn := BAN->cCodigoBan+'INPABA'
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 
 	  IF EMPTY(nOpcPrn)
@@ -929,6 +936,7 @@ FUNCTION BanVsCar(aParam1,aParam2,aParam3,;
        LOCAL cConTxt := ''                  // Descripci¢n del Concepto
        LOCAL cMesTra := ''                  // Mes Transaci¢n
        LOCAL lHayAlu := .F.                 // .T. Hay Alumno
+       LOCAL lHayPag := .F.                 // .T. Hay pago
 
        LOCAL GetList := {}                  // Variable del Sistema
        LOCAL cCodigoTes := ''               // C¢digo del Estudiante
@@ -1019,7 +1027,6 @@ FUNCTION BanVsCar(aParam1,aParam2,aParam3,;
 	  RETURN NIL
        ENDIF
        RESTSCREEN(0,0,24,79,cSavPan)
-       ActivaPrn(lShared,cNomSis,PathSis,fSimCar,'cColaAcCar','Car',,nModCry)
 *>>>>FIN ANALISIS DE DECISION
 
 *>>>>DEFINCION DEL ENCABEZADO
@@ -1034,8 +1041,14 @@ FUNCTION BanVsCar(aParam1,aParam2,aParam3,;
 		   '',;
 		   nNroPag++,;
 		   NIL,lTamAnc}
+
+/*
        cCodIni := DRAFT_ON+ELITE+CONDEN_ON
        cCodFin := NEGRA_OF+DOBGOL_OF
+*/
+
+       cCodIni := PCL({'DraftOn','Pica','CondenOn'})
+       cCodFin := PCL({'NegraOf','DobGolOf'})
 *>>>>FIN DEFINCION DEL ENCABEZADO
 
 *>>>>ENCABEZADOS DE COLUMNA
@@ -1069,7 +1082,9 @@ FUNCTION BanVsCar(aParam1,aParam2,aParam3,;
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.)
+
+	  FilePrn := BAN->cCodigoBan+'INBAPA'
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     RETURN NIL
 	  ENDIF
@@ -1194,8 +1209,8 @@ FUNCTION BanVsCar(aParam1,aParam2,aParam3,;
 	    AADD(aUseDbf,{.T.,cPatSis+'\'+;
 			      fCarAno+cAnoUsr+ExtFile,'CAA',NIL,lShared,nModCry})
 	    AADD(aUseDbf,{.T.,FileCli,'CLI',NIL,lShared,nModCry})
-	    AADD(aUseDbf,{.T.,FilePag,'PGO',NIL,lShared,nModCry})
-	    AADD(aUseDbf,{.T.,cTemDos+'\'+'PAGOS'+ExtFile,'PAG',;
+	    AADD(aUseDbf,{.T.,FilePag,'PAG',NIL,lShared,nModCry})
+	    AADD(aUseDbf,{.T.,cTemDos+'\'+'PAGOS'+ExtFile,'PMT',;
 			      cTemDos+'\'+'PAGOS'+cExtNtx,lShared,0})
 	    AADD(aUseDbf,{.T.,cTemSis+'\'+FileDes,'DES',;
 			      cTemSis+'\'+fNtxDes,lShared,nModCry})
@@ -1231,10 +1246,11 @@ FUNCTION BanVsCar(aParam1,aParam2,aParam3,;
 
 **********ANALISIS DEL VALOR DE LA PENSION
 	    aTitulo := NIL
+	    lHayPag := .F.
 	    IF TRA->nCodigoCmv == 1 .OR. TRA->nCodigoCmv == 2
 
 *              CALCULO DE LOS INTERESES
-		 lLocCodPag(cCodigoTes,VAL(cMesTra),.F.)
+		 lHayPag := lLocCodPag(cCodigoTes,VAL(cMesTra),.F.)
 
 		 nVlrInt := 0
 		 IF PAG->cEstadoPag == 'A'
@@ -1244,21 +1260,42 @@ FUNCTION BanVsCar(aParam1,aParam2,aParam3,;
 		 ENDIF
 *              FIN CALCULO DE LOS INTERESES
 
+*              ANALISIS DE DECISION
+		 IF (PAG->cEstadoPag == 'P'  .OR.;
+		     PAG->cEstadoPag == 'A')
+
+		     IF PAG->cCodigoBan # BAN->cCodigoBan
+
+			aTitulo := {SPACE(12),;
+				    SPACE(12),;
+				    TRANS(nVlrTra,"####,###,###"),;
+				    cFecha(TRA->dFechaTra),;
+				    SPACE(12),;
+				    'PAGO DE '+cMes(VAL(cMesTra),3),;
+				    cNombreTes,;
+				    'CODIGO DEL BANCO:'+PAG->cCodigoBan+;
+				    ' NO COINCIDE.'}
+
+		     ENDIF
+
+		 ENDIF
+*              FIN ANALISIS DE DECISION
+
 *              ANALISIS DE LA DIFERENCIA
 
 		 IF (PAG->cEstadoPag == 'P'  .OR.;
 		     PAG->cEstadoPag == 'A')
 
-		     IF TRA->dFechaTra == PGO->dFecPagPag
+		     IF TRA->dFechaTra == PAG->dFecPagPag
 
 			IF ABS(PAG->nVlrPagPag+nVlrInt) # nVlrTra
 
-			   aTitulo := {cFecha(PGO->dFecPagPag),;
-				       TRANS(PGO->nVlrPagPag+nVlrInt,;
+			   aTitulo := {cFecha(PAG->dFecPagPag),;
+				       TRANS(PAG->nVlrPagPag+nVlrInt,;
 					     "####,###,###"),;
 				       TRANS(nVlrTra,"####,###,###"),;
 				       cFecha(TRA->dFechaTra),;
-				       TRANS(PGO->nVlrPagPag+nVlrInt-ABS(nVlrTra),;
+				       TRANS(PAG->nVlrPagPag+nVlrInt-ABS(nVlrTra),;
 					     "####,###,###"),;
 				       'PAGO DE '+cMes(VAL(cMesTra),3),;
 				       cNombreTes,;
@@ -1301,20 +1338,20 @@ FUNCTION BanVsCar(aParam1,aParam2,aParam3,;
 **********ANALISIS DEL VALOR DE LA MATRICULA
 	    IF TRA->nCodigoCmv == 4
 
-	       IF lSekCodigo(cCodigoTes+'1','PAG')
+	       IF lSekCodigo(cCodigoTes+'1','PMT')
 
-		  IF PAG->cCodigoEst # cCodigoTes
+		  IF PMT->cCodigoEst # cCodigoTes
 		     cError('ERROR EN LA BUSQUEDA '+cCodigoTes)
 		  ENDIF
 
-		  IF PAG->nVlrPagPag # nVlrTra
+		  IF PMT->nVlrPagPag # nVlrTra
 
-		       aTitulo := {cFecha(PAG->dFecPagPag),;
-				   TRANS(PAG->nVlrPagPag,;
+		       aTitulo := {cFecha(PMT->dFecPagPag),;
+				   TRANS(PMT->nVlrPagPag,;
 					 "####,###,###"),;
 				   TRANS(nVlrTra,"####,###,###"),;
 				   cFecha(TRA->dFechaTra),;
-				   TRANS(PAG->nVlrPagPag-ABS(nVlrTra),;
+				   TRANS(PMT->nVlrPagPag-ABS(nVlrTra),;
 					 "####,###,###"),;
 				   'MATRICULA',;
 				   cNombreTes,;

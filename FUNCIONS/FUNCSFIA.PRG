@@ -1181,7 +1181,7 @@ FUNCTION lDatosFia(lShared,lInsReg,nFilInf,nColInf,cCodEst,cNroFia,cDocNit,;
 	    @nNroFil,nNroCol+63 SAY 'ESTRATO:';
 				GET cEstrat PICT "9";
 				VALID !EMPTY(cEstrat);
-	      WHEN {||HelpRead('INGRESE EL NUMERO DEL ESTRACTO DEL FIADOR')}
+	      WHEN {||HelpRead('INGRESE EL NUMERO DEL ESTRATO DEL FIADOR')}
 
 	    nNroFil += 2
 	    @ nNroFil,nNroCol+00 SAY 'DOCUMENTO: '+cDocNit

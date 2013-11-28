@@ -85,6 +85,7 @@ FUNCTION CreaDbfDes(lShared,nModCry,PathDes,FileDes,fNtxDes,aStrDbf)
 			 {"nVlrCo6Des","Numeric"  ,10,2},; // Valor del Concepto No. 6
 			 {"nVlrCo7Des","Numeric"  ,10,2},; // Valor del Concepto No. 7
 			 {"nVlrCo8Des","Numeric"  ,10,2},; // Valor del Concepto No. 8
+			 {"cCodigoBan","Character",02,0},; // C¢digo del Banco
 			 {"cNomUsrDes","Character",10,0},; // Nombre del Usuario
 			 {"dFecUsrDes","Date"     ,08,0},; // Fecha del Usuario
 			 {"cHorUsrDes","Character",10,0},; // Hora del Usuario
@@ -780,6 +781,12 @@ FUNCTION oDefBrwDes(lShared,nFilSup,nColSup,nFilInf,nColInf,nNroFil,;
 	  oBrowse:ADDCOLUMN(oColumn)
 	*ÀDefinici¢n Columna
        ENDIF
+
+       oColumn	     := TBCOLUMNNEW('BANCO',{||DES->cCodigoBan})
+       oColumn:Cargo := {{'MODI',.F.},{'ALIAS','DES'},{'FIELD','cCodigoBan'},;
+			 {'PICTURE','@!'}}
+       oBrowse:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
 
        oColumn	     := TBCOLUMNNEW('NOMBRE;DEL USUARIO',{||DES->cNomUsrDes})
        oColumn:Cargo := {{'MODI',.F.}}
@@ -3380,7 +3387,7 @@ FUNCTION OtrDes014(aParam1,aParam2,aParam3,;
        ENDIF
 *>>>>FIN LECTURA PARAMETROS GENERALES
 
-*>>>>CAPTURA DEL MES A PAGAR
+*>>>>CAPTURA DEL ABONO
        cSavPan := SAVESCREEN(0,0,24,79)
        nNroMesTde := nMesAno(09,09,'Mes de los Abonos',.T.)
        RESTSCREEN(0,0,24,79,cSavPan)
@@ -3389,11 +3396,11 @@ FUNCTION OtrDes014(aParam1,aParam2,aParam3,;
        ENDIF
        cNroMes := STR(nNroMesTde,2)
        lCorrecion(@cNroMes)
-*>>>>FIN CAPTURA DEL MES A PAGAR
+*>>>>FIN CAPTURA DEL MES DEL ABONO
 
 *>>>>CAPTURA DEL MES A PAGAR
        cSavPan := SAVESCREEN(0,0,24,79)
-       nMesPag := nMesAno(09,09,'Mes de pago',.T.)
+       nMesPag := nMesAno(10,09,'Mes del Pago',.T.)
        RESTSCREEN(0,0,24,79,cSavPan)
        IF EMPTY(nMesPag)
 	  RETURN NIL
@@ -3408,7 +3415,7 @@ FUNCTION OtrDes014(aParam1,aParam2,aParam3,;
 		       BAN->cCodigoBan+cAnoUsr+cMesPag+ExtFile,'EXT',;
 		       NIL,lShared,nModCry)
 	  CloseDbf('EXT')
-	  nHayExt := 0
+	 RETURN NIL
        ENDIF
 *>>>>FIN AREAS DE TRABAJO
 
@@ -3443,6 +3450,7 @@ FUNCTION OtrDes014(aParam1,aParam2,aParam3,;
        cCodIni := PCL({'DraftOn','Elite','CondenOn'})
        cCodFin := PCL({'NegraOf','DobGolOf'})
 *>>>>FIN DEFINCION DEL ENCABEZADO
+
 
 *>>>>ENCABEZADOS DE COLUMNA
        aNroCol := {06,06,30,08,12,12,12,12,20}
@@ -3482,8 +3490,9 @@ FUNCTION OtrDes014(aParam1,aParam2,aParam3,;
 *>>>>ACTIVACION DE LA IMPRESORA
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
-       ELSE
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.)
+       ELSE                   
+	  FilePrn := 'Abo'+cMes(nNroMesTde,3)+'PA'
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     RESTSCREEN(0,0,24,79,cSavPan)
 	     RETURN NIL
@@ -3527,20 +3536,13 @@ FUNCTION OtrDes014(aParam1,aParam2,aParam3,;
 ***********LOCALIZACION DEL PAGO EN EL EXTRACTO
 	     nVlrBan := 0
 	     dFecBan := CTOD('00/00/00')
-	     IF nHayExt == 1
 
-		cCodRef := DES->cCodigoEst+'14'+cNroMes
-		SELECT EXT
-		LOCATE FOR SUBS(EXT->cCodRefTra,1,10) == cCodRef
+	     cCodRef := DES->cCodigoEst+'14'+cNroMes
 
-		IF EXT->(FOUND())
-		   nVlrBan := EXT->nValorTra
-		   dFecBan := EXT->dFechaTra
-		   nAboBan += nVlrBan
-		ELSE
-		   nHayExt := 2
-		ENDIF
-
+	     IF nVlrAboExt(cCodRef,nVlrAbo,DES->dFechaDes) # 0
+		nVlrBan := EXT->nValorTra
+		dFecBan := EXT->dFechaTra
+		nAboBan += nVlrBan
 	     ENDIF
 ***********FIN LOCALIZACION DEL PAGO EN EL EXTRACTO
 
@@ -3558,16 +3560,13 @@ FUNCTION OtrDes014(aParam1,aParam2,aParam3,;
 	    AADD(aTitulo,cFecha(dFecBan))
 
 	    DO CASE
-	    CASE nHayExt == 0
-		 AADD(aTitulo,'EXTRACTO NO DISPONIBLE')
+	    CASE nVlrBan == 0
+		 AADD(aTitulo,'NO EXISTE EN BANCO')
 
-	    CASE nHayExt == 2
-		 AADD(aTitulo,'ABONO NO EXISTE EN EL BANCO')
+	    CASE nVlrAbo # nVlrBan
+		 AADD(aTitulo,TRANS(nVlrAbo-nVlrBan,'@Z ####,###,###'))
 
-	    CASE nHayExt == 1 .AND. nVlrAbo # nVlrBan
-		 AADD(aTitulo,'CIFRAS DESCUADRADAS')
-
-	    CASE nHayExt == 1 .AND. DES->dFechaDes # dFecBan
+	    CASE DES->dFechaDes # dFecBan
 		 AADD(aTitulo,'FECHAS DIFERENTES')
 	    OTHERWISE
 		 AADD(aTitulo,'')
@@ -3625,3 +3624,76 @@ FUNCTION OtrDes014(aParam1,aParam2,aParam3,;
        RESTSCREEN(0,0,24,79,cSavPan)
        RETURN NIL
 *>>>>FIN IMPRESION DERECHOS
+
+/*************************************************************************
+* TITULO..: LOCALIZAR EL ABONO DEL EXTRACTO                              *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: SEP 24/2013 MAR A
+       Colombia, Bucaramanga        INICIO: 11:30 AM   SEP 24/2013 MAR
+
+OBJETIVOS:
+
+1- Debe estar en uso el archivo
+
+2- Localiza el abono del Extracto
+
+3- Retorna Nil
+
+SINTAXIS:
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION nVlrAboExt(cCodRef,nVlrAbo,dFecPag)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     cCodRef                              // C¢digo de la Referencia
+       nVlrAbo                              // Valor del Abono
+       dFecPag                              // Fecha de Pago         */
+*>>>>FIN DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION DE VARIABLES
+       LOCAL nNroReg := 0                   // N£mero del Registro
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>FILTRACION DEL ARCHIVO
+       SELECT EXT
+       SET FILTER TO EXT->nCodigoCmv == 3  .AND.;
+		     SUBS(EXT->cCodRefTra,1,10) == cCodRef
+       IF EXT->(EOF())
+	  SET FILTER TO
+	  RETURN nNroReg
+       ENDIF
+*>>>>FIN FILTRACION DEL ARCHIVO
+
+*>>>>RECORRIDO DEL ARCHIVO
+       SELECT EXT
+       EXT->(DBGOTOP())
+       DO WHILE .NOT. EXT->(EOF())
+
+	  IF dFecPag == EXT->dFechaTra .AND.;
+	     nVlrAbo == EXT->nValorTra
+
+	     nNroReg := EXT->(RECNO())
+
+	     EXIT
+	  ENDIF
+	  EXT->(DBSKIP())
+
+       ENDDO
+*>>>>FIN RECORRIDO DEL ARCHIVO
+
+*>>>>UBICACION DEL REGISTRO
+       SET FILTER TO
+       IF nNroReg # 0
+	  EXT->(DBGOTO(nNroReg))
+       ELSE
+	  EXT->(DBGOTOP())
+       ENDIF
+       RETURN nNroReg
+*>>>>FIN UBICACION DEL REGISTRO
+
+	  
+

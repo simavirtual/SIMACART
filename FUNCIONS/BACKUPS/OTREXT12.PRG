@@ -247,7 +247,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
        IF CAR->lPrnArcCar
           SET DEVICE TO PRINT
        ELSE
-	  FilePrn := 'mvc'+cMes(VAL(cNroMes),3)
+	  FilePrn := 'mvc'+cMes(VAL(cNroMes),3)+BAN->cCodigoBan
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,.T.,,PathDoc)
 	  IF EMPTY(nOpcPrn)
              RETURN NIL

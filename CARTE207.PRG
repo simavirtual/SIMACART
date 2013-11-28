@@ -339,18 +339,21 @@ FUNCTION Carte_207(aParam1,aParam2,aParam3)
 *>>>>FIN ANALISIS DE DESICION
 
 *>>>>ACTIVACION DE LA IMPRESORA
-       ActivaPrn(lSiRed,cNomSis,PathSis,fSimCar,'cColaAcCar','Car')
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.)
+	  FilePrn := 'conci'+cMes(nMesIni,3)
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     CloseAll(aUseDbf)
 	     RETURN NIL
 	  ENDIF
        ENDIF
-       @ PROW(),00 SAY INICIALIZA
-       SendCodes(GRAPHI_ON+NEGRA_OF+CONDEN_OF+PROPOR_OF+PICA+DRAFT_ON)
+//       @ PROW(),00 SAY INICIALIZA
+       SendCodes(PCL('Reset'))
+//       SendCodes(PCL({'DraftOn','Elite','CondenOn'}))
+       SendCodes(PCL({'DraftOn','Elite'}))
+//       SendCodes(GRAPHI_ON+NEGRA_OF+CONDEN_OF+PROPOR_OF+PICA+DRAFT_ON)
 *>>>>FIN ACTIVACION DE LA IMPRESORA
 
 *>>>>IMPRESION DE LA ORDEN DE SALIDA
@@ -425,29 +428,29 @@ FUNCTION PrnInfCar(nMesIni,cAnoUsr,cFecha ,cNomRem,cNomDes,;
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>FECHA DE IMPRESION
-       SendCodes(MARIZQ_8+MARDER_75)
+//       SendCodes(MARIZQ_8+MARDER_75)
        @ PROW()+4,00 SAY cFecha
 *>>>>FIN FECHA DE IMPRESION
 
 *>>>>NOMBRE DEL REMITENTE
-       @ PROW()+4,00 SAY NEGRA_ON+'DE  : '+NEGRA_OF
+       @ PROW()+4,00 SAY PCL('NegraOn')+'DE  : '+PCL('NegraOf')
        @ PROW()+0,07 SAY cNomRem
 *>>>>FIN NOMBRE DEL REMITENTE
 
 *>>>>NOMBRE DEL DESTINATARIO
-       @ PROW()+1,00 SAY NEGRA_ON+'PARA: '+NEGRA_OF
+       @ PROW()+1,00 SAY PCL('NegraOn')+'PARA: '+PCL('NegraOf')
        @ PROW()+0,07 SAY cNomDes
 *>>>>FIN NOMBRE DEL DESTINATARIO
 
 *>>>>REFERENCIA
-       @ PROW()+3,00 SAY NEGRA_ON+'REF.: '+NEGRA_OF
+       @ PROW()+3,00 SAY PCL('NegraOn')+'REF.: '+PCL('NegraOf')
        @ PROW()+0,07 SAY 'CONCILIACION DE LA CARTERA.'+;
 			 ' MES DE '+cMes(nMesIni)+;
 			 ' DE '+cAnoUsr
 *>>>>FIN REFERENCIA
 
 *>>>>DATOS DE LA CONCILIACION
-       SendCodes(CONDEN_ON)
+       SendCodes(PCL('CondenOn'))
 
        nVlrFac := nVlrCon+nAntici+nRecarg-nVlrBec-nVlrDes
        nTotFac := nVlrFac+nIntPag+nIntCob
@@ -530,21 +533,21 @@ FUNCTION PrnInfCar(nMesIni,cAnoUsr,cFecha ,cNomRem,cNomDes,;
 *>>>>FIN DATOS DE LA CONCILIACION
 
 *>>>>RESUMEN DE INFORMES ANEXADOS
-       @ PROW()+2,00 SAY NEGRA_ON+'RESUMEN DE INFORMES ANEXADOS:'+NEGRA_OF
+       @ PROW()+2,00 SAY PCL('NegraOn')+'RESUMEN DE INFORMES ANEXADOS:'+PCL('NegraOf')
 
-       @ PROW()+1,00 SAY JUSTIF_ON+;
+       @ PROW()+2,00 SAY PCL('JFull')+;
 			 '- FACTURACION DEL MES. Con soporte en el informe '+;
 			 'RELACION PAGOS FACTURADOS de cada grupo, que a su '+;
-			 'vez esta soportado por cada recibo de pago y de '+;
-			 'los informes de los pagos reportados por el '+;
+			 'vez esta soportado por cada recibo'
+       @ PROW()+1,00 SAY SPACE(02)+'de pago y de los informes de los pagos reportados por el '+;
 			 'Banco o Coorporaci¢n.'
 
        @ PROW()+2,00 SAY '- RELACION ABONOS,DESCUENTOS Y RECARGOS. '+;
 			 'Los Abonos estan soportados por cada recibo y '+;
-			 'los Descuentos y Recargos con los formatos de '+;
-			 'autorizaci¢n'+JUSTIF_OF
+			 'los Descuentos y Recargos con los formatos'
+       @ PROW()+1,00 SAY SPACE(02)+'de autorizaci¢n'
 
-       @ PROW()+1,00 SAY '- RELACION DE ESTUDIANTES BECADOS. '+;
+       @ PROW()+2,00 SAY '- RELACION DE ESTUDIANTES BECADOS. '+;
 			 'Soportados con sus respectivas autorizaciones.'
 
        @ PROW()+2,00 SAY '- FACTURACION DEL MES. MES ANTERIOR. '+;
@@ -560,13 +563,14 @@ FUNCTION PrnInfCar(nMesIni,cAnoUsr,cFecha ,cNomRem,cNomDes,;
        @ PROW()+2,00 SAY 'NOTA: Los informes anexados todos son de fecha '+;
 			 cFecha(DATE())+'.'
 
-       SendCodes(CONDEN_OF)
+//       SendCodes(PCL('CondenOf'))
+       SendCodes(PCL({'DraftOn','Elite'}))
 *>>>>RESUMEN DE INFORMES ANEXADOS
 
 *>>>>PERSONAS QUE AUTORIZAN
        @ PROW()+3,00 SAY 'Atentamente,'
        @ PROW()+4,00 SAY CAR->cSecretCar
        @ PROW()+1,00 SAY CAR->cCarSecCar
-       @ PROW()+1,00 SAY JUSTIF_OF+MARIZQ_0+MARDER_80
+*       @ PROW()+1,00 SAY JUSTIF_OF+MARIZQ_0+MARDER_80
        RETURN NIL
 *>>>>FIN PERSONAS QUE AUTORIZAN

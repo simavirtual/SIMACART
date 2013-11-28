@@ -1,85 +1,56 @@
 /*SISTEMA DE CARTERA RESPALDO DE LA CONTABILIDAD ACADEMICA
 
-MODULO      : INFORMES
-SUBMODULO...: TOTAL PAGOS POR ALUMNOS
+MODULO      : PAGOS
+SUBMODULO...: COBROS                                   MODULO No. 208
 
 **************************************************************************
-* NOMBRE ..: RELACION DE DETALLADA POR FAMILIAS                          *
+* TITULO..: REPORTE DE MOROSOS                                           *
 **************************************************************************
 
-AUTOR: Nelson Fern쟮dez G줺ez       FECHA DE CREACION: ABR 20/2005 MIE A
-       Bucaramanga, Colombia        INICIO: 10:30 AM   ABR 20/2005 MIE
+AUTOR: Nelson Fern쟮dez G줺ez       FECHA DE CREACION: ABR 03/2001 MAR A
+       Colombia, Bucaramanga        INICIO: 10:25 AM   ABR 03/2001 MAR
+
+REQUERIMIENTOS:
+
+1- Para ejecutar la funci줻 tener presente la sintaxis
 
 OBJETIVOS:
 
-1- Imprime una relaci줻 detallada de facilitar los reportes.
+1- Visualiza el men� el reporte de los Morosos
+
+2- Ejecuta las diferentes opciones del menu.
+
+3- Retorna Nil
+
+SINTAXIS:
 
 *------------------------------------------------------------------------*
 *                              PROGRAMA                                  *
 *------------------------------------------------------------------------*/
 
-FUNCTION Carte_409(aParam1,aParam2,aParam3)
+FUNCTION Carte_409(aParam1,aParam2,aParam3,;
+		   cEmpCob)
 
 *>>>>DESCRIPCION DE PARAMETROS
 /*     aParam1                              // Parametros Generales
        aParam2                              // Parametros Generales
-       aParam3                              // Parametros Generales */
+       aParam3                              // Parametros Generales
+       cEmpCob                              // Empresa de Cobro de la Cartera */
 *>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
-       #INCLUDE "ARC-CART.PRG"       // Archivos del Sistema
-
        LOCAL cSavPan := ''                  // Salvar Pantalla
        LOCAL lHayErr := .F.                 // .T. Hay Error
        LOCAL cIntUno := ''                  // Path de integraci줻 uno
        LOCAL cIntDos := ''                  // Path de integraci줻 dos
        LOCAL cIntTre := ''                  // Path de integraci줻 tres
        LOCAL cIntCua := ''                  // Path de integraci줻 cuatro
-     *픙ariables generales
 
-       LOCAL cFecPrn := ''                  // @Fecha de Impresi줻
-       LOCAL cHorPrn := ''                  // @Hora de Impresi줻
-       LOCAL cDiaPrn := ''                  // @D죂 de Impresi줻
-       LOCAL nNroPag := 1                   // N즡ero de p쟥ina
-       LOCAL lTamAnc := .F.                 // .T. Tama쨚 Ancho
-       LOCAL nLinTot := 0                   // L죒eas totales de control
-       LOCAL nTotReg := 0                   // Total de registros
-       LOCAL aCabPrn := {}                  // Encabezado del informe General
-       LOCAL aCabeza := {}                  // Encabezado del informe
-       LOCAL cCodIni := ''                  // C줰igos de impresi줻 iniciales
-       LOCAL cCodFin := ''                  // C줰igos de impresi줻 finales
-       LOCAL aNroCol := {}                  // Columnas de impresi줻
-       LOCAL aTitPrn := {}                  // T죜ulos para impresi줻
-       LOCAL aRegPrn := {}                  // Registros para impresi줻
-       LOCAL cCabCol := ''                  // Encabezado de Columna
-       LOCAL aCabSec := {}                  // Encabezado Secundario
-       LOCAL nLenPrn := 0                   // Longitud l죒ea de impresi줻
-       LOCAL lCentra := .F.                 // .T. Centrar el informe
-       LOCAL nColCab := 0                   // Columna del encabezado
-       LOCAL bPagina := NIL                 // Block de P쟥ina
-       LOCAL bCabeza := NIL                 // Block de Encabezado
-       LOCAL bDerAut := NIL                 // Block Derechos de Autor
-       LOCAL nLinReg := 1                   // L죒eas del registro
-       LOCAL cTxtPrn := ''                  // Texto de impresi줻
-       LOCAL nOpcPrn := 0                   // Opci줻 de Impresi줻
-     *픙ariables de informe
+       LOCAL nNroOpc := 1                   // Numero de la opcion
+       LOCAL aMenus  := {}                  // Vector de declaracion de men�
+       LOCAL aAyuda  := {}                  // Vector de ayudas para el men�
 
-       LOCAL       i := 0                   // Contador
-       LOCAL nNroFil := 0                   // N즡ero de la Fila
-       LOCAL nAvance := 0                   // Avance de registros
-       LOCAL nOpcRep := 0                   // Opci줻 del Reporte
-       LOCAL nNroAlu := 0                   // N즡ero de Estudiantes
-
-       LOCAL lHayAlu := .F.                 // .T. Existe el Estudiante
-       LOCAL cDocNit := ''                  // N즡ero del Documento
-       LOCAL cDirecc := ''                  // Direccion
-       LOCAL Getlist := {}                  // Variable del sistema
-     *픙ariables espec죉icas
-
-       LOCAL cCodigoTes := ''               // C줰igo del Estudiante
-       LOCAL lRetadoTes := .F.              // .T. Estudiante Retirado
-       LOCAL cNombreTes := ''               // Nombre del Estudiante
-     *픙ariables de campo
+       LOCAL GetList := {}                  // Variable del Sistema
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>DECLARACION PARAMETROS GENERALES
@@ -138,348 +109,40 @@ FUNCTION Carte_409(aParam1,aParam2,aParam3)
      *픋ectura de paths
 *>>>>FIN LECTURA DE PATHS
 
-*>>>>AREAS DE TRABAJO
-       aUseDbf := {}
-       AADD(aUseDbf,{.T.,PathSis+'\'+FSimCar,'SCA',NIL,lShared,nModCry})
-       AADD(aUseDbf,{.T.,PathSis+'\'+FilePrn,'PRN',NIL,lShared,nModCry})
-*>>>>FIN AREAS DE TRABAJO
-
-*>>>>SELECION DE LAS AREAS DE TRABAJO
-       IF !lUseMae(lShared,cIntUno,cMaeAlu,cAnoSis) .OR.;
-	  !lUseDbfs(aUseDbf)
-	  cError('ABRIENDO ARCHIVOS')
-	  CloseAll(aUseDbf)
-	  RETURN NIL
-       ENDIF
-*>>>>FIN SELECION DE LAS AREAS DE TRABAJO
-
-*>>>>VALIDACION DE CONTENIDOS DE ARCHIVOS
-       lHayErr := .T.
-       SELECT &cMaeAct
-       DO CASE
-       CASE RECCOUNT() == 0
-	    cError('NO EXISTE ESTUDIANTES GRABADOS')
-
-       CASE SCA->(RECCOUNT()) == 0
-	    cError('NO EXISTE CONFIGURACION GENERAL')
-
-       CASE PRN->(RECCOUNT()) == 0
-	    cError('NO EXISTEN IMPRESIORAS GRABADAS')
-
-       OTHERWISE
-	    lHayErr :=.F.
-       ENDCASE
-       IF lHayErr
-	  CloseAll(aUseDbf)
-	  RETURN NIL
-       ENDIF
-*>>>>FIN VALIDACION DE CONTENIDOS DE ARCHIVOS
-
-*>>>>LOCALIZACION DE LA IMPRESORA
-       IF !lLocCodigo('nCodigoPrn','PRN',SCA->nCodigoPrn)
-	  cError('NO EXISTE LA IMPRESORA QUE ESTA HABILITADA')
-	  CloseAll(aUseDbf)
-	  RETURN NIL
-       ENDIF
-*>>>>FIN LOCALIZACION DE LA IMPRESORA
-
-*>>>>ANALISIS DE DECISION
-       nOpcRep := nLeeOpcion('REPORTAR A: '+;
-			     '1<PADRE> '+;
-			     '2<MADRE> '+;
-			     '3<ABANDONAR>'+;
-			     '<?',5,'0')
-       IF EMPTY(nOpcRep)
-	  CloseAll(aUseDbf)
-	  RETURN NIL
-       ENDIF
-*>>>>FIN ANALISIS DE DECISION
-
-*>>>>ACTIVACION DE LA IMPRESORA
-       IF SCA->lPrnArcCar
-	  SET DEVICE TO PRINT
-       ELSE
-	  FilePrn := 'Totpagos'
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,SCA->cOpcPrnCar,.F.,.T.)
-	  IF EMPTY(nOpcPrn)
-	      CloseAll(aUseDbf)
-	      RETURN NIL
-	  ENDIF
-       ENDIF
-*>>>>FIN ACTIVACION DE LA IMPRESORA
-
-*>>>>DEFINICION DEL ENCABEZADO
-       nNroPag := 0
-       lTamAnc := .F.
-
-       nTotReg := 0
-
-       aCabPrn := {cNomEmp,cNomSis,;
-		   'TOTAL PAGOS POR ESTUDIANTES',;
-		   '',;
-		   ''}
-
-       aCabeza := {aCabPrn[1],aCabPrn[2],aCabPrn[3],aCabPrn[4],aCabPrn[5],;
-                   nNroPag++,;
-                   cTotPagina(nTotReg),lTamAnc}
-
-       cCodIni := PCL({'DraftOn','Elite','CondenOn'})
-       cCodFin := PCL({'NegraOf','DobGolOf'})
-*>>>>FIN DEFINICION DEL ENCABEZADO
-
-*>>>>ENCABEZADOS DE COLUMNA
-       aNroCol := {}
-       aTitPrn := {}
-
-       IF nOpcPrn == 7 .OR. nOpcPrn == 8
-
-	  AADD(aNroCol,6)
-	  AADD(aTitPrn,'No.')
-
-	  AADD(aNroCol,20)
-	  AADD(aTitPrn,'IDENTIFICACION')
-
-	  AADD(aNroCol,60)
-	  AADD(aTitPrn,'DIRECCION')
-
-	  AADD(aNroCol,12)
-	  AADD(aTitPrn,'VALOR')
-
-	  AADD(aNroCol,6)
-	  AADD(aTitPrn,'CODIGO')
-
-	  AADD(aNroCol,6)
-	  AADD(aTitPrn,'GRUPO')
-
-	  AADD(aNroCol,40)
-	  AADD(aTitPrn,'ESTUDIANTE')
-
-	  AADD(aNroCol,20)
-	  AADD(aTitPrn,'CEDULA PADRE')
-
-	  AADD(aNroCol,40)
-	  AADD(aTitPrn,'NOMBRE PADRE')
-
-	  AADD(aNroCol,20)
-	  AADD(aTitPrn,'CEDULA MADRE')
-
-	  AADD(aNroCol,40)
-	  AADD(aTitPrn,'NOMBRE DE LA MADRE')
-
-       ELSE
-
-	  AADD(aNroCol,6)
-	  AADD(aTitPrn,'No.')
-
-	  AADD(aNroCol,6)
-	  AADD(aTitPrn,'CODIGO')
-
-	  AADD(aNroCol,6)
-	  AADD(aTitPrn,'GRUPO')
-
-	  AADD(aNroCol,40)
-	  AADD(aTitPrn,'NOMBRE')
-
-	  AADD(aNroCol,40)
-	  AADD(aTitPrn,'VALOR')
-
-       ENDIF
-       cCabCol := cRegPrint(aTitPrn,aNroCol)
-*>>>>FIN ENCABEZADOS DE COLUMNA
-
-*>>>>ANALISIS PARA CENTRAR EL INFORME
-       nLenPrn := PCL('n17Stan')
-       lCentra := .F.
-       nColCab := 0
-       IF lCentra
-          nColCab := (nLenPrn-LEN(cCabCol))/2
-       ENDIF
-       aCabSec := NIL
-       bPagina := {||lPagina(nLinReg)}
-       bCabeza := {||CabezaPrn(cCodIni,aCabeza,cCabCol,;
-                               nColCab,cCodFin,aCabSec,;
-                               @cFecPrn,@cHorPrn,@cDiaPrn)}
-       bDerAut := {||DerechosPrn(cNomSis,cNomEmp,nLenPrn)}
-*>>>>FIN ANALISIS PARA CENTRAR EL INFORME
-
-*>>>>IMPRESION DEL ENCABEZADO
-       SendCodes(PCL('Reset'))
-
-       EVAL(bCabeza)
-      *Impresi줻 del Encabezado
-
-       AADD(aCabPrn,cFecPrn)
-       AADD(aCabPrn,cHorPrn)
-       AADD(aCabPrn,cDiaPrn)
-
-       nHanXml := CreaFrmPrn(lShared,FilePrn,aNroCol,nOpcPrn,aCabPrn,aTitPrn)
-*>>>>FIN IMPRESION DEL ENCABEZADO
-
-*>>>>RECORRIDO POR NIVELES
-       SET DEVICE TO SCREEN
-       nNroFil := nMarco(03,'ESTUDIANTES')
-
-       FOR i := 1 TO LEN(cMaeAlu)/3
-
-***********SELECION DE LAS AREAS DE TRABAJO
-	     cMaeAct := SUBS(cMaeAlu,i*3-2,3)
-	     IF !lUseDbf(.T.,cIntUno+'\'+cMaeAct+'\'+'GRU'+;
-			 cMaeAct+cAnoSis+ExtFile,'GRU',NIL,lShared,nModCry)
-
-		cError('ABRIENDO EL ARCHIVO GRUPOS DE '+cMaeAct)
-		CloseAll(aUseDbf)
-		RETURN NIL
-	     ENDIF
-***********FIN SELECION DE LAS AREAS DE TRABAJO
-
-***********RECORRIDO POR GRUPOS
-	     SELECT GRU
-	     DO WHILE .NOT. GRU->(EOF())
-
-*===============PREPARACION DE LAS VARIABLES DE ARCHIVOS
-		  FileCli := cPatSis+'\CLIENTES\CL'+;
-			     &cMaeAct->cCodigoGru+cAnoSis+ExtFile
-
-		  FilePag := cPatSis+'\PAGOS\PA'+;
-			     &cMaeAct->cCodigoGru+cAnoSis+ExtFile
-*===============FIN PREPARACION DE LAS VARIABLES DE ARCHIVOS
-
-*===============SELECION DE LAS AREAS DE TRABAJO
-		  IF !lUseDbf(.T.,FileCli,'CLI',NIL,lShared,nModCry) .OR.;
-		     !lUseDbf(.T.,FilePag,'PAG',NIL,lShared,nModCry)
-
-		     cError('ABRIENDO LOS ARCHIVOS DE CLIENTES Y PAGOS')
-		     CloseAll(aUseDbf)
-		     RETURN NIL
-		  ENDIF
-*===============FIN SELECION DE LAS AREAS DE TRABAJO
-
-*===============RECORRIDO POR CLIENTES
-		  DO WHILE .NOT. CLI->(EOF())
-
-*--------------------ANALISIS SI EL ESTUDIANTE PERTENECE AL GRUPO
-		       IF CLI->lRetgruCli
-			  LOOP
-		       ENDIF
-*--------------------FIN ANALISIS SI EL ESTUDIANTE PERTENECE AL GRUPO
-
-*--------------------BUSQUEDA DEL ESTUDIANTE
-		       cMaeAct := cAliasNiv(VAL(SUBS(GRU->cCodigoGru,1,2)))
-		       lHayAlu := lSekCodMae(CLI->cCodigoEst,;
-					     cMaeAct,@cMaeAct)
-*--------------------FIN BUSQUEDA DEL ESTUDIANTE
-
-*--------------------ANALISIS SI ESTUDIANTE ESTA RETIRADO
-		       lRetadoTes := .F.
-		       cNombreTes := 'CODIGO:'+CLI->cCodigoEst+;
-				     ' NO EXISTE'
-
-		       IF lHayAlu
-			  cCodigoTes := &cMaeAct->cCodigoEst
-			  IF &cMaeAct->lRetiroEst
-			     lRetadoTes := .T.
-			  ENDIF
-			  cNombreTes := RTRIM(&cMaeAct->cApelliEst)+' '+;
-					&cMaeAct->cNombreEst
-			  cNombreTes := SUBS(cNombreTes+SPACE(40),1,40)
-		       ENDIF
-*--------------------FIN ANALISIS SI ESTUDIANTE ESTA RETIRADO
-
-*--------------------ANALISIS DEL REPORTE
-		       DO CASE
-		       CASE nOpcRep == 1  // Padre
-
-			    cDocNit := &cMaeAct->cPadNitEst
-			    IF EMPTY(&cMaeAct->cDirPadEst)
-			       cDirecc := ALLTRIM(&cMaeAct->cDireccEst)+' '+;
-					  ALLTRIM(&cMaeAct->cBarrioEst)
-			    ELSE
-			       cDirecc := ALLTRIM(&cMaeAct->cDirPadEst)+' '+;
-					  ALLTRIM(&cMaeAct->cBarPadEst)
-			    ENDIF
-
-		       CASE nOpcRep == 2  // Madre
-
-			    cDocNit := &cMaeAct->cMadNitEst
-			    IF EMPTY(&cMaeAct->cDirMadEst)
-			       cDirecc := ALLTRIM(&cMaeAct->cDireccEst)+' '+;
-					  ALLTRIM(&cMaeAct->cBarrioEst)
-			    ELSE
-			       cDirecc := ALLTRIM(&cMaeAct->cDirMadEst)+' '+;
-					  ALLTRIM(&cMaeAct->cBarMadEst)
-			    ENDIF
-
-		       ENDCASE
-		       cDirecc := SUBS(cDirecc+SPACE(40),1,40)
-*--------------------FIN ANALISIS DEL REPORTE
-
-*--------------------IMPRESION DEL REGISTRO
-		       nNroAlu++
-		       aRegPrn := {}
-
-		       IF nOpcPrn == 7 .OR. nOpcPrn == 8
-
-			  AADD(aRegPrn,STR(nNroAlu,6))
-			  AADD(aRegPrn,cDocNit)
-			  AADD(aRegPrn,cDirecc)
-			  AADD(aRegPrn,TRANS(GRU->nVlrTemGru,"####,###,###"))
-			  AADD(aRegPrn,CLI->cCodigoEst)
-			  AADD(aRegPrn,GRU->cCodigoGru)
-			  AADD(aRegPrn,cNombreTes)
-
-			  AADD(aRegPrn,&cMaeAct->cPadNitEst)
-			  AADD(aRegPrn,&cMaeAct->cNomPadEst)
-
-			  AADD(aRegPrn,&cMaeAct->cMadNitEst)
-			  AADD(aRegPrn,&cMaeAct->cNomMadEst)
-
-		       ELSE
-
-			  AADD(aRegPrn,STR(nNroAlu,6))
-			  AADD(aRegPrn,CLI->cCodigoEst)
-			  AADD(aRegPrn,GRU->cCodigoGru)
-			  AADD(aRegPrn,cNombreTes)
-			  AADD(aRegPrn,TRANS(GRU->nVlrTemGru,"####,###,###"))
-
-		       ENDIF
-
-		       SET DEVICE TO PRINT
-		       lPrnOpc(lShared,nOpcPrn,FilePrn,nHanXml,01,nColCab,;
-			       aTitPrn,aRegPrn,aNroCol,bPagina,bDerAut,;
-			       bCabeza)
-		       SET DEVICE TO SCREEN
-*--------------------FIN IMPRESION DEL REGISTRO
-
-*--------------------VISUALIZACION
-		       @ nNroFil,01 SAY 'GRUPO: '+GRU->cCodigoGru+' '+;
-					cNombreTes
-		       nNroFil++
-		       IF nNroFil == 21
-			  nNroFil := nMarco(03,'ESTUDIANTES')
-		       ENDIF
-*--------------------FIN VISUALIZACION
-
-
-		     CLI->(DBSKIP())
-
-		  ENDDO
-*===============FIN RECORRIDO POR CLIENTES
-
-		GRU->(DBSKIP())
-
-	     ENDDO
-***********FIN RECORRIDO POR GRUPOS
-
-       ENDFOR
-*>>>>FIN RECORRIDO POR NIVELES
-
-*>>>>IMPRESION DERECHOS
-       EVAL(bDerAut)
-      *Derechos de Autor
-
-       VerPrn(nOpcPrn,FilePrn,nHanXml)
-       SET DEVICE TO SCREEN
-
-       CloseAll(aUseDbf)
+*>>>>DECLARCION Y EJECUCION DEL MENU
+       cSavPan := SAVESCREEN(0,0,24,79)
+       aMenus := {'1<RELACION DE MOROSOS >',;
+		  '2<RETIRO DE REPORTADOS>'}
+
+       aAyuda := {'Permite Relacionar los Morosos a Reportar',;
+		  'Permite Retirar los Reportados a la Central de Riesgo'}
+*>>>>FIN DECLARCION Y EJECUCION DEL MENU
+
+*>>>>ANALISIS DE OPCION ESCOGIDA
+       nNroOpc := 1
+       DO WHILE nNroOpc # 0
+
+	  nNroOpc := nMenu(aMenus,aAyuda,nFilInf+1,nColInf,NIL,NIL,nNroOpc,.F.)
+
+	  DO CASE
+	  CASE nNroOpc == 0
+	       EXIT
+
+	  CASE nNroOpc == 1
+	       RESTSCREEN(0,0,24,79,cSavPan)
+	       MantenMor(aParam1,aParam2,aParam3,;
+			 cEmpCob)
+	      *Mantenimiento de Morosos
+
+	  CASE nNroOpc == 2
+	       RESTSCREEN(0,0,24,79,cSavPan)
+	       ManRetMor(aParam1,aParam2,aParam3,;
+			 cEmpCob)
+	      *Mantenimiento de Retiro de Reportados
+
+	  ENDCASE
+
+       ENDDO
+       CloseAll()
        RETURN NIL
-*>>>>FIN IMPRESION DERECHOS
+*>>>>FIN ANALISIS DE OPCION ESCOGIDA

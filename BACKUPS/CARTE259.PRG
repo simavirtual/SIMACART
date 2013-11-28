@@ -452,7 +452,7 @@ FUNCTION PagoFpgGru(aParam1,aParam2,aParam3)
        nNroPag := 0
        lTamAnc := .F.
        aCabeza := {cNomEmp,cNomSis+' JORNADA: '+cJorTxt+'. A¥O: '+cAnoUsr,;
-		   'PAGOS DESCRIMINADOS POR FORMA DE PAGO.',;
+		   'PAGOS DISCRIMINADOS POR FORMA DE PAGO.',;
 		   'DE '+cFecha(dFecIni)+ ' A '+cFecha(dFecFin),;
 		   '',;
 		   nNroPag++,;

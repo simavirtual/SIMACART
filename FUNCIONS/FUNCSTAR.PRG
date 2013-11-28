@@ -1666,40 +1666,40 @@ FUNCTION OtrTar011(lShared,nModCry,cNomSis,cEmpPal,cNitEmp,;
 
        CASE CAA->nMtdFacCaA == 2
 
-	    AADD(aNroCol,10)
+	    AADD(aNroCol,08)
 	    AADD(aTitPrn,'ENE')
 
-	    AADD(aNroCol,10)
+	    AADD(aNroCol,08)
 	    AADD(aTitPrn,'FEB')
 
-	    AADD(aNroCol,10)
+	    AADD(aNroCol,08)
 	    AADD(aTitPrn,'MAR')
 
-	    AADD(aNroCol,10)
+	    AADD(aNroCol,08)
 	    AADD(aTitPrn,'ABR')
 
-	    AADD(aNroCol,10)
+	    AADD(aNroCol,08)
 	    AADD(aTitPrn,'MAY')
 
-	    AADD(aNroCol,10)
+	    AADD(aNroCol,08)
 	    AADD(aTitPrn,'JUN')
 
-	    AADD(aNroCol,10)
+	    AADD(aNroCol,08)
 	    AADD(aTitPrn,'JUL')
 
-	    AADD(aNroCol,10)
+	    AADD(aNroCol,08)
 	    AADD(aTitPrn,'AGO')
 
-	    AADD(aNroCol,10)
+	    AADD(aNroCol,08)
 	    AADD(aTitPrn,'SEP')
 
-	    AADD(aNroCol,10)
+	    AADD(aNroCol,08)
 	    AADD(aTitPrn,'OCT')
 
-	    AADD(aNroCol,10)
+	    AADD(aNroCol,08)
 	    AADD(aTitPrn,'NOV')
 
-	    AADD(aNroCol,10)
+	    AADD(aNroCol,08)
 	    AADD(aTitPrn,'DIC')
 
        OTHERWISE
@@ -1725,19 +1725,12 @@ FUNCTION OtrTar011(lShared,nModCry,cNomSis,cEmpPal,cNitEmp,;
        bDerAut := {||DerechosPrn(cNomSis,cNomEmp,nLenPrn)}
 *>>>>FIN ANALISIS PARA CENTRAR EL INFORME
 
-*>>>>ANALISIS DE DECISION
-/*     ActivaPrn(lShared,cNomSis,PathSis,fSimCar,'cColaAcCar','Car')
-       IF !lPregunta('DESEA CONTINUAR? Si No')
-	  RESTSCREEN(0,0,24,79,cSavPan)
-	  RETURN NIL
-       ENDIF */
-*>>>>FIN ANALISIS DE DECISION
-
 *>>>>ACTIVACION DE LA IMPRESORA
        IF SCA->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,SCA->cOpcPrnCar,.F.)
+	  FilePrn :='tarifas'
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,SCA->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     RETURN NIL
 	  ENDIF
@@ -1805,18 +1798,18 @@ FUNCTION OtrTar011(lShared,nModCry,cNomSis,cEmpPal,cNitEmp,;
 
 	    CASE CAA->nMtdFacCaA == 2
 
-		 AADD(aRegPrn,TRANS(TAR->nVlrEneTar,'@Z ##,###,###'))
-		 AADD(aRegPrn,TRANS(TAR->nVlrFebTar,'@Z ##,###,###'))
-		 AADD(aRegPrn,TRANS(TAR->nVlrMarTar,'@Z ##,###,###'))
-		 AADD(aRegPrn,TRANS(TAR->nVlrAbrTar,'@Z ##,###,###'))
-		 AADD(aRegPrn,TRANS(TAR->nVlrMayTar,'@Z ##,###,###'))
-		 AADD(aRegPrn,TRANS(TAR->nVlrJunTar,'@Z ##,###,###'))
-		 AADD(aRegPrn,TRANS(TAR->nVlrJulTar,'@Z ##,###,###'))
-		 AADD(aRegPrn,TRANS(TAR->nVlrAgoTar,'@Z ##,###,###'))
-		 AADD(aRegPrn,TRANS(TAR->nVlrSepTar,'@Z ##,###,###'))
-		 AADD(aRegPrn,TRANS(TAR->nVlrOctTar,'@Z ##,###,###'))
-		 AADD(aRegPrn,TRANS(TAR->nVlrNovTar,'@Z ##,###,###'))
-		 AADD(aRegPrn,TRANS(TAR->nVlrDicTar,'@Z ##,###,###'))
+		 AADD(aRegPrn,TRANS(TAR->nVlrEneTar,'@Z ####,###'))
+		 AADD(aRegPrn,TRANS(TAR->nVlrFebTar,'@Z ####,###'))
+		 AADD(aRegPrn,TRANS(TAR->nVlrMarTar,'@Z ####,###'))
+		 AADD(aRegPrn,TRANS(TAR->nVlrAbrTar,'@Z ####,###'))
+		 AADD(aRegPrn,TRANS(TAR->nVlrMayTar,'@Z ####,###'))
+		 AADD(aRegPrn,TRANS(TAR->nVlrJunTar,'@Z ####,###'))
+		 AADD(aRegPrn,TRANS(TAR->nVlrJulTar,'@Z ####,###'))
+		 AADD(aRegPrn,TRANS(TAR->nVlrAgoTar,'@Z ####,###'))
+		 AADD(aRegPrn,TRANS(TAR->nVlrSepTar,'@Z ####,###'))
+		 AADD(aRegPrn,TRANS(TAR->nVlrOctTar,'@Z ####,###'))
+		 AADD(aRegPrn,TRANS(TAR->nVlrNovTar,'@Z ####,###'))
+		 AADD(aRegPrn,TRANS(TAR->nVlrDicTar,'@Z ####,###'))
 
 	    OTHERWISE
 		 AADD(aRegPrn,TRANS(TAR->nValorTar,'@Z ####,###,###'))

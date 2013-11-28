@@ -141,7 +141,7 @@ FUNCTION Carte_205(aParam1,aParam2,aParam3)
        AADD(aMenus,"3<PAGOS DEL MES            >")
        AADD(aMenus,"4<PAGOS POR GRUPOS         >")
        AADD(aMenus,"5<CONTROL TOTAL ESTUDIANTES>")
-       AADD(aMenus,"6<ATRASOS DESCRIMINADOS    >")
+       AADD(aMenus,"6<ATRASOS DISCRIMINADOS    >")
        AADD(aMenus,"7<FACTURACION TOTAL        >")
        AADD(aMenus,"8<FACTURACION POR FAMILIA  >")
 
@@ -163,7 +163,7 @@ FUNCTION Carte_205(aParam1,aParam2,aParam3)
 	    AADD(aAyuda,'Imprime los pagos del mes por formas de pago')
        OTHERWISE
 	    IF lForPag
-	       AADD(aMenus,"9<PAGOS DESCRIMINADOS      >")
+	       AADD(aMenus,"9<PAGOS DISCRIMINADOS      >")
 	       AADD(aAyuda,"Imprime los pagos descriminados")
 	    ENDIF
        ENDCASE

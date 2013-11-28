@@ -507,6 +507,7 @@ FUNCTION PagosGru(aParam1,aParam2,aParam3,;
        LOCAL nDiaPag := 0                   // D¡a del Pago
        LOCAL cDiaPag := ''                  // D¡a del Pago
        LOCAL cPazSdo := ''                  // Paz y Salvo
+       LOCAL cCodBan := ''                  // C¢digo del Banco
      *ÀVariables espec¡ficas
 
        LOCAL cNombreTes := ''               // Nombre del Estudiante
@@ -598,17 +599,18 @@ FUNCTION PagosGru(aParam1,aParam2,aParam3,;
 *>>>>FIN DEFINCION DEL ENCABEZADO
 
 *>>>>ENCABEZADOS DE COLUMNA
-       aNroCol := {02,20,22,12,12,10,12,08,10,16,06}
+       aNroCol := {02,18,22,12,10,10,12,08,10,16,02,06}
        aTitulo := {'No',;
 		   'APELLIDOS Y NOMBRES ',;
 		   'CONCEPTOS       ',;
 		   'SALDO ACTUAL',;
-		   'FACTCION MES',;
+		   'FACT MES',;
 		   'INTxCOBMes',;
 		   'TOTAL DEUDA ',;
 		   'MESES.FA',;
 		   'INT PAGMes',;
 		   'PAGOS ',;
+		   'BA',;
 		   'CODIGO'}
        cCabCol := cRegPrint(aTitulo,aNroCol)
        aCamXml := aTitulo
@@ -654,13 +656,14 @@ FUNCTION PagosGru(aParam1,aParam2,aParam3,;
 	    ELSE
 	       cNombreTes := 'EL ALUMNO NO EXISTE'
 	    ENDIF
-	    cNombreTes := SUBS(cNombreTes+SPACE(19),1,19)
+	    cNombreTes := SUBS(cNombreTes+SPACE(18),1,18)
 **********FIN BUSQUEDA DEL CODIGO DEL ESTUDIANTE
 
 **********ANALISIS SI ESTUDIANTE ESTA RETIRADO
 	    nSdoActTcl := 0
 	    lRetadoTes := .F.
 	    cPazSdo := ''
+	    cCodBan := ''
 	    IF lHayAlu
 	       IF &cNalias->lRetiroEst
 		  lRetadoTes := .T.
@@ -683,32 +686,56 @@ FUNCTION PagosGru(aParam1,aParam2,aParam3,;
 		  DO CASE
 		  CASE PAG->cEstadoPag = 'P'
 		       IF CAA->lLeeFecCaA
+
 			  cEstadoTpa := IF(EMPTY(PAG->dFecPagPag),;
 					    '   ??   ',;
 					    cFecha(PAG->dFecPagPag)+':O')
+
 			  cEstadoTpa += PAG->cCodigoFpg
+
+			  IF !EMPTY(PAG->dFecPagPag)
+			     cCodBan := IF(EMPTY(PAG->cCodigoBan),;
+					 '??',;
+					 PAG->cCodigoBan)
+			  ENDIF
+
 		       ELSE
 			  cEstadoTpa := SPACE(10)
+			     cCodBan := PAG->cCodigoBan
 		       ENDIF
 
 		  CASE PAG->cEstadoPag = 'A'
+
 		       IF CAA->lLeeFecCaA
+
 			  cEstadoTpa = IF(EMPTY(PAG->dFecPagPag),;
 					    '   ????   ',;
 					    cFecha(PAG->dFecPagPag)+':E')
+
 			  cEstadoTpa += PAG->cCodigoFpg
+
+			  IF !EMPTY(PAG->dFecPagPag)
+			     cCodBan := IF(EMPTY(PAG->cCodigoBan),;
+					 '??',;
+					 PAG->cCodigoBan)
+			  ENDIF
+
 		       ELSE
 			  cEstadoTpa := 'PAGO EXT'
+			     cCodBan := PAG->cCodigoBan
 		       ENDIF
 
 		  CASE PAG->cEstadoPag = 'D'
 		       cEstadoTpa = IF(CAA->lLeeFecCaA,;
 					    SPACE(10),'NO PAGO ')
+			 cCodBan := PAG->cCodigoBan
 
 		  CASE PAG->cEstadoPag = '*'
 		       cEstadoTpa = 'DEUDOR  '
+			 cCodBan := PAG->cCodigoBan
 		  OTHERWISE
 		       cEstadoTpa = 'ERROR   '
+			  cCodBan := PAG->cCodigoBan
 		  ENDCASE
 	       ENDIF
 
@@ -981,7 +1008,7 @@ FUNCTION PagosGru(aParam1,aParam2,aParam3,;
 			cConcepTpa,;
 			TRANS(nSdoActTcl+nSdoMorTcl,"####,###,###"),;
 			IF(lHayPag .AND. lHayAlu,;
-			   TRANS(nFacMes,"####,###,###"),SPACE(12)),;
+			   TRANS(nFacMes,"##,###,###"),SPACE(10)),;
 			IF(lHayPag .AND. lHayAlu,;
 			   TRANS(nIntMor,"@Z ##,###,###"),SPACE(10)),;
 			IF(lHayPag .AND. lHayAlu,;
@@ -993,7 +1020,7 @@ FUNCTION PagosGru(aParam1,aParam2,aParam3,;
 			IF(lHayPag .AND. lHayAlu,;
 			   TRANS(nIntPag,"@Z ##,###,###"),SPACE(10)),;
 			IF(lHayPag .AND. lHayAlu ,cEstadoTpa,SPACE(12)),;
-			CLI->cCodigoEst}
+			cCodBan,CLI->cCodigoEst}
 
 	    cTxtPrn := cRegPrint(aTitulo,aNroCol)
 	    lPrnReg(01,00,cTxtPrn,bPagina,bDerAut,bCabeza)

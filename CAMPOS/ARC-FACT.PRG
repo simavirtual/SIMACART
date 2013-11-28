@@ -129,14 +129,14 @@ OBJETIVOS:
      *ÀArchivo de tipos de movimiento.
 
        LOCAL FileCmv := 'CONCEMOV'+ExtFile
-       LOCAL fNtxCmv := 'CONCEMOV'+cExtNtx
+*       LOCAL fNtxCmv := 'CONCEMOV'+cExtNtx
      *ÀArchivo de Conceptos de Movimiento
 
        LOCAL FileCob := 'COBROS'                      // Ej: COBROS02.DAT
      *ÀArchivo de Cobros
 
        LOCAL FileMor := 'MOROSO'                      // Ej: MOROSO02.DAT
-       LOCAL fNtxMor := 'MOROSO'
+*       LOCAL fNtxMor := 'MOROSO'
      *ÀArchivo de Morosos
 
        LOCAL FileCoP := 'COBPAG'                      // Ej: COBPAG02.DAT
@@ -150,7 +150,7 @@ OBJETIVOS:
      *ÀArchivo de Control de Recibos
 
        LOCAL FilePuc := 'PUC'+ExtFile                 // Ej: PUC.DAT
-       LOCAL fNtxPuc := 'PUC'+cExtNtx
+*       LOCAL fNtxPuc := 'PUC'+cExtNtx
      *ÀArchivo de Plan de Cuentas
 
        LOCAL FileRut := 'RUTAS'+ExtFile               // Ej: RUTAS.DAT
@@ -168,6 +168,15 @@ OBJETIVOS:
        LOCAL FileCvn := 'CONVENIO'+ExtFile               // Ej: CONVENIO.DAT
        LOCAL fNtxCvn := 'CONVENIO'+cExtNtx
      *ÀArchivo de Convenios
+
+       LOCAL FileMvt := 'MOVIMI'                         // Ej: MOVIME01.DAT
+     *ÀMovimientos Contables
+
+       LOCAL FileCtt := 'CUENTAT'+ExtFile
+     *ÀCuenta T
+
+       LOCAL FileCnc := 'CONCILIA'+ExtFile
+     *ÀConciliaciones
 *>>>>DECLARACION DE ARCHIVOS DEL SISTEMA
 
 *>>>>DECLARACION DE ARCHIVOS COMPARTIDOS

@@ -201,7 +201,7 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
 *>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
-       #INCLUDE "ARC-CART.PRG"       // Archivos del Sistema
+       #INCLUDE "ARC-CART.PRG"              // Archivos del Sistema
 
        LOCAL cIntUno := ''                  // Path de integraci¢n uno
        LOCAL cIntDos := ''                  // Path de integraci¢n dos
@@ -268,6 +268,10 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
        LOCAL cMaeAct := xPrm(aP1,'cMaeAct') // Maestro Activo
        LOCAL cJorTxt := xPrm(aP1,'cJorTxt') // Jornada escogida
      *ÀDetalles Acad‚micos
+
+       LOCAL FileMvt := 'MOVICONT'+ExtFile
+       LOCAL FileCtt := 'CUENTAT'+ExtFile
+       LOCAL FileCnc := 'CONCILIA'+ExtFile
 *>>>>FIN DECLARACION PARAMETROS GENERALES
 
 *>>>>VALIDACION DEL MODO DE APERTURA DE LOS ARCHIVOS
@@ -283,6 +287,9 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
 
        Mdir(cPatSis,PathAct)
      *ÀDirectorio del A¤o. Ej 2007.diu
+
+       Mdir(cPatSis+'\MOVIM',PathAct)
+     *ÀDirectorio de movimientos.
 
        Mdir(PathPrn,PathAct)
      *ÀPrinter
@@ -404,7 +411,10 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
 	    !FILE(cPatSis+'\'+FileCoE)                 .AND.;
 	    !FILE(cPatSis+'\'+FilePaC)                 .AND.;
 	    !FILE(cPatSis+'\'+FileURu)                 .AND.;
-	    !FILE(cPatSis+'\'+FileCvn)
+	    !FILE(cPatSis+'\'+FileCvn)                 .AND.;
+	    !FILE(cPatSis+'\'+FileMvt)                 .AND.;
+	    !FILE(cPatSis+'\'+FileCtt)                 .AND.;
+	    !FILE(cPatSis+'\'+FileCnc)
 	    RESTSCREEN(0,0,24,79,cSavPan)
 	    CrearDbfs(lShared,nModCry,cPatSis,cAnoUsr,cMaeAlu)
        OTHERWISE
@@ -481,19 +491,46 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
 		 RESTSCREEN(0,0,24,79,cSavPan)
 		 RecuDbfCvn(lShared,nModCry,cPatSis,FileCvn)
 	      ENDIF
+
+	      IF !FILE(cPatSis+'\'+FileMvt)
+		 RESTSCREEN(0,0,24,79,cSavPan)
+		 RecuDbfMvt(lShared,nModCry,cPatSis,FileMvt)
+	      ENDIF
+
+	      IF !FILE(cPatSis+'\'+FileCtt)
+		 RESTSCREEN(0,0,24,79,cSavPan)
+		 RecuDbfCtTt(lShared,nModCry,cPatSis,FileCtt)
+	      ENDIF
+
+	      IF !FILE(cPatSis+'\'+FileCnc)
+		 RESTSCREEN(0,0,24,79,cSavPan)
+		 RecuDbfCnc(lShared,nModCry,cPatSis,FileCnc)
+	      ENDIF
 ************FIN RECUPERACION DE ESTRUCTURAS DEL SISTEMA
 
        ENDCASE
 *>>>>FIN CREACION O RECUPERACION DE ESTRUCTURAS ESPECIFICAS DEL SISTEMA
 
-*>>>>CREACION INDICES DEL SISTEMA
+*>>>>LECTURA DE PATHS
        PathCarAno(lShared,cPatSis,cAnoUsr,@cIntUno,;
 		  @cIntDos,@cIntTre,@cIntCua,nModCry)
      *ÀLectura de paths
 
        cPatFil := cIntUno
       *Escoge el path de integraci¢n o el del sistema
+*>>>>FIN LECTURA DE PATHS
 
+*>>>>RECUPERACION DE ESTRUCTURAS COMPARTIDAS
+       IF !FILE(cIntUno+'\'+;
+		FileGru+'POS'+cAnoSis+ExtFile)
+
+	  RESTSCREEN(0,0,24,79,cSavPan)
+	  RecuDbfGru(lShared,cIntUno,;
+		     FileGru+'POS'+cAnoSis+ExtFile)
+       ENDIF
+*>>>>FIN RECUPERACION DE ESTRUCTURAS COMPARTIDAS
+
+*>>>>CREACION INDICES DEL SISTEMA
        IF (!FILE(cPatFil+'\JAR\'+fNtxJar+cAnoSis+cExtNtx);
 			       .AND. 'JAR' $ cMaeAlu) .OR.;
 	  (!FILE(cPatFil+'\JAR\'+Ntx1Jar+cAnoSis+cExtNtx);
@@ -575,11 +612,15 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
        nActStrPaC(lShared,nModCry,cPatSis,FilePaC)
        nActStrURu(lShared,nModCry,cPatSis,FileURu)
        nActStrCvn(lShared,nModCry,cPatSis,FileCvn)
+       nActStrMvt(lShared,nModCry,cPatSis,FileMvt)
+       nActStrCnc(lShared,nModCry,cPatSis,FileCnc)
 
        SET EXACT      OFF                   // Busqueda no exacta
 *>>>>FIN ACTUALIZACION DE ESTRUCTURAS DEL A¥O
 
 *>>>>ACTUALIZACION DE CONTABILIDAD
+       nActStrGru(lShared,cIntUno,FileGru+'POS'+cAnoSis+ExtFile)
+
        FOR i := 1 TO LEN(cMaeAlu)/3
 
 	   cMaeAct := SUBS(cMaeAlu,i*3-2,3)
@@ -741,10 +782,16 @@ FUNCTION CrearDbfs(lShared,nModCry,cPatSis,cAnoUsr,cMaeAlu)
 *>>>>FIN PARAMETROS DE LA FUNCION
 
 *>>>>DECLARACION DE VARIABLES
-       #INCLUDE "ARC-CART.PRG"       // Archivos del Sistema
+       #INCLUDE "ARC-CART.PRG"              // Archivos del Sistema
        LOCAL cSavPan := ''                  // Salvar Pantalla
        LOCAL cAnoSis := SUBS(cAnoUsr,3,2)   // A¤o del sistema
        LOCAL cPatTem := ''                  // Path Temporal
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>DECLARACION DE VARIABLES
+       LOCAL FileMvt := 'MOVICONT'+ExtFile
+       LOCAL FileCtt := 'CUENTAT'+ExtFile
+       LOCAL FileCnc := 'CONCILIA'+ExtFile
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>CREACION DE  ESTRUCTURAS DEL SISTEMA
@@ -790,7 +837,16 @@ FUNCTION CrearDbfs(lShared,nModCry,cPatSis,cAnoUsr,cMaeAlu)
        Termometro(91)
        CreaDbfURu(lShared,nModCry,cPatSis,FileURu)
 
+       Termometro(92)
        CreaDbfCvn(lShared,nModCry,cPatSis,FileCvn)
+
+       CreaDbfMvt(lShared,nModCry,cPatSis,FileMvt)
+       Termometro(93)
+
+       CreaDbfCtt(lShared,nModCry,cPatSis,FileCtt)
+       Termometro(94)
+
+       CreaDbfCnc(lShared,nModCry,cPatSis,FileCnc)
        Termometro(100)
 
        RESTSCREEN(0,0,24,79,cSavPan)
@@ -1003,7 +1059,7 @@ FUNCTION aMenusCart(nNroOpc,cDerech,aAyudas,cModem,cEmpCob)
 		       "5<INFORMES FACTURACION>",;
 		       "6<INCONSISTENCIAS     >",;
 		       "7<CONCILIACION CARTERA>",;
-		       "8<REPORTE DE MOROSOS  >",;
+		       "8<INTERFAZ CONTABLE   >",;
 		       "9<PAGOS EN LINEA      >"}
 
 	    aAyuda := {'Imprime la relaci¢n de pagos por grupos.',;
@@ -1013,7 +1069,7 @@ FUNCTION aMenusCart(nNroOpc,cDerech,aAyudas,cModem,cEmpCob)
 		       'Permite imprimir los diferentes informes de la Facturaci¢n. ',;
 		       'Permite imprimir las Inconsistencias del Sistema',;
 		       'Imprime la Carta de la Conciliaci¢n de la Cartera',;
-		       'Permite reportar los Estudiantes Morosos',;
+		       'Permite Generar la Interfaz Contable',;
 		       'Permite generar la facturaci¢n en archivo para los pagos en linea'}
 
        CASE nNroOpc == 3  // Consultas

@@ -1399,7 +1399,7 @@ FUNCTION OrdenaExt(lShared,nModCry,cAnoUsr,cPatSis,cNroMes,oBrowse)
 *>>>>SELECION DE LAS AREAS DE TRABAJO
        IF !lUseDbf(.T.,cPatSis+'\MODEM\'+BAN->cCodigoBan+'\'+;
 		       FileMoB,'TRA',NIL,lShared,nModCry)
-	  cError('ABRIENDO EL ARCHIVO DEL ESTRACTO')
+	  cError('ABRIENDO EL ARCHIVO DEL EXTRACTO')
 	  RETURN NIL
        ENDIF
        SELECT TRA

@@ -405,8 +405,14 @@ FUNCTION FOtExt211(aParam1,aParam2,aParam3,;
 				     cFecha(dFecFin),''),;
 		   nNroPag++,;
 		   NIL,lTamAnc}
+
+/*
        cCodIni := DRAFT_ON+PICA+CONDEN_ON
        cCodFin := NEGRA_OF+DOBGOL_OF
+*/
+
+       cCodIni := PCL({'DraftOn','Pica','CondenOn'})
+       cCodFin := PCL({'NegraOf','DobGolOf'})
 *>>>>FIN DEFINCION DEL ENCABEZADO
 
 *>>>>ENCABEZADOS DE COLUMNA
@@ -439,9 +445,9 @@ FUNCTION FOtExt211(aParam1,aParam2,aParam3,;
 	  SET DEVICE TO PRINT
        ELSE
 	  IF nRegIni == nRegFin
-	     FilePrn := 'BVSP'+ALLTRIM(GRU->cCodigoGru)
+	     FilePrn := 'B'+BAN->cCodigoBan+'P'+ALLTRIM(GRU->cCodigoGru)
 	  ELSE
-	     FilePrn := 'BANVSPAG'
+	     FilePrn := 'BAN'+BAN->cCodigoBan+'PAG'
 	  ENDIF
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
@@ -549,6 +555,18 @@ FUNCTION FOtExt211(aParam1,aParam2,aParam3,;
 		    ENDIF
 		 ENDIF
 *--------------FIN LOCALIZACION DEL PAGO
+
+
+*-------------ANALISIS DEL BANCO
+		 IF lHayPag
+		    IF PAG->cCodigoBan # BAN->cCodigoBan
+		       SELECT CLI
+		       SKIP
+		       LOOP
+		    ENDIF
+		 ENDIF
+*-------------FIN ANALISIS DEL BANCO
+
 
 *--------------ANALISIS DE LOS PAGOS EN EL BANCO
 		 nVlrTra := 0

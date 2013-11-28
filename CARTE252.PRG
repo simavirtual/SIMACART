@@ -380,7 +380,6 @@ FUNCTION Carte_252(aParam1,aParam2,aParam3)
 *>>>>FIN ANALISIS PARA CENTRAR EL INFORME
 
 *>>>>ANALISIS DE DECISION
-       ActivaPrn(lSiRed,cNomSis,PathSis,fSimCar,'cColaAcCar','Car')
        IF !lPregunta('DESEA CONTINUAR? Si No')
 	  CloseAll(aUseDbf)
 	  IF !lFileDelete(FileTem)
@@ -395,7 +394,8 @@ FUNCTION Carte_252(aParam1,aParam2,aParam3)
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->lPrnArcCar,.F.)
+	  FilePrn = 'Antip'+cMes(nMesIniTpa,3)
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     IF !lFileDelete(FileTem)
 		cError('NO SE BORRO EL ARCHIVO TEMPORAL')
