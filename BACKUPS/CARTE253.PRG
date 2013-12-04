@@ -35,7 +35,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
 *>>>>DECLARACION DE VARIABLES
        #INCLUDE "EPSONFX.PRG"  // Impresora EPSON FX
-       #INCLUDE "ARC-CART.PRG"      // Archivos del Sistema
+       #INCLUDE "ARC-FACT.PRG"              // Archivos del Sistema
 
        #DEFINE nALUGRU 1                    // Posici¢n alumnos del grupo
        #DEFINE nNOPAGO 2                    // Posici¢n alumnos no pagaron
@@ -61,6 +61,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        LOCAL dFecIni := CTOD('00/00/00')    // Fecha Inicial
        LOCAL dFecFin := CTOD('00/00/00')    // Fecha Final
        LOCAL lFechOk := .T.                 // Fecha de Acuerdo al intervalo
+       LOCAL lAllGru := .F.                 // .T. Todos los Grupos
 
        LOCAL nNroPag := 1                   // N£mero de p gina
        LOCAL lTamAnc := .F.                 // .T. Tama¤o Ancho
@@ -316,6 +317,8 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileCon,'CON',NIL,lShared,nModCry})
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileDes,'DES',NIL,lShared,nModCry})
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileTar,'TAR',NIL,lShared,nModCry})
+
+       AADD(aUseDbf,{.T.,cPatSis+'\'+FileCnc,'CNC',NIL,lShared,nModCry})
 *>>>>FIN AREAS DE TRABAJO
 
 *>>>>SELECION DE LAS AREAS DE TRABAJO
@@ -406,7 +409,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *>>>>FIN GRABACION DE LOS CONCEPTOS A IMPRIMIR
 
 *>>>>CAPTURA DE LOS GRUPOS POR INTERVALO
-       IF !lIntervGru(nFilInf+1,nColInf,@nRegIni,@nRegFin)
+       IF !lIntervGru(nFilInf+1,nColInf,@nRegIni,@nRegFin,@lAllGru)
 	  CloseAll(aUseDbf)
 	  IF !lFileDelete(FileTem)
 	     cError('NO SE BORRO EL ARCHIVO TEMPORAL')
@@ -1696,6 +1699,32 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        AADD(aRegPrn,aTitPrn)
 
 *>>>>FIN IMPRESION DEL TOTALES POR MESES
+
+
+
+*>>>>GRABACION DEL TOTAL PAGOS
+       IF lLocCodigo('nNroMesCnc','CNC',nMesIniTpa)
+
+	  IF lAllGru
+
+	     IF CNC->nTotPagCnc == aTotal[LEN(aTotal)]
+		lSavPagVal(nMesIniTpa,aTotal[LEN(aTotal)],;
+			   lShared,.F.,cNomUsr)
+	     ELSE
+		SET DEVICE TO SCREEN
+		cError('PAGOS DESCUADRADOS CON LA FACTURACION')
+		SET DEVICE TO PRINT
+	     ENDIF
+
+	  ENDIF
+       ELSE
+	  SET DEVICE TO SCREEN
+	  cError('NO SE HA CREADO EL MES DE '+cMes(nMesIniTpa,3)+' '+;
+		 'DE LA CONCIALIACION')
+	  SET DEVICE TO PRINT
+       ENDIF
+*>>>>FIN GRABACION DEL TOTAL PAGOS
+
 
 *>>>>IMPRESION DERECHOS
        DerechosPrn(cNomSis,cNomEmp,n17Stan)

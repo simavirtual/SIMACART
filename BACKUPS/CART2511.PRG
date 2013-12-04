@@ -80,6 +80,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        LOCAL aAntEst[16]		    // Valor de los Anticipos del Mes
        LOCAL lHayAnt := .F.                 // .T. Hay Anticipos
        LOCAL cNroMes := ''                  // N£mero del Mes
+       LOCAL lAllGru := .F.                 // .T. Todos los Grupos
 
        LOCAL nVlrSdo := 0                   // Valor del saldo
        LOCAL nVlrDeu := 0                   // Valor de la deuda
@@ -96,8 +97,8 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        LOCAL nMesAmn := 0                   // Mes de Anmistia
        LOCAL nAboEst := 0                   // Abonos del Estudiante
 
-       LOCAL aVlrWww := {}                  // Tabla Facturaci¢n Internet
-       LOCAL aCabXml := {}                  // Encabezado del Xml
+//     LOCAL aVlrWww := {}                  // Tabla Facturaci¢n Internet
+//     LOCAL aCabXml := {}                  // Encabezado del Xml
        LOCAL aCamXml := {}                  // Campo Xml
        LOCAL aCamPag := {}                  // Campo Xml
        LOCAL aPagXml := {}                  // Codigos de los pagos
@@ -174,6 +175,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        LOCAL nOtrFin := 0                   // Total Abonos otros meses de fin de mes
        LOCAL nDesFin := 0                   // Total Abonos Descuentos de fin de mes
        LOCAL nTotFin := 0                   // Gran Total de la Facturaci¢n de fin de mes
+       LOCAL nTotCau := 0                   // Total Causaci¢n
        LOCAL Getlist := {}                  // Variable del sistema
      *ÀVariables espec¡ficas
 
@@ -318,6 +320,8 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileCon,'CON',NIL,lShared,nModCry})
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileDes,'DES',NIL,lShared,nModCry})
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileTar,'TAR',NIL,lShared,nModCry})
+
+       AADD(aUseDbf,{.T.,cPatSis+'\'+FileCnc,'CNC',NIL,lShared,nModCry})
 *>>>>FIN AREAS DE TRABAJO
 
 *>>>>SELECION DE LAS AREAS DE TRABAJO
@@ -405,7 +409,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 
 *>>>>CAPTURA DE LOS GRUPOS POR INTERVALO
        IF EMPTY(cCodEst)
-	  IF !lIntervGru(nFilInf+1,nColInf,@nRegIni,@nRegFin)
+	  IF !lIntervGru(nFilInf+1,nColInf,@nRegIni,@nRegFin,@lAllGru)
 	     CloseAll(aUseDbf)
 	     IF !lFileDelete(FileTem)
 		cError('NO SE BORRO EL ARCHIVO TEMPORAL')
@@ -1626,10 +1630,13 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 
 	 ENDIF
 
+/*
 	 AADD(aVlrWww,{cCodEmp,1,nMesIniTpa,;
 		       SUBS(cConcep,i*2-1,2),aVlrTot[i+5]})
+
 	 AADD(aVlrWww,{cCodEmp,2,nMesIniTpa,;
 		       SUBS(cConcep,i*2-1,2),aAntici[i]})
+*/
 
        ENDFOR
 *>>>>FIN IMPRESION TOTALES DE LOS CONCEPTOS
@@ -1658,7 +1665,8 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        nTotal += nTotRec
        lPrnReg(01,00,'+RECARGOS          '+TRANS(nTotRec,"####,###,###"),;
 		     bPagina,bDerAut,bCabeza)
-       AADD(aVlrWww,{cCodEmp,3,nMesIniTpa,,nTotRec})
+
+//       AADD(aVlrWww,{cCodEmp,3,nMesIniTpa,,nTotRec})
 
        AADD(aRegPrn,{'+RECARGOS',;
 		     TRANS(nTotRec,"####,###,###"),'',;
@@ -1667,7 +1675,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        nTotal -= nTotBec
        lPrnReg(01,00,'-AYUDAS            '+TRANS(nTotBec,"####,###,###"),;
 		     bPagina,bDerAut,bCabeza)
-       AADD(aVlrWww,{cCodEmp,4,nMesIniTpa,,nTotBec})
+//       AADD(aVlrWww,{cCodEmp,4,nMesIniTpa,,nTotBec})
 
        AADD(aRegPrn,{'-AYUDAS',;
 		     TRANS(nTotBec,"####,###,###"),'',;
@@ -1676,7 +1684,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        nTotal -= nTotDes
        lPrnReg(01,00,'-DESCUENTOS        '+TRANS(nTotDes,"####,###,###"),;
 		     bPagina,bDerAut,bCabeza)
-       AADD(aVlrWww,{cCodEmp,5,nMesIniTpa,,nTotDes})
+//       AADD(aVlrWww,{cCodEmp,5,nMesIniTpa,,nTotDes})
 
        AADD(aRegPrn,{'-DESCUENTOS',;
 		     TRANS(nTotDes,"####,###,###"),'',;
@@ -1693,7 +1701,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 				   'DEUDORES ='+TRANS(nTotDeu,"####"),;
 		       ' CODIGO = '+cCodEst),;
 		     bPagina,bDerAut,bCabeza)
-       AADD(aVlrWww,{cCodEmp,6,nMesIniTpa,,nTotEst})
+//       AADD(aVlrWww,{cCodEmp,6,nMesIniTpa,,nTotEst})
 
        AADD(aRegPrn,{'FACTURACION',TRANS(nTotal ,"####,###,###"),;
 		     IF(EMPTY(cCodEst),' ALUMNOS = '+TRANS(nTotEst,"####"),;
@@ -1705,7 +1713,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 		     TRANS(aVlrTot[LEN(aVlrTot)-2],"####,###,###"),;
 		     bPagina,bDerAut,bCabeza)
 
-       AADD(aVlrWww,{cCodEmp,7,nMesIniTpa,,aVlrTot[LEN(aVlrTot)-2]})
+//       AADD(aVlrWww,{cCodEmp,7,nMesIniTpa,,aVlrTot[LEN(aVlrTot)-2]})
 
        AADD(aRegPrn,{'+INT PAGO MES',;
 		     TRANS(aVlrTot[LEN(aVlrTot)-2],"####,###,###"),'',''})
@@ -1714,7 +1722,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        lPrnReg(01,00,'+INTxCobMes        '+;
 		     TRANS(nIntCob,"####,###,###"),;
 		     bPagina,bDerAut,bCabeza)
-       AADD(aVlrWww,{cCodEmp,8,nMesIniTpa,,nIntCob})
+//       AADD(aVlrWww,{cCodEmp,8,nMesIniTpa,,nIntCob})
 
        AADD(aRegPrn,{'+INTxCobMes',TRANS(nIntCob,"####,###,###"),'',''})
 
@@ -1723,6 +1731,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 
        lPrnReg(01,00,'TOTAL CAUSACION    '+;
 		     TRANS(nTotal,"####,###,###"),bPagina,bDerAut,bCabeza)
+       nTotCau := nTotal
 
        AADD(aRegPrn,{'TOTAL CAUSACION',TRANS(nTotal,"####,###,###"),'',''})
 
@@ -1732,7 +1741,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 		     IF(nDeuRet # 0,'+'+TRANS(nDeuRet,"####,###,###")+;
 		     ' A '+cMes(nMesIniTpa,3),''),;
 		     bPagina,bDerAut,bCabeza)
-       AADD(aVlrWww,{cCodEmp,9,nMesIniTpa,,nDeuAnt})
+//       AADD(aVlrWww,{cCodEmp,9,nMesIniTpa,,nDeuAnt})
 
        AADD(aRegPrn,{' DEUDA ANTERIOR',TRANS(nDeuAnt,"####,###,###"),;
 		     IF(nDeuRet # 0,'+'+TRANS(nDeuRet,"####,###,###")+;
@@ -1744,7 +1753,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 		     IF(nMorRet # 0,'+'+TRANS(nMorRet,"####,###,###")+;
 		     ' A '+cMes(nMesIniTpa,3),''),;
 		     bPagina,bDerAut,bCabeza)
-       AADD(aVlrWww,{cCodEmp,10,nMesIniTpa,,nMorAnt})
+//       AADD(aVlrWww,{cCodEmp,10,nMesIniTpa,,nMorAnt})
 
        AADD(aRegPrn,{' MORA ANTERIOR',TRANS(nMorAnt,"####,###,###"),;
 		     IF(nMorRet # 0,'+'+TRANS(nMorRet,"####,###,###")+;
@@ -1766,7 +1775,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 		     IF(nFinMes # 0,' '+TRANS(nFinMes,"####,###,###")+;
 		     ' A '+cMes(nMesIniTpa,3),''),;
 		     bPagina,bDerAut,bCabeza)
-       AADD(aVlrWww,{cCodEmp,11,nMesIniTpa,,nTotPag})
+//       AADD(aVlrWww,{cCodEmp,11,nMesIniTpa,,nTotPag})
 
        AADD(aRegPrn,{'-PAGOS',TRANS(nTotPag,"####,###,###"),;
 		     IF(nFinMes # 0,' '+TRANS(nFinMes,"####,###,###")+;
@@ -1780,7 +1789,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 		     IF(nAboFin # 0,' '+TRANS(nAboFin,"####,###,###")+;
 		     ' A '+cMes(nMesIniTpa,3),''),;
 		     bPagina,bDerAut,bCabeza)
-       AADD(aVlrWww,{cCodEmp,12,nMesIniTpa,,nAboMes})
+//       AADD(aVlrWww,{cCodEmp,12,nMesIniTpa,,nAboMes})
 
        AADD(aRegPrn,{'-ABONOS PARA EL MES',TRANS(nAboMes,"####,###,###"),;
 		     IF(nAboFin # 0,' '+TRANS(nAboFin,"####,###,###")+;
@@ -1793,7 +1802,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 		     IF(nDesFin # 0,' '+TRANS(nDesFin,"####,###,###")+;
 		     ' A '+cMes(nMesIniTpa,3),''),;
 		     bPagina,bDerAut,bCabeza)
-       AADD(aVlrWww,{cCodEmp,13,nMesIniTpa,,nDesMes})
+//       AADD(aVlrWww,{cCodEmp,13,nMesIniTpa,,nDesMes})
 
        AADD(aRegPrn,{'-ABONOS DESCUENTOS',TRANS(nDesMes,"####,###,###"),;
 		     IF(nDesFin # 0,' '+TRANS(nDesFin,"####,###,###")+;
@@ -1807,7 +1816,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 		     IF(nOtrFin # 0,' '+TRANS(nOtrFin,"####,###,###")+;
 		     ' A '+cMes(nMesIniTpa,3),''),;
 		     bPagina,bDerAut,bCabeza)
-       AADD(aVlrWww,{cCodEmp,14,nMesIniTpa,,nAboOtr})
+//       AADD(aVlrWww,{cCodEmp,14,nMesIniTpa,,nAboOtr})
 
        AADD(aRegPrn,{'-ABONOS OTROS MESES',;
 		     TRANS(nAboOtr,"####,###,###"),;
@@ -1849,6 +1858,19 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 	    'FAC'+cMes(nMesIniTpa,3)+cAnoSis+'.XML'})
 *>>>>FIN OTROS TOTALES
 
+*>>>>GRABACION DE LA CAUSACION
+       IF lAllGru
+	  IF aVlrTot[1] == nTotal+nDeuRet+nMorRet
+	     lSavTotCau(nMesIniTpa,nTotCau,lShared,.F.,cNomUsr)
+	  ELSE
+	     SET DEVICE TO SCREEN
+	     cError('CARTERA DESCUADRADA')
+	     SET DEVICE TO PRINT
+	  ENDIF
+	  lSavTotPag(nMesIniTpa,nTotPag+nAboMes,lShared,.F.,cNomUsr)
+       ENDIF
+*>>>>FIN GRABACION DE LA CAUSACION
+
 *>>>>IMPRESION DERECHOS
        DerechosPrn(cNomSis,cNomEmp,n17Stan)
        @ PROW()-PROW(),00 SAY ' '
@@ -1874,6 +1896,8 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 */
 *>>>>FIN EXPORTACION DE LA FACTURACION A UN ARCHIVO
 
+/*
+
 *>>>>EXPORTACION DEL RETIRADOS CON SALDO A UN ARCHIVO
        AADD(aCabXml,cNomEmp)
       *Nombre de la Empresa
@@ -1898,13 +1922,14 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
       *Hora del Informe
 
        aCamXml := {'codigo','DeuAnt','MorAnt'}
-/*
+
        FileXml(cPatSis+'\FILEWWW\FACT'+cMes(nMesIniTpa,3)+'\'+;
 	       'deudaret.XML',aRetMor,aCamXml,aCabXml)
-*/
 
      *ÀCreaci¢n del Archivo
 *>>>>FIN EXPORTACION DEL RETIRADOS CON SALDO A UN ARCHIVO
+
+
 
 *>>>>EXPORTACION DE LA FACTURACION
        aCabXml[2] := cNomSis+':{PAGOS}{INFORMES FACTURACION}{FACTURACION DEL MES}'
@@ -1939,5 +1964,10 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 		  aRegPrn,aCamXml,aCabXml)
        ENDIF
      *ÀCreaci¢n del Archivo
+*/
        RETURN aDeuAnt
 *>>>>FIN EXPORTACION DEL RESUMEN
+
+
+
+

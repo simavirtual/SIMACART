@@ -58,6 +58,10 @@ FUNCTION CreaDbfExt(lShared,nModCry,PathExt,FileExt,fNtxExt,aStrDbf)
 			 {"nCodigoCmv","Numeric"  ,04,0},;   // C¢digo del Concepto del Movimiento
 			 {"nValorTra" ,"Numeric"  ,12,2},;   // Valor de la Transaci¢n
 			 {"dFechaTra" ,"Date"     ,08,0},;   // Fecha de la Transaci¢n
+			 {"nVlrPagPag" ,"Numeric" ,12,2},;   // Valor de la Transaci¢n
+			 {"nVlrIntPag" ,"Numeric" ,12,2},;   // Valor de los Intereses
+			 {"dFecPagPag" ,"Date"    ,08,0},;   // Fecha de pago
+			 {'nVlrDifTra','Numeric'  ,12,2},;   // Valor diferencia
 			 {"cNroComTra","Character",12,0},;   // N£mero del Comprobante
 			 {"lSumarTra" ,"Logical"  ,01,0},;   // .T. Credito .F. Debito
 			 {"lInsUsrTra","Logical"  ,01,0},;   // .T. Insertado por Usuario
@@ -678,6 +682,7 @@ FUNCTION oDefBrwExt(lShared,nFilSup,nColSup,nFilInf,nColInf,;
        oBrwExt:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
+
        oColumn	     := TBCOLUMNNEW('CONCEPTO',;
 			{||cConcepCmv(TRA->nCodigoCmv,'TRA')})
        oColumn:Cargo := {{'MODI',.F.}}
@@ -793,6 +798,27 @@ FUNCTION oDefBrwExt(lShared,nFilSup,nColSup,nFilInf,nColInf,;
        oColumn:Cargo := {{'MODI',.F.}}
        oBrwExt:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('VALOR;PAGOS',{||TRA->nVlrPagPag})
+       oColumn:Cargo := {{'MODI',.F.}}
+       oBrwExt:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('VALOR;INTERESES',{||TRA->nVlrIntPag})
+       oColumn:Cargo := {{'MODI',.F.}}
+       oBrwExt:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('FECHA;DE PAGO',{||TRA->dFecPagPag})
+       oColumn:Cargo := {{'MODI',.F.}}
+       oBrwExt:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('VALOR;DIFERENCIA',{||TRA->nVlrDifTra})
+       oColumn:Cargo := {{'MODI',.F.}}
+       oBrwExt:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
 
        oColumn	     := TBCOLUMNNEW('TRANSACION     1         2        3          4          5         6;123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 ',;
 				   {||TRA->Registro})
@@ -2028,3 +2054,60 @@ FUNCTION RestarCon(aVlrCon,nValor,lVlrCre)
        ENDFOR
        RETURN NIL
 *>>>>FIN RESTAR DE LOS CONCEPTOS
+
+
+/*************************************************************************
+* TITULO..: VALIDACION DE LA TRANSACION                                  *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: DIC 03/2013 MAR A
+       Colombia, Bucaramanga        INICIO: 10:00 AM   DIC 03/2013 MAR
+
+OBJETIVOS:
+
+1- Valida la transacion respecto a al pago que figura en el sistema.
+
+2- Retorna NIL
+
+SINTAXIS:
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION lValPagExt(lShared,nVlrPag,nVlrInt,dFecPag)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     lShared                              // .T. Sistema Compartido
+       nVlrPag                              // Valor en pagos
+       nVlrInt                              // Valor Intereses
+       dFecPag                              // Fecha de pago */
+*>>>>FIN DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION DE VARIABLES
+       LOCAL nVlrDif := 0                   // Valor de la diferencia
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>CONCILIACION DEL PAGO
+       nVlrDif := ABS(EXT->nValorTra - (nVlrPag+nVlrInt))
+*>>>>FIN CONCILIACION DEL PAGO
+
+*>>>>GRABACION DEL REGISTRO
+       IF EXT->(lRegLock(lShared,.F.))
+
+	  REPL EXT->nVlrPagPag  WITH nVlrPag
+	  REPL EXT->nVlrIntPag  WITH nVlrInt
+	  REPL EXT->dFecPagPag  WITH dFecPag
+
+	  REPL EXT->nVlrDifTra  WITH nVlrDif
+
+
+	  EXT->(DBCOMMIT())
+
+       ENDIF
+
+       IF lShared
+	  EXT->(DBUNLOCK())
+       ENDIF
+       RETURN NIL
+*>>>>FIN GRABACION DEL REGISTRO

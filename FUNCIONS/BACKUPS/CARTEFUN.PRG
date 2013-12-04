@@ -288,6 +288,9 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
        Mdir(cPatSis,PathAct)
      *ÀDirectorio del A¤o. Ej 2007.diu
 
+       Mdir(cPatSis+'\MOVIM',PathAct)
+     *ÀDirectorio de movimientos.
+
        Mdir(PathPrn,PathAct)
      *ÀPrinter
 
@@ -610,6 +613,7 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
        nActStrURu(lShared,nModCry,cPatSis,FileURu)
        nActStrCvn(lShared,nModCry,cPatSis,FileCvn)
        nActStrMvt(lShared,nModCry,cPatSis,FileMvt)
+       nActStrCnc(lShared,nModCry,cPatSis,FileCnc)
 
        SET EXACT      OFF                   // Busqueda no exacta
 *>>>>FIN ACTUALIZACION DE ESTRUCTURAS DEL A¥O

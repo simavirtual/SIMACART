@@ -59,6 +59,9 @@ FUNCTION Carte_208(aParam1,aParam2,aParam3,;
        LOCAL aMenus  := {}                  // Vector de declaracion de men£
        LOCAL aAyuda  := {}                  // Vector de ayudas para el men£
 
+       LOCAL nMesIni := 0                   // Mes Inicial del pago
+       LOCAL cNroMes := ''                  // N£mero del Mes
+
        LOCAL GetList := {}                  // Variable del Sistema
 *>>>>FIN DECLARACION DE VARIABLES
 
@@ -191,7 +194,27 @@ FUNCTION Carte_208(aParam1,aParam2,aParam3,;
 
 	  CASE nNroOpc == 1
 
-//CreaDbfMvt(lShared,nModCry,cPatSis,FileMvt)
+***************SELECCION DEL MES
+		 cSavPan := SAVESCREEN(0,0,24,79)
+		 nMesIni := 0
+		 nMesIni := nMesano(nFilInf+5,15,'Mes de los Movimientos',.T.)
+		 RESTSCREEN(0,0,24,79,cSavPan)
+
+		 IF nMesIni == 0
+		    CloseAll()
+		    RETURN NIL
+		 ENDIF
+		 cNroMes := STR(nMesIni,2)
+		 lCorrecion(@cNroMes)
+		 FileMvt := 'MOVIMI'+cNroMes+ExtFile
+***************FIN SELECCION DEL MES
+
+***************VALIDACION DEL ARCHIVO
+		 IF !FILE(cPatSis+'\MOVIM'+'\'+FileMvt)
+		    CreaDbfMvt(lShared,nModCry,cPatSis+'\MOVIM',FileMvt)
+		 ENDIF
+		 nActStrMvt(lShared,nModCry,cPatSis+'\MOVIM',FileMvt)
+***************FIN VALIDACION DEL ARCHIVO
 
 ***************MANTENIMIENTO DEL ARCHIVO
 		 lModReg := .T.
@@ -199,10 +222,9 @@ FUNCTION Carte_208(aParam1,aParam2,aParam3,;
 		 lInsReg := .T.
 		 lHaySql := .F.
 
-
 		 aArchvo := {}
 		 AADD(aArchvo,{PathSis+'\'+FilePrn,NIL,'PRN'})
-		 AADD(aArchvo,{cPatSis+'\'+FileMvt,NIL,'MVT'})
+		 AADD(aArchvo,{cPatSis+'\MOVIM'+'\'+FileMvt,NIL,'MVT'})
 
 		 IF 'JAR' $ cMaeAlu
 		    cNalias := 'JAR'
@@ -240,12 +262,12 @@ FUNCTION Carte_208(aParam1,aParam2,aParam3,;
 		 AADD(aArchvo,{cPatSis+'\'+FileCon,NIL,'CON'})
 		 AADD(aArchvo,{cPatSis+'\'+FileDes,NIL,'DES'})
 		 AADD(aArchvo,{cPatSis+'\'+FileTar,NIL,'TAR'})
-
+		 AADD(aArchvo,{cPatSis+'\'+FileCnc,NIL,'CNC'})
 
 		 MantenMvt(lShared,nModCry,cNomSis,cCodEmp,cNitEmp,cEmpPal,;
 			   cNomEmp,cNomSec,cNomUsr,cAnoUsr,aArchvo,lPrnArc,;
 			   cOpcPrn,nCodPrn,lModReg,lDelReg,lInsReg,lHaySql,;
-			   cPatSis,cMaeAlu)
+			   cPatSis,cMaeAlu,nMesIni)
 ***************FIN MANTENIMIENTO DEL ARCHIVO
 
 
@@ -275,7 +297,7 @@ FUNCTION Carte_208(aParam1,aParam2,aParam3,;
 	  CASE nNroOpc == 4
 
 ***************MANTENIMIENTO DEL ARCHIVO
-		 lModReg := .F.
+		 lModReg := .T.
 		 lDelReg := .F.
 		 lInsReg := .T.
 		 lHaySql := .F.
