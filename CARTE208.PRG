@@ -117,7 +117,7 @@ FUNCTION Carte_208(aParam1,aParam2,aParam3,;
 
 *>>>>LECTURA DE PATHS
        PathCarAno(lShared,cPatSis,cAnoUsr,@cIntUno,;
-		  @cIntDos,@cIntTre,@cIntCua,nModCry)
+		  @cIntDos,@cIntTre,@cIntCua,nModCry,.F.)
      *ÀLectura de paths
 *>>>>FIN LECTURA DE PATHS
 
@@ -226,34 +226,37 @@ FUNCTION Carte_208(aParam1,aParam2,aParam3,;
 		 AADD(aArchvo,{PathSis+'\'+FilePrn,NIL,'PRN'})
 		 AADD(aArchvo,{cPatSis+'\MOVIM'+'\'+FileMvt,NIL,'MVT'})
 
+		 AADD(aArchvo,{cIntUno+'\'+PathSis+'\'+fSimaCo,NIL,'SCO'})
+
 		 IF 'JAR' $ cMaeAlu
 		    cNalias := 'JAR'
-		    AADD(aArchvo,{cIntUno+'\'+cNalias+'\'+;
+		    AADD(aArchvo,{cIntUno+'\'+cPatSis+'\'+cNalias+'\'+;
 				  FileAlu+cNalias+cAnoSis+ExtFile,;
-				  cIntUno+'\'+cNalias+'\'+;
+				  cIntUno+'\'+cPatSis+'\'+cNalias+'\'+;
 				  fNtxAlu+cNalias+cAnoSis+cExtNtx,;
 				  cNalias})
 		 ENDIF
 
 		 IF 'PRI' $ cMaeAlu
 		    cNalias := 'PRI'
-		    AADD(aArchvo,{cIntUno+'\'+cNalias+'\'+;
+		    AADD(aArchvo,{cIntUno+'\'+cPatSis+'\'+cNalias+'\'+;
 				  FileAlu+cNalias+cAnoSis+ExtFile,;
-				  cIntUno+'\'+cNalias+'\'+;
+				  cIntUno+'\'+cPatSis+'\'+cNalias+'\'+;
 				  fNtxAlu+cNalias+cAnoSis+cExtNtx,;
 				  cNalias})
 		 ENDIF
 
 		 IF 'BTO' $ cMaeAlu
 		    cNalias := 'BTO'
-		    AADD(aArchvo,{cIntUno+'\'+cNalias+'\'+;
+		    AADD(aArchvo,{cIntUno+'\'+cPatSis+'\'+cNalias+'\'+;
 				  FileAlu+cNalias+cAnoSis+ExtFile,;
-				  cIntUno+'\'+cNalias+'\'+;
+				  cIntUno+'\'+cPatSis+'\'+cNalias+'\'+;
 				  fNtxAlu+cNalias+cAnoSis+cExtNtx,;
 				  cNalias})
 		 ENDIF
 
-		 AADD(aArchvo,{cIntUno+'\'+;
+
+		 AADD(aArchvo,{cIntUno+'\'+cPatSis+'\'+;
 			       FileGru+'POS'+cAnoSis+ExtFile,NIL,'GRU'})
 
 		 AADD(aArchvo,{PathSis+'\'+fSimCar,NIL,'CAR'})
