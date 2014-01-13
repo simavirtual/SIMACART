@@ -259,7 +259,7 @@ FUNCTION Carte_208(aParam1,aParam2,aParam3,;
 		 AADD(aArchvo,{cIntUno+'\'+cPatSis+'\'+;
 			       FileGru+'POS'+cAnoSis+ExtFile,NIL,'GRU'})
 
-		 AADD(aArchvo,{PathSis+'\'+fSimCar,NIL,'CAR'})
+		 AADD(aArchvo,{PathSis+'\'+fSimCar,NIL,'SCA'})
 		 AADD(aArchvo,{cPatSis+'\'+;
 			       fCarAno+cAnoUsr+ExtFile,NIL,'CAA'})
 		 AADD(aArchvo,{cPatSis+'\'+FileCon,NIL,'CON'})
