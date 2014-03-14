@@ -496,6 +496,8 @@ FUNCTION Carte_101(aP1,aP2,aP3)
 	    ENDIF
 **********FIN CIERRE DE ARCHIVOS
 
+/*
+
 **********CONSULTA DEL NUMERO DEL RECIBO A IMPRIMIR
 	    SET DEVICE TO SCREEN
 	    IF SCO->lHayNroCon
@@ -508,6 +510,8 @@ FUNCTION Carte_101(aP1,aP2,aP3)
 	       SET COLOR TO
 	    ENDIF
 **********FIN CONSULTA DEL NUMERO DEL RECIBO A IMPRIMIR
+
+*/
 
 **********LECTURA DEL CODIGO DEL ESTUDIANTE
 	    cCodigoTes := cLeeCodEst(nFilInf+1,nColInf,;

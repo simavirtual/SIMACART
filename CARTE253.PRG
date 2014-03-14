@@ -102,6 +102,8 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        LOCAL nVlrIng := 0                   // Valor de los ingresos
        LOCAL nVlrMes := 0                   // Valor de lo facturado
 
+       LOCAL aFilExt := {}                  // Archivos Extracto de los pagos
+
        LOCAL aPagMes[13]                    // Pagos por Meses
        LOCAL aAboMes[13]                    // Abonos por Meses
        LOCAL aParMes[13]                    // Pagos Parciales por Meses
@@ -114,6 +116,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        LOCAL aTotNiv := {}                  // Totales por conceptos por nivel
        LOCAL aTotCon := {}                  // Totales por conceptos
        LOCAL nVlrInt := 0                   // Valor de los intereses
+       LOCAL aVlrDif := {}                  // Valor Diferencia
 
        LOCAL lMesAct := .T.                 // .T. Mes Actual.
        LOCAL nSdoAct := 0                   // Saldo Actual
@@ -163,6 +166,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
        LOCAL cCodigoTes := ''               // C¢digo del Estudiante
        LOCAL cNombreTes := ''               // Nombre del Estudiante
+       LOCAL cCodigoTgr := ''               // C¢digo del Grupo
        LOCAL cCodigoTco := ''               // C¢digo del Concepto
        LOCAL cNombreTco := ''               // Nombre del Concepto
        LOCAL lRetadoTes := .T.              // .T. Estudiante retirado
@@ -710,6 +714,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 				       cMaeAlu,@cNalias,.F.)
 		 IF lHayAlu
 		    cCodigoTes := &cNalias->cCodigoEst
+		    cCodigoTgr := &cNalias->cCodigoGru
 		    IF &cNalias->lRetiroEst
 		       lRetadoTes := .T.
 		    ENDIF
@@ -721,6 +726,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 		 IF lHayAlu
 		    lHayPag := lLocCodPag(CLI->cCodigoEst,nMesIniTpa,.F.)
 		 ENDIF
+		 FileMoB := ''
 *--------------FIN LOCALIZACION DEL PAGO
 
 *--------------VALIDACION DE DEUDORES Y PAGOS SIN FECHA
@@ -902,10 +908,44 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *				ENDIF
 *                             FIN ANALISIS DEL MES DE PAGO
 
+
 *                             TOTALIZACION DEL PAGO
 				aVlrPagos(PAG->dFecPagPag,;
 					  PAG->nVlrPagPag,@aVlrPag,1,;
 					  PAG->cCodigoBan)
+
+				aVlrPagExt(cPatSis,;
+					   PAG->cCodigoBan,;
+					   PAG->dFecPagPag,;
+					   PAG->nVlrPagPag,;
+					   0,; // nVlrTra
+					   1,; // Recibo de pago
+					   @aFilExt,;
+					   @FileMoB)
+
+				IF PAG->cEstadoPag == 'P'
+				   aVlrDifExt(FileMoB,;
+					      PAG->cCodigoEst,;
+					      cCodigoTgr,;
+					      PAG->nMesIniPag,;
+					      PAG->nMesFinPag,;
+					      PAG->cCodigoBan,;
+					      PAG->dFecPagPag,;
+					      PAG->nVlrPagPag,;
+					      aVlrDif)
+				ENDIF
+
+				IF PAG->cEstadoPag == 'A'
+				   aVlrDifExt(FileMoB,;
+					      PAG->cCodigoEst,;
+					      cCodigoTgr,;
+					      PAG->nMesIniPag,;
+					      PAG->nMesFinPag,;
+					      PAG->cCodigoBan,;
+					      PAG->dFecPagPag,;
+					      PAG->nVlrPagPag+nVlrInt,;
+					      aVlrDif)
+				ENDIF
 
 				aPagMes[nMesPag] += PAG->nVlrPagPag
 				IF PAG->cEstadoPag == 'A'
@@ -914,6 +954,15 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 				   aVlrPagos(PAG->dFecPagPag,;
 					     nVlrInt,@aVlrPag,1,;
 					     PAG->cCodigoBan)
+
+				   aVlrPagExt(cPatSis,;
+					      PAG->cCodigoBan,;
+					      PAG->dFecPagPag,;
+					      nVlrInt,;
+					      0,; // nVlrTra
+					      1,; // Recibo de pago
+					      @aFilExt,;
+					      @FileMoB)
 				ENDIF
 *                             FIN TOTALIZACION DEL PAGO
 
@@ -1226,12 +1275,32 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
 				 aVlrPagos(DES->dFechaDes,;
 					   DES->nValorDes,@aVlrPag,2)
+
+				 aVlrPagExt(cPatSis,;
+					    NIL,; // cCodBan
+					    DES->dFechaDes,;
+					    DES->nValorDes,;
+					    0,; // nVlrTra
+					    2,; // Abono
+					    @aFilExt,;
+					    @FileMoB)
+
 			      ENDIF
 			  ELSE
 			     aAboMes[nMesAbo] += DES->nValorDes
 
 			     aVlrPagos(DES->dFechaDes,;
 				       DES->nValorDes,@aVlrPag,2)
+
+			     aVlrPagExt(cPatSis,;
+					NIL,; // cCodBan
+					DES->dFechaDes,;
+					DES->nValorDes,;
+					0,; // nVlrTra
+					2,; // Abono
+					@aFilExt,;
+					@FileMoB)
+
 			  ENDIF
 *-----------------------FIN TOTALIZACION DEL ABONO
 
@@ -1261,12 +1330,33 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
 				 aVlrPagos(DES->dFechaDes,;
 					   DES->nValorDes,@aVlrPag,4)
+
+				 aVlrPagExt(cPatSis,;
+					    NIL,; // cCodBan
+					    DES->dFechaDes,;
+					    DES->nValorDes,;
+					    0,; // nVlrTra
+					    1,; // Recibo de pago
+					    @aFilExt,;
+					    @FileMoB)
+
+
 			      ENDIF
 			  ELSE
 			     aParMes[nMesPar] += DES->nValorDes
 
 			     aVlrPagos(DES->dFechaDes,;
 				       DES->nValorDes,@aVlrPag,4)
+
+			     aVlrPagExt(cPatSis,;
+					NIL,; // cCodBan
+					DES->dFechaDes,;
+					DES->nValorDes,;
+					0,; // nVlrTra
+					1,; // Recibo de pago
+					@aFilExt,;
+					@FileMoB)
+
 			  ENDIF
 *-----------------------FIN TOTALIZACION DEL PAGOS PARCIAL
 
@@ -1302,7 +1392,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *>>>>IMPRESION DE LOS ENCABEZADOS DE LOS GRANDES TOTALES
        aCamXml := {}
        aTitPrn := {}
-       AADD(aCamXml,'GRANDES TOTALES')
+       AADD(aCamXml,'GRANDES.TOTALES')
        AADD(aTitPrn,'')
 
        aNroCol := {}
@@ -1343,7 +1433,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        AADD(aTotal,0)
        AADD(aTitPrn,'')  // Url
 
-       cTxtPrn := 'GRANDES TOTALES '+cRegPrint(aTitulo,aNroCol)
+       cTxtPrn := 'GRANDES*TOTALES '+cRegPrint(aTitulo,aNroCol)
        lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
 *>>>>FIN IMPRESION DE LOS ENCABEZADOS DE LOS GRANDES TOTALES
 
@@ -1531,7 +1621,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *>>>>IMPRESION DEL TOTALES POR MESES
        aRegPrn := {}
        aCamXml := {}
-       AADD(aCamXml,'GRANDES TOTALES')
+       AADD(aCamXml,'GRANDES/TOTALES')
 
        aNroCol := {}
        aTitulo := {}
@@ -1556,12 +1646,10 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        AADD(aNroCol,16)
        AADD(aCamXml,'TOTALES')
 
-       cTxtPrn := 'GRANDES TOTALES '+cRegPrint(aTitulo,aNroCol)
+       cTxtPrn := 'GRANDES>TOTALES '+cRegPrint(aTitulo,aNroCol)
        lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
 
        FOR i := 1 TO LEN(aVlrPag)
-
-
 
 	   aTitulo := {}
 	   aTitPrn := {}
@@ -1697,9 +1785,214 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
        AADD(aTitPrn,'')  // Url
        AADD(aRegPrn,aTitPrn)
-
 *>>>>FIN IMPRESION DEL TOTALES POR MESES
 
+*>>>>VALIDACION DE LOS RECIBOS
+       ValidarExt(cPatSis,aFilExt,nMesIniTpa)
+
+       aNroCol := {}
+       aTitulo := {}
+
+       AADD(aTitulo,'PAGOS')
+       AADD(aNroCol,16)
+
+       AADD(aTitulo,'BANCO')
+       AADD(aNroCol,16)
+
+       AADD(aTitulo,'OBSERVACIONES')
+       AADD(aNroCol,16)
+
+       cTxtPrn := 'RECIBOS    '+cRegPrint(aTitulo,aNroCol)
+       lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
+       FOR i := 1 TO LEN(aFilExt)
+
+	   aNroCol := {}
+	   aTitulo := {}
+
+	   AADD(aTitulo,TRANS(aFilExt[i,6],"####,###,###")) // Pagos
+	   AADD(aNroCol,16)
+
+	   AADD(aTitulo,TRANS(aFilExt[i,7],"####,###,###")) // Bancos
+	   AADD(aNroCol,16)
+
+	   IF aFilExt[i,6] == aFilExt[i,7]
+	      AADD(aTitulo,'OK')
+	      AADD(aNroCol,16)
+	   ELSE
+	      AADD(aTitulo,TRANS(aFilExt[i,7]-aFilExt[i,6],"####,###,###"))
+	      AADD(aNroCol,16)
+	   ENDIF
+
+	   cTxtPrn := aFilExt[i,4]+' '+;              // A¤o
+		      cMes(VAL(aFilExt[i,5]),3)+' '+; // Mes
+		      aFilExt[i,3]                    // Banco
+	   cTxtPrn := cTxtPrn+SPACE(11)
+	   cTxtPrn := SUBS(cTxtPrn,1,11)
+
+	   cTxtPrn += cRegPrint(aTitulo,aNroCol)
+	   lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
+       ENDFOR
+
+       aNroCol := {}
+       aTitulo := {}
+
+       AADD(aTitulo,TRANS(nSuma(aFilExt,6),"####,###,###"))
+       AADD(aNroCol,16)
+
+       cTxtPrn := 'TOTALES'+SPACE(11)
+       cTxtPrn := SUBS(cTxtPrn,1,11)
+
+       cTxtPrn += cRegPrint(aTitulo,aNroCol)
+       lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+*>>>>FIN VALIDACION DE LOS RECIBOS
+
+*>>>>VALIDACION DE LOS ABONOS
+       IF nSuma(aFilExt,8)+nSuma(aFilExt,9) # 0
+
+	  aNroCol := {}
+	  aTitulo := {}
+
+	  AADD(aTitulo,'PAGOS')
+	  AADD(aNroCol,16)
+
+	  AADD(aTitulo,'BANCO')
+	  AADD(aNroCol,16)
+
+	  AADD(aTitulo,'OBSERVACIONES')
+	  AADD(aNroCol,16)
+
+	  cTxtPrn := 'ABONOS     '+cRegPrint(aTitulo,aNroCol)
+	  lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
+	  FOR i := 1 TO LEN(aFilExt)
+
+	      aNroCol := {}
+	      aTitulo := {}
+
+	      AADD(aTitulo,TRANS(aFilExt[i,8],"####,###,###")) // Pagos
+	      AADD(aNroCol,16)
+
+	      AADD(aTitulo,TRANS(aFilExt[i,9],"####,###,###")) // Bancos
+	      AADD(aNroCol,16)
+
+	      IF aFilExt[i,8] == aFilExt[i,9]
+		 AADD(aTitulo,'OK')
+		 AADD(aNroCol,16)
+	      ELSE
+		 AADD(aTitulo,TRANS(aFilExt[i,9]-aFilExt[i,8],"####,###,###"))
+		 AADD(aNroCol,16)
+	      ENDIF
+
+	      cTxtPrn := aFilExt[i,4]+' '+;              // A¤o
+			 cMes(VAL(aFilExt[i,5]),3)+' '+; // Mes
+			 aFilExt[i,3]                    // Banco
+	      cTxtPrn := cTxtPrn+SPACE(11)
+	      cTxtPrn := SUBS(cTxtPrn,1,11)
+
+	      cTxtPrn += cRegPrint(aTitulo,aNroCol)
+	      lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
+	  ENDFOR
+
+       ENDIF
+*>>>>FIN VALIDACION DE LOS ABONOS
+
+*>>>>IMPRESION DE LAS INCONSISTENCIAS
+       aVlrDif := ASORT(aVlrDif,,,{|x,y|x[1] < y[1]})
+       IF LEN(aVlrDif) > 0
+
+	  aNroCol := {}
+	  aTitPrn := {}
+
+	  AADD(aNroCol,6)
+	  AADD(aTitPrn,'CODIGO')
+
+	  AADD(aNroCol,6)
+	  AADD(aTitPrn,'GRUPO')
+
+	  AADD(aNroCol,6)
+	  AADD(aTitPrn,'MESINI')
+
+	  AADD(aNroCol,6)
+	  AADD(aTitPrn,'MESFIN')
+
+	  AADD(aNroCol,12)
+	  AADD(aTitPrn,'VLRPAG')
+
+	  AADD(aNroCol,12)
+	  AADD(aTitPrn,'F.PAGO')
+
+	  AADD(aNroCol,12)
+	  AADD(aTitPrn,'REFERENCIA')
+
+	  AADD(aNroCol,12)
+	  AADD(aTitPrn,'VLRTRA')
+
+
+	  AADD(aNroCol,12)
+	  AADD(aTitPrn,'F.TRAN')
+
+	  AADD(aNroCol,12)
+	  AADD(aTitPrn,'VLRDIF')
+
+	  cTxtPrn := cRegPrint(aTitPrn,aNroCol)
+	  lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
+
+	  FOR i := 1 TO LEN(aVlrDif)
+
+	     aNroCol := {}
+	     aTitPrn := {}
+
+	     AADD(aNroCol,6)
+	     AADD(aTitPrn,aVlrDif[i,3])
+	   *ÀC¢digo del Estudiante
+
+	     AADD(aNroCol,6)
+	     AADD(aTitPrn,aVlrDif[i,4])
+	   *ÀGrupo
+
+	     AADD(aNroCol,6)
+	     AADD(aTitPrn,aVlrDif[i,5])
+	   *ÀMes Inicial
+
+	     AADD(aNroCol,6)
+	     AADD(aTitPrn,aVlrDif[i,6])
+	   *ÀMes Final
+
+	     AADD(aNroCol,12)
+	     AADD(aTitPrn,TRANS(aVlrDif[i,7],"####,###,###"))
+	   *ÀValor del Pago
+
+	     AADD(aNroCol,12)
+	     AADD(aTitPrn,cFecha(aVlrDif[i,8]))
+	   *ÀFecha de Pago
+
+	     AADD(aNroCol,12)
+	     AADD(aTitPrn,aVlrDif[i,9])
+	   *ÀReferencia
+
+	     AADD(aNroCol,12)
+	     AADD(aTitPrn,TRANS(aVlrDif[i,10],"####,###,###"))
+	   *ÀValor Transaci¢n
+
+	     AADD(aNroCol,12)
+	     AADD(aTitPrn,cFecha(aVlrDif[i,11]))
+	   *ÀFecha de la Transaci¢n
+
+	     AADD(aNroCol,12)
+	     AADD(aTitPrn,TRANS(aVlrDif[i,10]-aVlrDif[i,7],"####,###,###"))
+	   *ÀDiferencia
+
+	     cTxtPrn := cRegPrint(aTitPrn,aNroCol)
+	     lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
+	  ENDFOR
+
+       ENDIF
+*>>>>FIN IMPRESION DE LAS INCONSISTENCIAS
 
 
 *>>>>GRABACION DEL TOTAL PAGOS
@@ -1778,3 +2071,391 @@ lHayXml := .T.
        RESTSCREEN(0,0,24,79,cSavPan)
        RETURN NIL
 *>>>>FIN EXPORTACION AL ARCHIVO
+
+/*************************************************************************
+* TITULO..: VALIDACION DEL EXTRACTO                                      *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: MAR 03/2014 MAR A
+       Colombia, Bucaramanga        INICIO:  1:24 PM   MAR 03/2014 MAR
+
+OBJETIVOS:
+
+1- Pendiente
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION ValidarExt(cPatSis,aFilExt,nMesIni)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     cPatSis                              // Path del sistema
+       aFilExt                              // Archivos Extracto de los pagos
+       nMesIni                              // Mes Inicial */
+*>>>>FIN DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION DE VARIABLES
+       LOCAL i := 0                         // Contador
+       LOCAL lShared := .F.                 // .T. Sistema Compartido
+       LOCAL nModCry := 0                   // 0=>No Protecci¢n 1=>Sin Proteci¢n Inicial 2=>Con Proteci¢n Inicial
+
+       LOCAL FileMoB := ''                  // Ej: 01199902.DAT
+       LOCAL cCodBan := ''                  // C¢digo del Banco
+       LOCAL cNroMes := ''                  // N£mero del Mes
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>RECORRIDO DE LOS EXTRACTOS
+       cNroMes := STR(nMesIni,2)
+       lCorrecion(@cNroMes)
+
+       FOR i := 1 TO LEN(aFilExt)
+
+*********ANALISIS DE DECISION
+	   FileMoB := aFilExt[i,2]
+	   cCodBan := aFilExt[i,3]
+	   IF EMPTY(FileMoB)
+	      LOOP
+	   ENDIF
+*********FIN ANALISIS DE DECISION
+
+*********SELECION DE AREAS DE TRABAJO
+	   IF !lUseDbf(.T.,FileMoB,'EXT',NIL,lShared,nModCry)
+	      cError('ABRIENDO ARCHIVOS '+FileMoB)
+	   ENDIF
+*********FIN SELECION DE AREAS DE TRABAJO
+
+*********RECORRIDO DE EXTRACTOS
+	   SELECT EXT
+	   EXT->(DBGOTOP())
+	   DO WHILE .NOT. EXT->(EOF())
+
+*=============PAGOS DEL MES
+		IF EXT->nCodigoCmv == 1 .OR. EXT->nCodigoCmv == 2
+
+		   IF SUBS(EXT->cCodRefTra,7,2) == cNroMes
+
+		      aVlrPagExt(cPatSis,;
+				 cCodBan,;
+				 EXT->dFechaTra,;
+				 0,; // nVlrPag
+				 EXT->nValorTra,;
+				 1,; // Recibo de pago
+				 @aFilExt)
+
+		   ENDIF
+
+		ENDIF
+*=============FIN PAGOS DEL MES
+
+*=============ABONOS DEL MES
+		IF EXT->nCodigoCmv == 3
+
+		   IF SUBS(EXT->cCodRefTra,7,4) == '14'+cNroMes
+
+		      aVlrPagExt(cPatSis,;
+				 cCodBan,;
+				 EXT->dFechaTra,;
+				 0,; // nVlrPag
+				 EXT->nValorTra,;
+				 2,; // Abono
+				 @aFilExt)
+
+		   ENDIF
+
+		ENDIF
+*=============FIN ABONOS DEL MES
+
+	      EXT->(DBSKIP())
+
+	   ENDDO
+*********FIN RECORRIDO DE EXTRACTOS
+
+       ENDFOR
+       aFilExt := ASORT(aFilExt,,,{|x,y|x[1] < y[1]})
+       RETURN NIL
+*>>>>FIN RECORRIDO DE LOS EXTRACTOS
+
+/*************************************************************************
+* TITULO..: VALIDACION DE LOS PAGOS CON EL EXTRACTO                      *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: MAR 12/2014 MAR A
+       Colombia, Bucaramanga        INICIO:  5:39 PM   MAR 12/2014 MAR
+
+OBJETIVOS:
+
+1- Pendiente
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION aVlrPagExt(cPatSis,cCodBan,dFecPag,nVlrPag,;
+		    nVlrTra,nTipPag,aVlrPag,FileMoB)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     cPatSis                              // Path del sistema
+       cCodBan                              // C¢digo del Banco
+       dFecPag                              // Fecha de Pago
+       nVlrPag                              // Valor Pagado
+       nVlrTra                              // Valor de Transaci¢n
+       nTipPag                              // Tipo de Pago. 1=Recibos 2=Abonos
+       aVlrPag                              // Valor de los Pagos
+       FileMoB                              // @Ej: 01199902.DAT */
+*>>>>FIN DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION DE VARIABLES
+       LOCAL k := 0                         // Indice de B£squeda
+
+       LOCAL cMesPag := ''                  // Mes del pago
+       LOCAL cAnoPag := ''                  // A¤o del Pago
+       LOCAL cPatExt := ''                  // Path del Extracto
+
+       LOCAL ExtFile := '.DAT'              // Extensi¢n del Archivo
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>ARCHIVO DEL EXTRACTO
+       FileMoB := ''
+       cCodBan := IF(cCodBan==NIL,'01',cCodBan)
+       IF !EMPTY(dFecPag)
+
+	  cAnoPag := STR(YEAR(dFecPag),4)
+	  cMesPag := STR(MONTH(dFecPag),2)
+	  lCorrecion(@cMesPag,2)
+
+	  cPatExt := cAnoPag+'.'+;
+		     SUBS(cPatSis,LEN(ALLTRIM(cPatSis))-2,3)
+
+	  FileMoB := cPatExt+'\MODEM\'+cCodBan+'\'+;
+		     cCodBan+cAnoPag+cMesPag+ExtFile
+       ELSE
+	  FileMoB := ''
+       ENDIF
+
+       k := ASCAN(aVlrPag,{|aArray| aArray[2] == FileMoB})
+
+       IF k == 0
+
+	  IF !EMPTY(FileMoB)
+	     AADD(aVlrPag,{cCodBan+cAnoPag+cMesPag,;
+			   FileMoB,;         // 2.Archivo del Extracto
+			   cCodBan,;         // 3.Banco
+			   cAnoPag,;         // 4.A¤o.
+			   cMesPag,;         // 5.Mes.
+			   0,;               // 6. Pagos del sistema
+			   0,;               // 7. Pagos del Extracto
+			   0,;               // 8. Abonos del Sistema
+			   0})               // 9. Abonos del Extracto
+	  ELSE
+	     AADD(aVlrPag,{'',;
+			   FileMoB,;         // 2.Archivo del Extracto
+			   '',;              // 3.Banco
+			   '',;              // 4.A¤o.
+			   '',;              // 5.Mes.
+			   0,;               // 6. Pagos del sistema
+			   0,;               // 7. Pagos del Extracto
+			   0,;               // 8. Abonos del Sistema
+			   0})               // 9. Abonos del Extracto
+	  ENDIF
+       ENDIF
+*>>>>FIN ARCHIVO DEL EXTRACTO
+
+*>>>>VALIDACION DEL PAGO
+       k := ASCAN(aVlrPag,{|aArray| aArray[2] == FileMoB})
+
+       DO CASE
+       CASE nTipPag == 1 // Recibo de Pago
+
+	    DO CASE
+	    CASE nVlrPag > 0
+
+		 aVlrPag[k,6] += nVlrPag
+
+	    CASE nVlrTra > 0
+
+		 aVlrPag[k,7] += nVlrTra
+
+	    ENDCASE
+
+       CASE nTipPag == 2 // Abono
+
+	    DO CASE
+	    CASE nVlrPag > 0
+
+		 aVlrPag[k,8] += nVlrPag
+
+	    CASE nVlrTra > 0
+
+		 aVlrPag[k,9] += nVlrTra
+
+	    ENDCASE
+
+       ENDCASE
+       RETURN NIL
+*>>>>FIN VALIDACION DEL PAGO
+
+/*************************************************************************
+* TITULO..: VALIDACION DE LOS PAGOS CON EL EXTRACTO                      *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: MAR 12/2014 MAR A
+       Colombia, Bucaramanga        INICIO:  5:39 PM   MAR 12/2014 MAR
+
+OBJETIVOS:
+
+1- Pendiente
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION aVlrDifExt(FileMoB,cCodEst,cCodGru,nMesIni,;
+		    nMesFin,cCodBan,dFecPag,nVlrPag,aVlrDif)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     FileMoB                              // @Ej: 01199902.DAT
+       cCodEst                              // C¢digo del Estudiante
+       cCodGru                              // C¢digo del Grupo
+       nMesIni                              // Mes Inicial
+       nMesFin                              // Mes Final
+       cCodBan                              // C¢digo del Banco
+       dFecPag                              // Fecha de Pago
+       nVlrPag                              // Valor Pagado
+       aVlrDif                              // Valor diferencia */
+*>>>>FIN DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION DE VARIABLES
+       LOCAL k := 0                         // Indice de B£squeda
+
+       LOCAL lShared := .F.                 // .T. Sistema Compartido
+       LOCAL nModCry := 0                   // 0=>No Protecci¢n 1=>Sin Proteci¢n Inicial 2=>Con Proteci¢n Inicial
+
+       LOCAL cMesIni := ''                  // Mes Inicial
+       LOCAL cMesFin := ''                  // Mes Inicial
+       LOCAL cCodRef := ''                  // C¢digo de la referencia
+       LOCAL cMesPag := ''                  // Mes del pago
+       LOCAL cAnoPag := ''                  // A¤o del Pago
+       LOCAL cPatExt := ''                  // Path del Extracto
+       LOCAL lHayExt := .F.                 // .T. Hay Extracto
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>SELECION DE AREAS DE TRABAJO
+       IF !EMPTY(FileMoB)
+
+	  IF !lUseDbf(.T.,FileMoB,'EXT',NIL,lShared,nModCry)
+	     cError('ABRIENDO ARCHIVOS '+FileMoB)
+	  ENDIF
+
+       ENDIF
+*>>>>FIN SELECION DE AREAS DE TRABAJO
+
+*>>>>ANALISIS DE LA INCONSISTENCIA
+       k := ASCAN(aVlrDif,{|aArray| aArray[3] == cCodEst})
+
+       IF !EMPTY(dFecPag)
+
+	  cMesIni := STR(nMesIni,2)
+	  lCorrecion(@cMesIni,2)
+
+	  cMesFin := STR(nMesFin,2)
+	  lCorrecion(@cMesFin,2)
+
+	  cCodRef := cCodEst+cMesIni+cMesFin
+
+	  SELECT EXT
+	  EXT->(DBGOTOP())
+	  LOCATE FOR ALLTRIM(EXT->cCodRefTra) == cCodRef
+
+	  SELECT EXT
+	  IF EXT->(FOUND())
+
+	     cAnoPag := STR(YEAR(dFecPag),4)
+	     cMesPag := STR(MONTH(dFecPag),2)
+	     lCorrecion(@cMesPag,2)
+
+	     IF nVlrPag # EXT->nValorTra
+
+		IF k == 0
+		   AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag,;
+				 FileMoB,;         // 2.  Archivo del Extracto
+				 cCodEst,;         // 3.  C¢digo de la Referencia
+				 cCodGru,;         // 4.  C¢digo del Grupo
+				 '',;              // 5.  Mes Inicial
+				 '',;              // 6.  Mes Final
+				 0,;               // 7.  Valor Pago
+				 '',;              // 8.  Fecha de Pago
+				 '',;              // 9.  Referencia
+				 0,;               // 10. Valor de la Transaci¢n
+				 ''})              // 11. Fecha de la Transaci¢n
+		ENDIF
+	     ENDIF
+
+
+	  ELSE
+
+	    IF k == 0
+	       AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag,;
+			     FileMoB,;         // 2.  Archivo del Extracto
+			     cCodEst,;         // 3.  C¢digo de la Referencia
+			     cCodGru,;         // 4.  C¢digo del Grupo
+			     '',;              // 5.  Mes Inicial
+			     '',;              // 6.  Mes Final
+			     0,;               // 7.  Valor Pago
+			     '',;              // 8.  Fecha de Pago
+			     '',;              // 9.  Referencia
+			     0,;               // 10. Valor de la Transaci¢n
+			     ''})              // 11. Fecha de la Transaci¢n
+	    ENDIF
+
+	  ENDIF
+       ELSE
+	 IF k == 0
+	    AADD(aVlrDif,{'',;
+			  '',;              // 2.  Archivo del Extracto
+			  cCodEst,;         // 3.  C¢digo de la Referencia
+			  cCodGru,;         // 4.  C¢digo del Grupo
+			  '',;              // 5.  Mes Inicial
+			  '',;              // 6.  Mes Final
+			  0,;               // 7.  Valor Pago
+			  '',;              // 8.  Fecha de Pago
+			  '',;              // 9.  Referencia
+			  0,;               // 10. Valor de la Transaci¢n
+			  ''})              // 11. Fecha de la Transaci¢n
+	 ENDIF
+       ENDIF
+*>>>>FIN ANALISIS DE LA INCONSISTENCIA
+
+*>>>>LOCALIZACION DE LA CONSIGNACION
+       k := ASCAN(aVlrDif,{|aArray| aArray[3] == cCodEst})
+       IF !EMPTY(dFecPag)
+
+	  SELECT EXT
+	  IF EXT->(FOUND())
+	     IF nVlrPag # EXT->nValorTra
+
+		aVlrDif[k,5]  := cMesIni
+		aVlrDif[k,6]  := cMesFin
+		aVlrDif[k,7]  := nVlrPag
+		aVlrDif[k,8]  := dFecPag
+		aVlrDif[k,9]  := EXT->cCodRefTra
+		aVlrDif[k,10] := EXT->nValorTra
+		aVlrDif[k,11] := EXT->dFechaTra
+
+	     ENDIF
+	  ELSE
+		aVlrDif[k,5]  := cMesIni
+		aVlrDif[k,6]  := cMesFin
+		aVlrDif[k,7]  := nVlrPag
+		aVlrDif[k,8]  := dFecPag
+	  ENDIF
+
+       ELSE
+	  aVlrDif[k,5]  := cMesIni
+	  aVlrDif[k,6]  := cMesFin
+	  aVlrDif[k,7]  := nVlrPag
+	  aVlrDif[k,8]  := dFecPag
+       ENDIF
+       RETURN NIL
+*>>>>FIN LOCALIZACION DE LA CONSIGNACION
+
