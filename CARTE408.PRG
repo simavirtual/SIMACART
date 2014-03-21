@@ -4,7 +4,7 @@ MODULO      : PAGOS
 SUBMODULO...: PAGOS EN LINEA
 
 **************************************************************************
-* TITULO..: MENU DE PAGOS EN LINEA                                       *
+* TITULO..: MENU DE FACTURACION MAS PAGOS                                *
 **************************************************************************
 
 AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: MAY 06/2008 MAR A
@@ -347,6 +347,21 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
        cIntUno := PathUno+'\'+cPatSis
        cIntDos := PathDos+'\'+cPatSis
 *>>>>FIN LECTURA DE PATHS
+
+*>>>>AREAS DE TRABAJO
+       IF !lUseDbf(.T.,cIntDos+'\'+;
+		      'MATR'+cAnoUsr+ExtFile,'MTR',NIL,lShared,nModCry)
+	  cError('ABRIENDO ARCHIVOS')
+	  CloseAll()
+	  RETURN NIL
+       ENDIF
+       cIntCua := ALLTRIM(MTR->cIntCuaAno)
+       IF !EMPTY(cIntCua)
+	  cIntCua := cIntCua+'\'+cPatSis
+	  cIntUno := cIntCua
+       ENDIF
+       CloseAll()
+*>>>>FIN AREAS DE TRABAJO
 
 *>>>>AREAS DE TRABAJO
        aUseDbf := {}

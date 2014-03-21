@@ -583,7 +583,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  FilePrn := 'pagos'+cMes(nMesIniTpa,3)
+	  FilePrn := SUBS(CAR->cSerFacCar,1,1)+'p'+cAnoUsr+cNroMes
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     IF !lFileDelete(FileTem)
@@ -890,6 +890,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 					    CAA->nMesAmnCaA)
 *...................FIN CALCULO DE LOS INTERESES
 
+
 *...................CALCULO DE OTROS TOTALES
 		      IF (PAG->cEstadoPag == 'P' .OR.;
 			  PAG->cEstadoPag == 'A') .AND. lFechOk
@@ -907,7 +908,6 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 				   ENDIF
 *				ENDIF
 *                             FIN ANALISIS DEL MES DE PAGO
-
 
 *                             TOTALIZACION DEL PAGO
 				aVlrPagos(PAG->dFecPagPag,;
@@ -1788,7 +1788,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *>>>>FIN IMPRESION DEL TOTALES POR MESES
 
 *>>>>VALIDACION DE LOS RECIBOS
-       ValidarExt(cPatSis,aFilExt,nMesIniTpa)
+       ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIniTpa,cMaeAlu,aVlrDif)
 
        aNroCol := {}
        aTitulo := {}
@@ -1802,13 +1802,19 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        AADD(aTitulo,'OBSERVACIONES')
        AADD(aNroCol,16)
 
-       cTxtPrn := 'RECIBOS    '+cRegPrint(aTitulo,aNroCol)
-       lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+       IF CAR->lValidaCar
+	  cTxtPrn := 'RECIBOS    '+cRegPrint(aTitulo,aNroCol)
+	  lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+       ENDIF
 
        FOR i := 1 TO LEN(aFilExt)
 
 	   aNroCol := {}
 	   aTitulo := {}
+
+	   IF aFilExt[i,6]+aFilExt[i,7] == 0
+	      LOOP
+	   ENDIF
 
 	   AADD(aTitulo,TRANS(aFilExt[i,6],"####,###,###")) // Pagos
 	   AADD(aNroCol,16)
@@ -1830,8 +1836,10 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	   cTxtPrn := cTxtPrn+SPACE(11)
 	   cTxtPrn := SUBS(cTxtPrn,1,11)
 
-	   cTxtPrn += cRegPrint(aTitulo,aNroCol)
-	   lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+	   IF CAR->lValidaCar
+	      cTxtPrn += cRegPrint(aTitulo,aNroCol)
+	      lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+	   ENDIF
 
        ENDFOR
 
@@ -1844,8 +1852,10 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        cTxtPrn := 'TOTALES'+SPACE(11)
        cTxtPrn := SUBS(cTxtPrn,1,11)
 
-       cTxtPrn += cRegPrint(aTitulo,aNroCol)
-       lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+       IF CAR->lValidaCar
+	  cTxtPrn += cRegPrint(aTitulo,aNroCol)
+	  lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+       ENDIF
 *>>>>FIN VALIDACION DE LOS RECIBOS
 
 *>>>>VALIDACION DE LOS ABONOS
@@ -1863,10 +1873,16 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	  AADD(aTitulo,'OBSERVACIONES')
 	  AADD(aNroCol,16)
 
-	  cTxtPrn := 'ABONOS     '+cRegPrint(aTitulo,aNroCol)
-	  lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+	  IF CAR->lValidaCar
+	     cTxtPrn := 'ABONOS     '+cRegPrint(aTitulo,aNroCol)
+	     lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+	  ENDIF
 
 	  FOR i := 1 TO LEN(aFilExt)
+
+	      IF aFilExt[i,8]+aFilExt[i,9] == 0
+		 LOOP
+	      ENDIF
 
 	      aNroCol := {}
 	      aTitulo := {}
@@ -1891,11 +1907,27 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	      cTxtPrn := cTxtPrn+SPACE(11)
 	      cTxtPrn := SUBS(cTxtPrn,1,11)
 
-	      cTxtPrn += cRegPrint(aTitulo,aNroCol)
-	      lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+	      IF CAR->lValidaCar
+		 cTxtPrn += cRegPrint(aTitulo,aNroCol)
+		 lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+	      ENDIF
 
 	  ENDFOR
 
+       ENDIF
+
+       aNroCol := {}
+       aTitulo := {}
+
+       AADD(aTitulo,TRANS(nSuma(aFilExt,8),"####,###,###"))
+       AADD(aNroCol,16)
+
+       cTxtPrn := 'TOTALES'+SPACE(11)
+       cTxtPrn := SUBS(cTxtPrn,1,11)
+
+       IF CAR->lValidaCar
+	  cTxtPrn += cRegPrint(aTitulo,aNroCol)
+	  lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
        ENDIF
 *>>>>FIN VALIDACION DE LOS ABONOS
 
@@ -1937,8 +1969,10 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	  AADD(aNroCol,12)
 	  AADD(aTitPrn,'VLRDIF')
 
-	  cTxtPrn := cRegPrint(aTitPrn,aNroCol)
-	  lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+	  IF CAR->lValidaCar
+	     cTxtPrn := cRegPrint(aTitPrn,aNroCol)
+	     lPrnReg(02,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+	  ENDIF
 
 
 	  FOR i := 1 TO LEN(aVlrDif)
@@ -1986,8 +2020,10 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	     AADD(aTitPrn,TRANS(aVlrDif[i,10]-aVlrDif[i,7],"####,###,###"))
 	   *ÀDiferencia
 
-	     cTxtPrn := cRegPrint(aTitPrn,aNroCol)
-	     lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+	     IF CAR->lValidaCar
+		cTxtPrn := cRegPrint(aTitPrn,aNroCol)
+		lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+	     ENDIF
 
 	  ENDFOR
 
@@ -2087,22 +2123,46 @@ OBJETIVOS:
 *                              PROGRAMA                                  *
 *------------------------------------------------------------------------*/
 
-FUNCTION ValidarExt(cPatSis,aFilExt,nMesIni)
+FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 
 *>>>>DESCRIPCION DE PARAMETROS
-/*     cPatSis                              // Path del sistema
+/*     cAnoUsr                              // A¤o del usuario
+       cPatSis                              // Path del sistema
        aFilExt                              // Archivos Extracto de los pagos
-       nMesIni                              // Mes Inicial */
+       nMesIni                              // Mes Inicial
+       cMaeAlu                              // Maestros habilitados
+       aVlrDif                              // Valor Diferencia */
 *>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
-       LOCAL i := 0                         // Contador
-       LOCAL lShared := .F.                 // .T. Sistema Compartido
+       LOCAL cAnoSis := SUBS(cAnoUsr,3,2)   // A¤o del sistema
        LOCAL nModCry := 0                   // 0=>No Protecci¢n 1=>Sin Proteci¢n Inicial 2=>Con Proteci¢n Inicial
+       LOCAL PathTem := ''                  // Path temporal
+       LOCAL ExtFile := '.DAT'              // Extensi¢n del Archivo
+       LOCAL FileCmv := 'CONCEMOV'+ExtFile
+
+       LOCAL i := 0                         // Contador
+       LOCAL k := 0                         // Indice de B£squeda
+
+       LOCAL lHayRec := .F.                 // .T. Hay Recibos
+       LOCAL lHayAbo := .F.                 // .T. Hay Abonos
+       LOCAL lShared := .F.                 // .T. Sistema Compartido
+
+       LOCAL lHayPag := .F.                 // .T. Hay pago
+       LOCAL FilePag := ''                  // Archivo de Pagos
+       LOCAL nVlrInt := 0                   // Valor de los intereses
 
        LOCAL FileMoB := ''                  // Ej: 01199902.DAT
        LOCAL cCodBan := ''                  // C¢digo del Banco
+       LOCAL nCodCmv := ''                  // C¢digo Concepto del Movimiento
        LOCAL cNroMes := ''                  // N£mero del Mes
+       LOCAL cMesPag := ''                  // Mes del pago
+       LOCAL cAnoPag := ''                  // A¤o del Pago
+
+       LOCAL lHayAlu := .F.                 // .T. Hay Alumno
+       LOCAL cNalias := ''                  // Alias del Maestro
+       LOCAL cCodEst := ''                  // C¢digo del Estudiante
+       LOCAL cCodGru := ''                  // C¢digo del Grupo
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>RECORRIDO DE LOS EXTRACTOS
@@ -2114,13 +2174,21 @@ FUNCTION ValidarExt(cPatSis,aFilExt,nMesIni)
 *********ANALISIS DE DECISION
 	   FileMoB := aFilExt[i,2]
 	   cCodBan := aFilExt[i,3]
+	   cAnoPag := aFilExt[i,4]
+
+	   PathTem := cAnoPag+'.'+;
+		      SUBS(cPatSis,LEN(ALLTRIM(cPatSis))-2,3)
+
 	   IF EMPTY(FileMoB)
 	      LOOP
 	   ENDIF
 *********FIN ANALISIS DE DECISION
 
 *********SELECION DE AREAS DE TRABAJO
-	   IF !lUseDbf(.T.,FileMoB,'EXT',NIL,lShared,nModCry)
+	   IF !lUseDbf(.T.,FileMoB,'EXT',NIL,lShared,nModCry) .OR.;
+	      !lUseDbf(.T.,PathTem+'\'+;
+			   FileCmv,'CMV',NIL,lShared,nModCry)
+
 	      cError('ABRIENDO ARCHIVOS '+FileMoB)
 	   ENDIF
 *********FIN SELECION DE AREAS DE TRABAJO
@@ -2130,38 +2198,201 @@ FUNCTION ValidarExt(cPatSis,aFilExt,nMesIni)
 	   EXT->(DBGOTOP())
 	   DO WHILE .NOT. EXT->(EOF())
 
-*=============PAGOS DEL MES
-		IF EXT->nCodigoCmv == 1 .OR. EXT->nCodigoCmv == 2
+*=============ANALISIS DE DECISION
+		nCodCmv := EXT->nCodigoCmv
 
-		   IF SUBS(EXT->cCodRefTra,7,2) == cNroMes
+		lHayRec := (nCodCmv == 1  .OR. nCodCmv == 2) .AND.;
+			    SUBS(EXT->cCodRefTra,7,2) == cNroMes
 
-		      aVlrPagExt(cPatSis,;
-				 cCodBan,;
-				 EXT->dFechaTra,;
-				 0,; // nVlrPag
-				 EXT->nValorTra,;
-				 1,; // Recibo de pago
-				 @aFilExt)
+		lHayAbo := SUBS(EXT->cCodRefTra,7,4) == '14'+cNroMes
+*=============FIN ANALISIS DE DECISION
+
+*=============ANALISIS DEL ABONO
+		IF lHayAbo
+		   IF nCodCmv # 3  // ABONO A¥O ANTERIOR
+
+		      IF lLocCodigo('nCodigoCmv','CMV',nCodCmv)
+			 nCodCmv := CMV->nCodCmvCmv
+		      ENDIF
+
+		      IF nCodCmv # 3
+			 lHayAbo := .F.
+		      ENDIF
 
 		   ENDIF
+		ENDIF
+*=============FIN ANALISIS DEL ABONO
+
+*=============FIN ANALISIS DE DECISION
+
+
+*=============BUSQUEDA DEL ESTUDIANTE
+		IF lHayRec .OR. lHayAbo
+
+		   cCodEst := SUBS(EXT->cCodRefTra,1,6)
+
+		   lHayAlu := lSekCodMae(cCodEst,cMaeAlu,@cNalias,.F.)
+
+		   IF lHayAlu
+		      cCodGru := &cNalias->cCodigoGru
+		   ELSE
+		      cCodGru := ''
+		   ENDIF
+
+		   cAnoPag := STR(YEAR(EXT->dFechaTra),4)
+		   cMesPag := STR(MONTH(EXT->dFechaTra),2)
+		   lCorrecion(@cMesPag,2)
+
+		   k := ASCAN(aVlrDif,{|aArray| aArray[3] == cCodEst})
+
+		ENDIF
+*=============FIN BUSQUEDA DEL ESTUDIANTE
+
+*=============PAGOS DEL MES
+		IF lHayRec
+
+		   aVlrPagExt(cPatSis,;
+			      cCodBan,;
+			      EXT->dFechaTra,;
+			      0,; // nVlrPag
+			      EXT->nValorTra,;
+			      1,; // Recibo de pago
+			      @aFilExt)
+
 
 		ENDIF
 *=============FIN PAGOS DEL MES
 
-*=============ABONOS DEL MES
-		IF EXT->nCodigoCmv == 3
+*=============LOCALIZACION DEL PAGO
+		IF lHayRec
 
-		   IF SUBS(EXT->cCodRefTra,7,4) == '14'+cNroMes
+		   IF !EMPTY(cCodGru)
 
-		      aVlrPagExt(cPatSis,;
-				 cCodBan,;
-				 EXT->dFechaTra,;
-				 0,; // nVlrPag
-				 EXT->nValorTra,;
-				 2,; // Abono
-				 @aFilExt)
+		      FilePag := cPatSis+'\PAGOS\PA'+cCodGru+cAnoSis+ExtFile
+		      lUseDbf(.T.,FilePag,'PAG',NIL,lShared,nModCry)
+		      lHayPag := lLocCodPag(cCodEst,nMesIni,.F.)
+
+		      IF lHayPag
+
+
+			 IF (PAG->cEstadoPag == 'P' .OR.;
+			     PAG->cEstadoPag == 'A') .AND.;
+			     !EMPTY(PAG->dFecPagPag)
+
+
+			    nVlrInt := 0
+			    IF PAG->cEstadoPag == 'A'
+			       nVlrInt := nVlrIntPag(CAA->lIntPenCaA,;
+						     PAG->nMesIniPag,;
+						     CAA->nMesAmnCaA)
+			    ENDIF
+
+			    IF PAG->nVlrPagPag+nVlrInt # EXT->nValorTra
+
+			       IF k == 0
+				  AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag,;
+						FileMoB,;                // 2.  Archivo del Extracto
+						cCodEst,;                // 3.  C¢digo de la Referencia
+						cCodGru,;                // 4.  C¢digo del Grupo
+						STR(PAG->nMesIniPag,2),; // 5.  Mes Inicial
+						STR(PAG->nMesFinPag,2),; // 6.  Mes Final
+						PAG->nVlrPagPag+nVlrInt,;// 7.  Valor Pago
+						PAG->dFecPagPag,;        // 8.  Fecha de Pago
+						EXT->cCodRefTra,;        // 9.  Referencia
+						EXT->nValorTra,;         // 10. Valor de la Transaci¢n
+						EXT->dFechaTra})         // 11. Fecha de la Transaci¢n
+			       ELSE
+				  aVlrDif[k,9]  := EXT->cCodRefTra
+				  aVlrDif[k,10] := EXT->nValorTra
+				  aVlrDif[k,11] := EXT->dFechaTra
+			       ENDIF
+
+			    ENDIF
+
+			 ELSE
+
+			    IF k == 0
+			       AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag,;
+					     FileMoB,;                // 2.  Archivo del Extracto
+					     cCodEst,;                // 3.  C¢digo de la Referencia
+					     cCodGru,;                // 4.  C¢digo del Grupo
+					     STR(PAG->nMesIniPag,2),; // 5.  Mes Inicial
+					     STR(PAG->nMesFinPag,2),; // 6.  Mes Final
+					     0,;                      // 7.  Valor Pago
+					     '',;                     // 8.  Fecha de Pago
+					     EXT->cCodRefTra,;        // 9.  Referencia
+					     EXT->nValorTra,;         // 10. Valor de la Transaci¢n
+					     EXT->dFechaTra})         // 11. Fecha de la Transaci¢n
+			    ELSE
+
+			       aVlrDif[k,9]  := EXT->cCodRefTra
+			       aVlrDif[k,10] := EXT->nValorTra
+			       aVlrDif[k,11] := EXT->dFechaTra
+			    ENDIF
+
+			 ENDIF
+
+		      ELSE
+
+			 IF k == 0
+
+			    AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag,;
+					  FileMoB,;                // 2.  Archivo del Extracto
+					  cCodEst,;                // 3.  C¢digo de la Referencia
+					  cCodGru,;                // 4.  C¢digo del Grupo
+					  '',; // 5.  Mes Inicial
+					  '',; // 6.  Mes Final
+					  0,;        // 7.  Valor Pago
+					  '',;        // 8.  Fecha de Pago
+					  EXT->cCodRefTra,;        // 9.  Referencia
+					  EXT->nValorTra,;         // 10. Valor de la Transaci¢n
+					  EXT->dFechaTra})         // 11. Fecha de la Transaci¢n
+
+			 ELSE
+			    aVlrDif[k,9]  := EXT->cCodRefTra
+			    aVlrDif[k,10] := EXT->nValorTra
+			    aVlrDif[k,11] := EXT->dFechaTra
+			 ENDIF
+
+		      ENDIF
+
+		   ELSE
+
+		      IF k == 0
+
+			 AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag,;
+				       FileMoB,;         // 2.  Archivo del Extracto
+				       cCodEst,;         // 3.  C¢digo de la Referencia
+				       cCodGru,;         // 4.  C¢digo del Grupo
+				       '',;              // 5.  Mes Inicial
+				       '',;              // 6.  Mes Final
+				       0,;               // 7.  Valor Pago
+				       '',;              // 8.  Fecha de Pago
+				       EXT->cCodRefTra,; // 9.  Referencia
+				       EXT->nValorTra,;  // 10. Valor de la Transaci¢n
+				       EXT->dFechaTra})  // 11. Fecha de la Transaci¢n
+
+		      ELSE
+			 aVlrDif[k,9]  := EXT->cCodRefTra
+			 aVlrDif[k,10] := EXT->nValorTra
+			 aVlrDif[k,11] := EXT->dFechaTra
+		      ENDIF
 
 		   ENDIF
+		ENDIF
+*=============FIN LOCALIZACION DEL PAGO
+
+*=============ABONOS DEL MES
+		IF lHayAbo
+
+		   aVlrPagExt(cPatSis,;
+			      cCodBan,;
+			      EXT->dFechaTra,;
+			      0,; // nVlrPag
+			      EXT->nValorTra,;
+			      2,; // Abono
+			      @aFilExt)
+
 
 		ENDIF
 *=============FIN ABONOS DEL MES
