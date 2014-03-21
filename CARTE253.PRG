@@ -1285,6 +1285,16 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 					    @aFilExt,;
 					    @FileMoB)
 
+				 aVlrDifExt(FileMoB,;
+					    DES->cCodigoEst,;
+					    cCodigoTgr,;
+					    14,;
+					    DES->nNroMesDes,;
+					    '01',;
+					    DES->dFechaDes,;
+					    DES->nValorDes,;
+					    aVlrDif)
+
 			      ENDIF
 			  ELSE
 			     aAboMes[nMesAbo] += DES->nValorDes
@@ -1300,6 +1310,16 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 					2,; // Abono
 					@aFilExt,;
 					@FileMoB)
+
+			     aVlrDifExt(FileMoB,;
+					DES->cCodigoEst,;
+					cCodigoTgr,;
+					14,;
+					DES->nNroMesDes,;
+					'01',;
+					DES->dFechaDes,;
+					DES->nValorDes,;
+					aVlrDif)
 
 			  ENDIF
 *-----------------------FIN TOTALIZACION DEL ABONO
@@ -2222,9 +2242,6 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 		   ENDIF
 		ENDIF
 *=============FIN ANALISIS DEL ABONO
-
-*=============FIN ANALISIS DE DECISION
-
 
 *=============BUSQUEDA DEL ESTUDIANTE
 		IF lHayRec .OR. lHayAbo
