@@ -59,6 +59,8 @@ FUNCTION CreaDbfCmv(lShared,nModCry,PathArc,fArchvo,aStrDbf)
        AADD(aDbfStr,{'cCodRefTra','Character',12,0}) // C¢digo de la Referencia
        AADD(aDbfStr,{'cNombreCmv','Character',40,0}) // Nombre del tipo del Movimiento
        AADD(aDbfStr,{'lConsigCmv','Logical'  ,01,0}) // .T. Habilita el concepto para consignar
+       AADD(aDbfStr,{'nCodCmvCmv','Numeric',4,0})    // Codigo del Nombre del tipo de movimiento
+       AADD(aDbfStr,{'cAnoCmvCmv','Character',04,0}) // C¢digo de la Referencia
 *>>>>FIN CREACION DE LA ESTRUCTURA
 
 *>>>>RETORNO DE LA ESTRUCTURA
@@ -484,6 +486,18 @@ FUNCTION oDefBrwCmv(lShared,nFilSup,nColSup,nFilInf,nColInf)
        oColumn	     := TBCOLUMNNEW('CONSIGNAR', {||CMV->lConsigCmv})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CMV'},{'FIELD','lConsigCmv'},;
 			 {'PICTURE','@!'}}
+       oBrowse:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('CODIGO', {||CMV->nCodCmvCmv})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CMV'},{'FIELD','nCodCmvCmv'},;
+			 {'PICTURE','9999'}}
+       oBrowse:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('A¥O', {||CMV->cAnoCmvCmv})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CMV'},{'FIELD','cAnoCmvCmv'},;
+			 {'PICTURE','9999'}}
        oBrowse:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 

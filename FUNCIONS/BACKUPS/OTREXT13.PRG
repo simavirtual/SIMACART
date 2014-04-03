@@ -284,6 +284,7 @@ FUNCTION FOtrExt13(aParam1,aParam2,aParam3,;
 			IF(TRA->lSumarTra,;
 			   SPACE(12),;
 			   TRANS(TRA->nValorTra,"####,###,###")),;
+			ALLTRIM(STR(TRA->nCodigoCmv,4))+'='+;
 			cConcepCmv(TRA->nCodigoCmv,'TRA')}
 	    cTxtPrn := cRegPrint(aTitulo,aNroCol)
 	    lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)

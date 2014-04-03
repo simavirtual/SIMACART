@@ -39,10 +39,6 @@ OBJETIVOS:
        LOCAL lSiRed  := .T.                 // .T. Apertura de Archivos MultiUsuario
        LOCAL lNoRed  := .T.                 // .F. Apertura de Archivo MonoUsuario
 
-       LOCAL fileMvt := 'MOVICONT'               // Ej: MOVICONT.DAT
-     *ÀMovimientos Contables
-
-
        LOCAL PathPrn := 'PRINTER'           // Path para impresiones
        LOCAL PathDoc := 'c:\misdoc'         // Path de Documentos del sima
        LOCAL FileTem := 'TEMPO'             // Archivo datos temporal

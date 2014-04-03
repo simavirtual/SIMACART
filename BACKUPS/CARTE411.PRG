@@ -396,7 +396,7 @@ FUNCTION Carte_411(aParam1,aParam2,aParam3)
        IF SCA->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  FilePrn := 'mora'+ALLTRIM(STR(nMesIniTpa,2))+IF(lPrnFec,'cc','sc')
+	  FilePrn := SUBS(SCA->cSerFacCar,1,1)+'mor'+cAnoUsr
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,SCA->cOpcPrnCar,.F.,.F.,bInsIso,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	      RETURN NIL

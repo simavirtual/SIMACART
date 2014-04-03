@@ -924,7 +924,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 					   @FileMoB)
 
 				IF PAG->cEstadoPag == 'P'
-				   aVlrDifExt(FileMoB,;
+				   aVlrDifExt(cAnoUsr,FileMoB,;
 					      PAG->cCodigoEst,;
 					      cCodigoTgr,;
 					      PAG->nMesIniPag,;
@@ -936,7 +936,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 				ENDIF
 
 				IF PAG->cEstadoPag == 'A'
-				   aVlrDifExt(FileMoB,;
+				   aVlrDifExt(cAnoUsr,FileMoB,;
 					      PAG->cCodigoEst,;
 					      cCodigoTgr,;
 					      PAG->nMesIniPag,;
@@ -1285,6 +1285,16 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 					    @aFilExt,;
 					    @FileMoB)
 
+				 aVlrDifExt(cAnoUsr,FileMoB,;
+					    DES->cCodigoEst,;
+					    cCodigoTgr,;
+					    14,;
+					    DES->nNroMesDes,;
+					    '01',;
+					    DES->dFechaDes,;
+					    DES->nValorDes,;
+					    aVlrDif)
+
 			      ENDIF
 			  ELSE
 			     aAboMes[nMesAbo] += DES->nValorDes
@@ -1300,6 +1310,16 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 					2,; // Abono
 					@aFilExt,;
 					@FileMoB)
+
+			     aVlrDifExt(cAnoUsr,FileMoB,;
+					DES->cCodigoEst,;
+					cCodigoTgr,;
+					14,;
+					DES->nNroMesDes,;
+					'01',;
+					DES->dFechaDes,;
+					DES->nValorDes,;
+					aVlrDif)
 
 			  ENDIF
 *-----------------------FIN TOTALIZACION DEL ABONO
@@ -1916,23 +1936,37 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 
        ENDIF
 
-       aNroCol := {}
-       aTitulo := {}
+       IF nSuma(aFilExt,8) > 0 .AND. CAR->lValidaCar
 
-       AADD(aTitulo,TRANS(nSuma(aFilExt,8),"####,###,###"))
-       AADD(aNroCol,16)
+	  aNroCol := {}
+	  aTitulo := {}
 
-       cTxtPrn := 'TOTALES'+SPACE(11)
-       cTxtPrn := SUBS(cTxtPrn,1,11)
+	  AADD(aTitulo,TRANS(nSuma(aFilExt,8),"####,###,###"))
+	  AADD(aNroCol,16)
 
-       IF CAR->lValidaCar
+	  cTxtPrn := 'TOTALES'+SPACE(11)
+	  cTxtPrn := SUBS(cTxtPrn,1,11)
+
 	  cTxtPrn += cRegPrint(aTitulo,aNroCol)
 	  lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
        ENDIF
 *>>>>FIN VALIDACION DE LOS ABONOS
 
 *>>>>IMPRESION DE LAS INCONSISTENCIAS
-       aVlrDif := ASORT(aVlrDif,,,{|x,y|x[1] < y[1]})
+*       aVlrDif := ASORT(aVlrDif,,,{|x,y|x[5] > y[5]})  // Mes Inicial
+*       aVlrDif := ASORT(aVlrDif,,,{|x,y|x[1] < y[1]})  // Banco+A¤o/Mes/D¡a
+*	aVlrDif := ASORT(aVlrDif,,,{|x,y|x[8] < y[8]})  // Fecha
+
+/*
+       aVlrDif := ASORT(aVlrDif,,,{|x,y| x[5] > y[5] .AND.; // Mes Inicial
+					 x[1] < y[1] })     // Banco+A¤o/Mes
+*/
+
+       aVlrDif := ASORT(aVlrDif,,,{|x,y|x[1] < y[1]})  // Banco+A¤o/Mes/D¡a
+
+
+
        IF LEN(aVlrDif) > 0
 
 	  aNroCol := {}
@@ -2021,7 +2055,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	   *ÀDiferencia
 
 	     IF CAR->lValidaCar
-		cTxtPrn := cRegPrint(aTitPrn,aNroCol)
+		cTxtPrn := cRegPrint(aTitPrn,aNroCol)+aVlrDif[i,1]
 		lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
 	     ENDIF
 
@@ -2155,7 +2189,9 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
        LOCAL FileMoB := ''                  // Ej: 01199902.DAT
        LOCAL cCodBan := ''                  // C¢digo del Banco
        LOCAL nCodCmv := ''                  // C¢digo Concepto del Movimiento
+       LOCAL lCodCmv := .F.                 // .T. Hay C¢digo Concepto del Movimiento
        LOCAL cNroMes := ''                  // N£mero del Mes
+       LOCAL cDiaPag := ''                  // D¡a del pago
        LOCAL cMesPag := ''                  // Mes del pago
        LOCAL cAnoPag := ''                  // A¤o del Pago
 
@@ -2190,6 +2226,7 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 			   FileCmv,'CMV',NIL,lShared,nModCry)
 
 	      cError('ABRIENDO ARCHIVOS '+FileMoB)
+	      LOOP
 	   ENDIF
 *********FIN SELECION DE AREAS DE TRABAJO
 
@@ -2198,33 +2235,35 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 	   EXT->(DBGOTOP())
 	   DO WHILE .NOT. EXT->(EOF())
 
+
 *=============ANALISIS DE DECISION
 		nCodCmv := EXT->nCodigoCmv
+		IF lLocCodigo('nCodigoCmv','CMV',nCodCmv)
+
+		   IF cAnoUsr # CMV->cAnoCmvCmv
+		      EXT->(DBSKIP())
+		      LOOP
+		   ENDIF
+
+		ELSE
+		    EXT->(DBSKIP())
+		    LOOP
+		ENDIF
+
+		nCodCmv := IF(CMV->nCodCmvCmv==0,;
+			      CMV->nCodigoCmv,;
+			      CMV->nCodCmvCmv)
+
+		IF nCodCmv # 1 .AND. nCodCmv # 2 .AND. nCodCmv # 3
+		   EXT->(DBSKIP())
+		   LOOP
+		ENDIF
 
 		lHayRec := (nCodCmv == 1  .OR. nCodCmv == 2) .AND.;
 			    SUBS(EXT->cCodRefTra,7,2) == cNroMes
 
 		lHayAbo := SUBS(EXT->cCodRefTra,7,4) == '14'+cNroMes
 *=============FIN ANALISIS DE DECISION
-
-*=============ANALISIS DEL ABONO
-		IF lHayAbo
-		   IF nCodCmv # 3  // ABONO A¥O ANTERIOR
-
-		      IF lLocCodigo('nCodigoCmv','CMV',nCodCmv)
-			 nCodCmv := CMV->nCodCmvCmv
-		      ENDIF
-
-		      IF nCodCmv # 3
-			 lHayAbo := .F.
-		      ENDIF
-
-		   ENDIF
-		ENDIF
-*=============FIN ANALISIS DEL ABONO
-
-*=============FIN ANALISIS DE DECISION
-
 
 *=============BUSQUEDA DEL ESTUDIANTE
 		IF lHayRec .OR. lHayAbo
@@ -2241,7 +2280,10 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 
 		   cAnoPag := STR(YEAR(EXT->dFechaTra),4)
 		   cMesPag := STR(MONTH(EXT->dFechaTra),2)
+		   cDiaPag := STR(DAY(EXT->dFechaTra),2)
 		   lCorrecion(@cMesPag,2)
+		   lCorrecion(@cDiaPag,2)
+
 
 		   k := ASCAN(aVlrDif,{|aArray| aArray[3] == cCodEst})
 
@@ -2290,7 +2332,7 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 			    IF PAG->nVlrPagPag+nVlrInt # EXT->nValorTra
 
 			       IF k == 0
-				  AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag,;
+				  AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag+cDiaPag,;
 						FileMoB,;                // 2.  Archivo del Extracto
 						cCodEst,;                // 3.  C¢digo de la Referencia
 						cCodGru,;                // 4.  C¢digo del Grupo
@@ -2312,7 +2354,7 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 			 ELSE
 
 			    IF k == 0
-			       AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag,;
+			       AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag+cDiaPag,;
 					     FileMoB,;                // 2.  Archivo del Extracto
 					     cCodEst,;                // 3.  C¢digo de la Referencia
 					     cCodGru,;                // 4.  C¢digo del Grupo
@@ -2336,7 +2378,7 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 
 			 IF k == 0
 
-			    AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag,;
+			    AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag+cDiaPag,;
 					  FileMoB,;                // 2.  Archivo del Extracto
 					  cCodEst,;                // 3.  C¢digo de la Referencia
 					  cCodGru,;                // 4.  C¢digo del Grupo
@@ -2360,7 +2402,7 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 
 		      IF k == 0
 
-			 AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag,;
+			 AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag+cDiaPag,;
 				       FileMoB,;         // 2.  Archivo del Extracto
 				       cCodEst,;         // 3.  C¢digo de la Referencia
 				       cCodGru,;         // 4.  C¢digo del Grupo
@@ -2541,11 +2583,12 @@ OBJETIVOS:
 *                              PROGRAMA                                  *
 *------------------------------------------------------------------------*/
 
-FUNCTION aVlrDifExt(FileMoB,cCodEst,cCodGru,nMesIni,;
+FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 		    nMesFin,cCodBan,dFecPag,nVlrPag,aVlrDif)
 
 *>>>>DESCRIPCION DE PARAMETROS
-/*     FileMoB                              // @Ej: 01199902.DAT
+/*     cAnoUsr                              // A¤o del usuario
+       FileMoB                              // @Ej: 01199902.DAT
        cCodEst                              // C¢digo del Estudiante
        cCodGru                              // C¢digo del Grupo
        nMesIni                              // Mes Inicial
@@ -2557,6 +2600,10 @@ FUNCTION aVlrDifExt(FileMoB,cCodEst,cCodGru,nMesIni,;
 *>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
+       LOCAL PathTem := ''                  // Path temporal
+       LOCAL ExtFile := '.DAT'              // Extensi¢n del Archivo
+       LOCAL FileCmv := 'CONCEMOV'+ExtFile
+
        LOCAL k := 0                         // Indice de B£squeda
 
        LOCAL lShared := .F.                 // .T. Sistema Compartido
@@ -2565,60 +2612,80 @@ FUNCTION aVlrDifExt(FileMoB,cCodEst,cCodGru,nMesIni,;
        LOCAL cMesIni := ''                  // Mes Inicial
        LOCAL cMesFin := ''                  // Mes Inicial
        LOCAL cCodRef := ''                  // C¢digo de la referencia
+       LOCAL cDiaPag := ''                  // D¡a del pago
        LOCAL cMesPag := ''                  // Mes del pago
        LOCAL cAnoPag := ''                  // A¤o del Pago
        LOCAL cPatExt := ''                  // Path del Extracto
        LOCAL lHayExt := .F.                 // .T. Hay Extracto
+       LOCAL nCodCmv := ''                  // C¢digo Concepto del Movimiento
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>SELECION DE AREAS DE TRABAJO
        IF !EMPTY(FileMoB)
 
-	  IF !lUseDbf(.T.,FileMoB,'EXT',NIL,lShared,nModCry)
+	  PathTem := SUBS(FileMoB,1,8)
+
+	  IF !lUseDbf(.T.,FileMoB,'EXT',NIL,lShared,nModCry) .OR.;
+	      !lUseDbf(.T.,PathTem+'\'+;
+			   FileCmv,'CMV',NIL,lShared,nModCry)
 	     cError('ABRIENDO ARCHIVOS '+FileMoB)
+	     RETURN NIL
 	  ENDIF
 
        ENDIF
 *>>>>FIN SELECION DE AREAS DE TRABAJO
 
 *>>>>ANALISIS DE LA INCONSISTENCIA
-       k := ASCAN(aVlrDif,{|aArray| aArray[3] == cCodEst})
+       cMesIni := STR(nMesIni,2)
+       lCorrecion(@cMesIni,2)
+
+       cMesFin := STR(nMesFin,2)
+       lCorrecion(@cMesFin,2)
+
+       k := ASCAN(aVlrDif,{|aArray| aArray[3] == cCodEst .AND.;
+				    aArray[5] == cMesIni .AND.;
+				    aArray[6] == cMesFin})
 
        IF !EMPTY(dFecPag)
 
-	  cMesIni := STR(nMesIni,2)
-	  lCorrecion(@cMesIni,2)
-
-	  cMesFin := STR(nMesFin,2)
-	  lCorrecion(@cMesFin,2)
+	  cAnoPag := STR(YEAR(dFecPag),4)
+	  cMesPag := STR(MONTH(dFecPag),2)
+	  cDiaPag := STR(DAY(dFecPag),2)
+	  lCorrecion(@cMesPag,2)
+	  lCorrecion(@cDiaPag,2)
 
 	  cCodRef := cCodEst+cMesIni+cMesFin
 
 	  SELECT EXT
 	  EXT->(DBGOTOP())
-	  LOCATE FOR ALLTRIM(EXT->cCodRefTra) == cCodRef
-
+	  LOCATE FOR ALLTRIM(EXT->cCodRefTra) == cCodRef        .AND.;
+				      dFecPag == EXT->dFechaTra
 	  SELECT EXT
 	  IF EXT->(FOUND())
 
-	     cAnoPag := STR(YEAR(dFecPag),4)
-	     cMesPag := STR(MONTH(dFecPag),2)
-	     lCorrecion(@cMesPag,2)
+	     nCodCmv := 0
+	     IF lLocCodigo('nCodigoCmv','CMV',EXT->nCodigoCmv)
+
+		IF cAnoUsr # CMV->cAnoCmvCmv
+		   RETURN NIL
+		ENDIF
+		nCodCmv := CMV->nCodigoCmv
+	     ENDIF
 
 	     IF nVlrPag # EXT->nValorTra
 
 		IF k == 0
-		   AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag,;
-				 FileMoB,;         // 2.  Archivo del Extracto
-				 cCodEst,;         // 3.  C¢digo de la Referencia
-				 cCodGru,;         // 4.  C¢digo del Grupo
-				 '',;              // 5.  Mes Inicial
-				 '',;              // 6.  Mes Final
-				 0,;               // 7.  Valor Pago
-				 '',;              // 8.  Fecha de Pago
-				 '',;              // 9.  Referencia
-				 0,;               // 10. Valor de la Transaci¢n
-				 ''})              // 11. Fecha de la Transaci¢n
+		   AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag+cDiaPag,;
+				 FileMoB,;          // 2.  Archivo del Extracto
+				 cCodEst,;          // 3.  C¢digo de la Referencia
+				 cCodGru,;          // 4.  C¢digo del Grupo
+				 '',;               // 5.  Mes Inicial
+				 '',;               // 6.  Mes Final
+				 0,;                // 7.  Valor Pago
+				 CTOD('00/00/00'),; // 8.  Fecha de Pago
+				 '',;               // 9.  Referencia
+				 0,;                // 10. Valor de la Transaci¢n
+				 ''})               // 11. Fecha de la Transaci¢n
 		ENDIF
 	     ENDIF
 
@@ -2626,39 +2693,45 @@ FUNCTION aVlrDifExt(FileMoB,cCodEst,cCodGru,nMesIni,;
 	  ELSE
 
 	    IF k == 0
-	       AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag,;
-			     FileMoB,;         // 2.  Archivo del Extracto
-			     cCodEst,;         // 3.  C¢digo de la Referencia
-			     cCodGru,;         // 4.  C¢digo del Grupo
-			     '',;              // 5.  Mes Inicial
-			     '',;              // 6.  Mes Final
-			     0,;               // 7.  Valor Pago
-			     '',;              // 8.  Fecha de Pago
-			     '',;              // 9.  Referencia
-			     0,;               // 10. Valor de la Transaci¢n
-			     ''})              // 11. Fecha de la Transaci¢n
+	       AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag+cDiaPag,;
+			     FileMoB,;          // 2.  Archivo del Extracto
+			     cCodEst,;          // 3.  C¢digo de la Referencia
+			     cCodGru,;          // 4.  C¢digo del Grupo
+			     '',;               // 5.  Mes Inicial
+			     '',;               // 6.  Mes Final
+			     0,;                // 7.  Valor Pago
+			     CTOD('00/00/00'),; // 8.  Fecha de Pago
+			     '',;               // 9.  Referencia
+			     0,;                // 10. Valor de la Transaci¢n
+			     ''})               // 11. Fecha de la Transaci¢n
 	    ENDIF
 
 	  ENDIF
        ELSE
 	 IF k == 0
 	    AADD(aVlrDif,{'',;
-			  '',;              // 2.  Archivo del Extracto
-			  cCodEst,;         // 3.  C¢digo de la Referencia
-			  cCodGru,;         // 4.  C¢digo del Grupo
-			  '',;              // 5.  Mes Inicial
-			  '',;              // 6.  Mes Final
-			  0,;               // 7.  Valor Pago
-			  '',;              // 8.  Fecha de Pago
-			  '',;              // 9.  Referencia
-			  0,;               // 10. Valor de la Transaci¢n
-			  ''})              // 11. Fecha de la Transaci¢n
+			  '',;               // 2.  Archivo del Extracto
+			  cCodEst,;          // 3.  C¢digo de la Referencia
+			  cCodGru,;          // 4.  C¢digo del Grupo
+			  '',;               // 5.  Mes Inicial
+			  '',;               // 6.  Mes Final
+			  0,;                // 7.  Valor Pago
+			  CTOD('00/00/00'),; // 8.  Fecha de Pago
+			  '',;               // 9.  Referencia
+			  0,;                // 10. Valor de la Transaci¢n
+			  ''})               // 11. Fecha de la Transaci¢n
 	 ENDIF
        ENDIF
 *>>>>FIN ANALISIS DE LA INCONSISTENCIA
 
 *>>>>LOCALIZACION DE LA CONSIGNACION
        k := ASCAN(aVlrDif,{|aArray| aArray[3] == cCodEst})
+
+/* revisar ojo
+       k := ASCAN(aVlrDif,{|aArray| aArray[3] == cCodEst .AND.;
+				    aArray[5] == cMesIni .AND.;
+				    aArray[6] == cMesFin})
+*/
        IF !EMPTY(dFecPag)
 
 	  SELECT EXT

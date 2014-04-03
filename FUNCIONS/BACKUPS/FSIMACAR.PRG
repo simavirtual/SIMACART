@@ -98,6 +98,7 @@ FUNCTION CreaDbfCar(lShared,nModCry,PathCar,fSimCar,fNtxCar,aStrDbf)
        AADD(aDbfStr,{'cPiePagCar','Character',255,0}) // Pie de p gina informes
 
        AADD(aDbfStr,{'nPruebaCar','Numeric'  ,002,0}) // Habilitar pruebas
+       AADD(aDbfStr,{'lValidaCar','Logical'  ,001,0}) // .T. Validar la Cartera.
 
        AADD(aDbfStr,{'cCola01Car','Character',20,0})
        AADD(aDbfStr,{'cCola02Car','Character',20,0})
@@ -691,7 +692,15 @@ FUNCTION oDefBrwCar(lShared,cAnoUsr,nFilSup,nColSup,nFilInf,nColInf)
        oBrowse:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
+
+       oColumn	     := TBCOLUMNNEW('VALIDAR', {||SCA->lValidaCar})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','SCA'},;
+			 {'FIELD','lValidaCar'},{'PICTURE','@!'}}
+       oBrowse:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
 /*
+
        oColumn	     := TBCOLUMNNEW('COLA;No. 03', {||SCA->cCola03Car})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','SCA'},;
 			 {'FIELD','cCola03Car'},{'PICTURE','@!'}}

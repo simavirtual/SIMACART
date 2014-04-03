@@ -979,14 +979,15 @@ SINTAXIS:
 *                              PROGRAMA                                  *
 *------------------------------------------------------------------------*/
 
-FUNCTION aMenusCart(nNroOpc,cDerech,aAyudas,cModem,cEmpCob)
+FUNCTION aMenusCart(nNroOpc,cDerech,aAyudas,cModem,cEmpCob,lvalida)
 
 *>>>>PARAMETROS DE LA FUNCION
 /*     nNroOpc			            // N£mero de Opci¢n
        cDerech                              // Derechos a los Menus
        aAyudas                              // @Vector de Ayudas escogidas
        cModem                               // Banco para Gerencia Electr¢nica
-       cEmpCob                              // Empresa de Cobro de la Cartera */
+       cEmpCob                              // Empresa de Cobro de la Cartera
+       lValida                              // .T. Valida */
 *>>>>FIN PARAMETROS DE LA FUNCION
 
 *>>>>DECLARACION DE VARIABLES
@@ -997,6 +998,7 @@ FUNCTION aMenusCart(nNroOpc,cDerech,aAyudas,cModem,cEmpCob)
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>DECLARACION DEL MENUS
+       lValida := IF(lValida==NIL,.F.,lValida)
        DO CASE
        CASE nNroOpc == 0
 
@@ -1051,26 +1053,33 @@ FUNCTION aMenusCart(nNroOpc,cDerech,aAyudas,cModem,cEmpCob)
        CASE nNroOpc == 2  // Pagos
 
 	    cModem  := IF(EMPTY(cModem),'PAGOS POR MODEM  ',cModem)
-	    
-	    aMenus  := {"1<PAGOS POR ALUMNOS   >",;
-		       "2<REGISTRAR RECIBOS   >",;
-		       "3<"+cModem+">",;
-		       "4<COBROS JURIDICOS    >",;
-		       "5<INFORMES FACTURACION>",;
-		       "6<INCONSISTENCIAS     >",;
-		       "7<CONCILIACION CARTERA>",;
-		       "8<INTERFAZ CONTABLE   >",;
-		       "9<PAGOS EN LINEA      >"}
 
-	    aAyuda := {'Imprime la relaci¢n de pagos por grupos.',;
-		       'Permite indicar la forma de pago de los recibos. ',;
-		       'Procesa los Movimientos del archivo transferido por Modem ',;
-		       'Permite el control del cobro de estudiantes en mora.',;
-		       'Permite imprimir los diferentes informes de la Facturaci¢n. ',;
-		       'Permite imprimir las Inconsistencias del Sistema',;
-		       'Imprime la Carta de la Conciliaci¢n de la Cartera',;
-		       'Permite Generar la Interfaz Contable',;
-		       'Permite generar la facturaci¢n en archivo para los pagos en linea'}
+	    aMenus  := {}
+	    AADD(aMenus,"1<PAGOS POR ALUMNOS   >")
+	    AADD(aMenus,"2<REGISTRAR RECIBOS   >")
+	    AADD(aMenus,"3<"+cModem+">")
+	    AADD(aMenus,"4<COBROS JURIDICOS    >")
+	    AADD(aMenus,"5<INFORMES FACTURACION>")
+	    AADD(aMenus,"6<INCONSISTENCIAS     >")
+	    AADD(aMenus,"7<CONCILIACION CARTERA>")
+	    IF lValida
+	       AADD(aMenus,"8<INTERFAZ CONTABLE   >")
+	    ENDIF
+	    AADD(aMenus,"9<PAGOS EN LINEA      >")
+
+	    aAyuda := {}
+
+	    AADD(aAyuda,'Imprime la relaci¢n de pagos por grupos.')
+	    AADD(aAyuda,'Permite indicar la forma de pago de los recibos.')
+	    AADD(aAyuda,'Procesa los Movimientos del archivo transferido por Modem')
+	    AADD(aAyuda,'Permite el control del cobro de estudiantes en mora.')
+	    AADD(aAyuda,'Permite imprimir los diferentes informes de la Facturaci¢n.')
+	    AADD(aAyuda,'Permite imprimir las Inconsistencias del Sistema')
+	    AADD(aAyuda,'Imprime la Carta de la Conciliaci¢n de la Cartera')
+	    IF lValida
+	       AADD(aAyuda,'Permite Generar la Interfaz Contable')
+	    ENDIF
+	    AADD(aAyuda,'Permite generar la facturaci¢n en archivo para los pagos en linea')
 
        CASE nNroOpc == 3  // Consultas
 
@@ -1279,6 +1288,7 @@ FUNCTION SubMenus(aP1,lShared,nModCry,cNomSis,cEmpPal,cNitEmp,;
        LOCAL lDelReg := .F.                 // .T. Borrar Registros
        LOCAL lInsReg := .F.                 // .T. Insertar Registro
        LOCAL lHaySql := .F.                 // .T. Exportar a Sql
+       LOCAL lValida := .F.                 // .T. Validar
 
        LOCAL nFilSup := 0                   // Fila Superior del Sub_men£
        LOCAL nColSup := 0                   // Columa Superior del Sub_men£
@@ -1320,6 +1330,7 @@ FUNCTION SubMenus(aP1,lShared,nModCry,cNomSis,cEmpPal,cNitEmp,;
        lPrnArc := SCA->lPrnArcCar
        nCodPrn := SCA->nCodigoPrn
        cOpcPrn := SCA->cOpcPrnCar
+       lValida := SCA->lValidaCar
 *>>>>FIN VALIDACION DE CONTENIDOS DE ARCHIVOS
 
 *>>>>DESARROLLO DEL PRIMER NIVEL
@@ -1341,7 +1352,7 @@ FUNCTION SubMenus(aP1,lShared,nModCry,cNomSis,cEmpPal,cNitEmp,;
 	    lSiMenu := .T.
 	    aDeMenu := aMenusCart(nOpcPal,;
 				  SUBS(cDerech,nOpcPal*10-9,10),@aHelp,;
-				  cModem,cEmpCob)
+				  cModem,cEmpCob,lValida)
 	    aMenu := {}
 	    FOR i:= 1 TO LEN(aDeMenu)
 		AADD(aMenu,i)

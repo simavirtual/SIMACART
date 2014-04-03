@@ -587,7 +587,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  FilePrn = 'fact'+cMes(nMesIniTpa,3)+IF(lPrnFec,'C','')
+	  FilePrn = SUBS(CAR->cSerFacCar,1,1)+'f'+cAnoUsr+cNroMes
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     IF !lFileDelete(FileTem)

@@ -247,7 +247,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
        IF CAR->lPrnArcCar
           SET DEVICE TO PRINT
        ELSE
-	  FilePrn := 'mvc'+cMes(VAL(cNroMes),3)+BAN->cCodigoBan
+	  FilePrn := SUBS(CAR->cSerFacCar,1,1)+'mvc'+cNroMes+BAN->cCodigoBan
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,.T.,,PathDoc)
 	  IF EMPTY(nOpcPrn)
              RETURN NIL
@@ -586,8 +586,11 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 		    FOR i := 1 TO 13
 			IF aPagMes[i,1] # 0 .OR. aPagMes[i,2] # 0
 
-			   cNombreTcm := IF(i#13,'RECIBOS DE '+cMes(i,3),;
-						 'RECIBOS OTRO A¥O')
+			   cNombreTcm := IF(i#13,'RECIBOS DE '+cMes(i,3)+' '+;
+						 CMV->cAnoCmvCmv,;
+						 'RECIBOS OTRO A¥O '+;
+						 CMV->cAnoCmvCmv)
+
 			   cNombreTcm := SUBS(cNombreTcm+SPACE(40),1,40)
 
 			   aRegPrn := {cNombreTcm,;
@@ -616,8 +619,11 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 		    FOR i := 1 TO 13
 			IF aAboMes[i,1] # 0 .OR. aAboMes[i,2] # 0
 
-			   cNombreTcm := IF(i#13,'ABONOS DE '+cMes(i,3),;
-						 'OTROS ABONOS')
+			   cNombreTcm := IF(i#13,'ABONOS DE '+cMes(i,3)+' '+;
+						 CMV->cAnoCmvCmv,;
+						 'OTROS ABONOS '+;
+						 CMV->cAnoCmvCmv)
+
 			   cNombreTcm := SUBS(cNombreTcm+SPACE(40),1,40)
 
 			   aRegPrn := {cNombreTcm,;

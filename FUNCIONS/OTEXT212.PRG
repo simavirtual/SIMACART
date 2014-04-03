@@ -506,8 +506,9 @@ FUNCTION FOtExt212(aParam1,aParam2,aParam3,;
 	       FOR i := 1 TO 13
 		   IF aAboMes[i,1] # 0 .OR. aAboMes[i,2] # 0
 
-		      cNombreTcm := IF(i#13,'ABONOS DE '+cMes(i,3),;
-					    'OTROS ABONOS')
+		      cNombreTcm := IF(i#13,'ABONOS DE '+cMes(i,3)+' '+;
+					    CMV->cAnoCmvCmv,;
+					    'OTROS ABONOS '+CMV->cAnoCmvCmv)
 		      cNombreTcm := SUBS(cNombreTcm+SPACE(40),1,40)
 
 		      aTitulo := {cNombreTcm,;

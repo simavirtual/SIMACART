@@ -692,12 +692,14 @@ FUNCTION oDefBrwCar(lShared,cAnoUsr,nFilSup,nColSup,nFilInf,nColInf)
        oBrowse:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
-/*
+
        oColumn	     := TBCOLUMNNEW('VALIDAR', {||SCA->lValidaCar})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','SCA'},;
 			 {'FIELD','lValidaCar'},{'PICTURE','@!'}}
        oBrowse:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
+
+/*
 
        oColumn	     := TBCOLUMNNEW('COLA;No. 03', {||SCA->cCola03Car})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','SCA'},;

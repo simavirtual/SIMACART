@@ -996,6 +996,7 @@ FUNCTION BuscarExt(lShared,oBrowse,FileNtx)
 
        LOCAL aMenus  := {}                  // Declaracion de Menus
        LOCAL nNroOpc := 1                   // N£mero de Opci¢n
+       LOCAL nCodCmv := 0                   // C¢digo del Concepto
        LOCAL GetList := {}                  // Variable del sistema
 
        LOCAL cCodigoTes := ''               // C¢digo o Referencia del Estudiante
@@ -1003,7 +1004,8 @@ FUNCTION BuscarExt(lShared,oBrowse,FileNtx)
 
 *>>>>SELECCION DEL METODO DE BUSQUEDA
        aMenus := {'1<POR REFERENCIA>',;
-		  '2<POR CODIGO    >'}
+		  '2<POR CODIGO    >',;
+		  '3<PRO CONCEPTO  >'}
 
        cSavPan := SAVESCREEN(0,0,24,79)
        nNroOpc := nMenu(aMenus,NIL,09,30,'BUSQUEDA',NIL,1,.F.)
@@ -1022,6 +1024,9 @@ FUNCTION BuscarExt(lShared,oBrowse,FileNtx)
 
        CASE nNroOpc == 2
 	    INDEX ON TRA->cCodigoEst TO &(FileNtx)
+
+       CASE nNroOpc == 3
+	    INDEX ON TRA->nCodigoCmv TO &(FileNtx)
        ENDCASE
 *>>>>FIN ACTIVACION DE LOS INDICES
 
@@ -1036,6 +1041,10 @@ FUNCTION BuscarExt(lShared,oBrowse,FileNtx)
 	    nLenCam := LEN(cSpaces('TRA',"cCodigoEst"))
 	    TitBuscar(nLenCam,@nNroFil,@nNroCol,'ENTRE EL CODIGO:')
 
+       CASE nNroOpc == 2
+	    nLenCam := LEN(cSpaces('TRA',"cCodigoEst"))
+	    TitBuscar(nLenCam,@nNroFil,@nNroCol,'ENTRE EL CONCEPTO:')
+
        ENDCASE
        nColLin := nNroCol
 *>>>>FIN IMPRESION DEL TITULO DE BUSQUEDA
@@ -1047,6 +1056,7 @@ FUNCTION BuscarExt(lShared,oBrowse,FileNtx)
 	    DO CASE
 	    CASE nNroOpc == 1
 		 TitBuscar(nLenCam,@nNroFil,@nNroCol,'ENTRE LA REFERENCIA:')
+
 		 SET COLOR TO I
 		 @nNroFil,nNroCol SAY cCodigoTes+;
 				      SPACE(nLenCam-LEN(cCodigoTes))
@@ -1058,6 +1068,14 @@ FUNCTION BuscarExt(lShared,oBrowse,FileNtx)
 		 @nNroFil,nNroCol SAY cCodigoTes+;
 				      SPACE(nLenCam-LEN(cCodigoTes))
 		 SET COLOR TO
+
+	    CASE nNroOpc == 3
+		 TitBuscar(nLenCam,@nNroFil,@nNroCol,'ENTRE EL CONCEPTO:')
+		 SET COLOR TO I
+		 @nNroFil,nNroCol SAY cCodigoTes+;
+				      SPACE(nLenCam-LEN(cCodigoTes))
+		 SET COLOR TO
+
 	    ENDCASE
 **********FIN IMPRESION DEL TITULO DE BUSQUEDA
 
@@ -1073,9 +1091,21 @@ FUNCTION BuscarExt(lShared,oBrowse,FileNtx)
 **********BUSQUEDA DEL CODIGO
 	    SELECT TRA
 	    nRegAct := RECNO()
-	    IF lSekCodigo(cCodigoTes,'TRA')
-	       nRegAct := RECNO()
-	    ENDIF
+	    DO CASE
+	    CASE nNroOpc == 1 .OR. nNroOpc == 2
+
+		 IF lSekCodigo(cCodigoTes,'TRA')
+		    nRegAct := RECNO()
+		 ENDIF
+
+	    CASE nNroOpc == 3
+
+		 nCodCmv := VAL(cCodigoTes)
+		 IF lSekCodigo(nCodCmv,'TRA')
+		    nRegAct := RECNO()
+		 ENDIF
+	    ENDCASE
+
 	    GO TOP
 	    oBrowse:GOTOP()
 	    GO nRegAct

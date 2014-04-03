@@ -357,6 +357,7 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
        ENDIF
        cIntCua := ALLTRIM(MTR->cIntCuaAno)
        IF !EMPTY(cIntCua)
+	  PathUno := cIntCua
 	  cIntCua := cIntCua+'\'+cPatSis
 	  cIntUno := cIntCua
        ENDIF
@@ -462,7 +463,7 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
        IF SCA->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  FilePrn := 'Totpagos'
+	  FilePrn := SUBS(SCA->cSerFacCar,1,1)+'tpa'+cAnoUsr
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,SCA->cOpcPrnCar,.F.,.T.)
 	  IF EMPTY(nOpcPrn)
 	      CloseAll(aUseDbf)
@@ -696,7 +697,7 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 	     SELECT GRU
 	     GRU->(DBGOTOP())
 
-// lLocCodigo('cCodigoGru','GRU','1501')  // ojo
+*lLocCodigo('cCodigoGru','GRU','0101')  // ojo
 
 	     DO WHILE .NOT. GRU->(EOF())
 
@@ -721,7 +722,7 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 *===============RECORRIDO POR CLIENTES
 		  CLI->(DBGOTOP())
 
-// lLocCodigo('cCodigoEst','CLI','211060')  // ojo
+*lLocCodigo('cCodigoEst','CLI','211204')  // ojo
 
 
 		  DO WHILE .NOT. CLI->(EOF())
@@ -888,6 +889,41 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 		       cDepart := ''
 
 		       DO CASE
+
+		       CASE EMPTY(&cMaeAct->cNitCo1Est)
+
+			    DO CASE
+			    CASE !EMPTY(cDocPad)
+
+				 cDocNit := cDocPad
+				 cApeUno := cAp1Pad
+				 cApeDos := cAp2Pad
+				 cNomUno := cNo1Pad
+				 cNomDos := cNo2Pad
+				 cDirecc := cDirPad
+				 cCiudad := cCiuPad
+				 cDepart := cDepPad
+			       *ÀPrimer contratante. Padre
+
+			    CASE !EMPTY(cDocMad)
+
+				 cDocNit := cDocMad
+				 cApeUno := cAp1Mad
+				 cApeDos := cAp2Mad
+				 cNomUno := cNo1Mad
+				 cNomDos := cNo2Mad
+				 cDirecc := cDirMad
+				 cCiudad := cCiuMad
+				 cDepart := cDepMad
+			       *ÀPrimer contratante. Madre
+
+			    OTHERWISE
+				 cApeUno := 'C:'+&cMaeAct->cNitCo1Est
+				 cApeDos := 'P:'+cDocPad
+				 cNomUno := 'M:'+cDocMad
+			    ENDCASE
+
+
 		       CASE ALLTRIM(&cMaeAct->cNitCo1Est) == ALLTRIM(cDocPad)
 
 			    cDocNit := cDocPad
@@ -1048,6 +1084,8 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 *===============FIN RECORRIDO POR CLIENTES
 
 		GRU->(DBSKIP())
+
+*EXIT
 
 	     ENDDO
 ***********FIN RECORRIDO POR GRUPOS
