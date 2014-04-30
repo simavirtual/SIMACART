@@ -2064,6 +2064,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        ENDIF
 *>>>>FIN IMPRESION DE LAS INCONSISTENCIAS
 
+/*
 
 *>>>>GRABACION DEL TOTAL PAGOS
        IF lLocCodigo('nNroMesCnc','CNC',nMesIniTpa)
@@ -2088,6 +2089,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        ENDIF
 *>>>>FIN GRABACION DEL TOTAL PAGOS
 
+*/
 
 *>>>>IMPRESION DERECHOS
        DerechosPrn(cNomSis,cNomEmp,n17Stan)

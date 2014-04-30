@@ -1,15 +1,11 @@
-		    DO CASE
-		    CASE CMV->nCodCmvCmv == 1 .OR. CMV->nCodCmvCmv == 2 // Pensiones
+IF PAG->cCodigoEst == '212005'
 
-		    CASE CMV->nCodCmvCmv == 3  // Abonos
 
-		    CASE CMV->nCodCmvCmv == 4  // Matriculas
-
-		    OTHERWISE
-
-		    ENDCASE
-
-IF CMV->nCodigoCmv == 546 .AND. ALLTRIM(TRA->cCodRefTra) == '2130340211'
-   wait 'OK'
-   wait CMV->nCodCmvCmv
 ENDIF
+
+
+FOR x := 1 TO LEN(aVlrCon)
+wait aVlrCon[x,1]
+wait aVlrCon[x,2]
+wait aVlrCon[x,3]
+ENDFOR

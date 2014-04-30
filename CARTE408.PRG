@@ -697,7 +697,7 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 	     SELECT GRU
 	     GRU->(DBGOTOP())
 
-*lLocCodigo('cCodigoGru','GRU','0101')  // ojo
+*lLocCodigo('cCodigoGru','GRU','0001')  // ojo
 
 	     DO WHILE .NOT. GRU->(EOF())
 
@@ -722,7 +722,7 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 *===============RECORRIDO POR CLIENTES
 		  CLI->(DBGOTOP())
 
-*lLocCodigo('cCodigoEst','CLI','211204')  // ojo
+*lLocCodigo('cCodigoEst','CLI','212005')  // ojo
 
 
 		  DO WHILE .NOT. CLI->(EOF())
@@ -770,6 +770,12 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 		       ENDIF
 *--------------------FIN ANALISIS SI ESTUDIANTE ESTA RETIRADO
 
+*--------------------LOCALIZACION RECIBO MATRICULA
+		       SELECT PMT
+		       LOCATE FOR PMT->cCodigoEst == cCodigoTes .AND.;
+				  PMT->cMatricPag == '1'
+*--------------------LOCALIZACION RECIBO MATRICULA
+
 *--------------------TARIFAS DE MATRICULAS
 		       nTotFac := 0
 		       nTotPag := 0
@@ -777,8 +783,8 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 		       aVlrCon := {}
 		       nTotFac := 0
 		       nVlrMtr := 0
-		       IF !EMPTY(CAA->cConMatCaA)
-			  VlrTarMtr(CAA->cConMatCaA,GRU->cCodigoGru,;
+		       IF PMT->(FOUND())
+			  VlrTarMtr(PMT->cConcepPag,GRU->cCodigoGru,;
 				    aVlrCon,.F.)
 			  nVlrMtr := nSuma(aVlrCon,3)
 			  nTotFac += nVlrMtr
@@ -791,6 +797,7 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 			  SELECT PAG
 			  SET FILTER TO
 			  nVlrPag := nSuma(aVlrCon,3)
+
 			  nTotPag += nVlrPag
 		       ENDIF
 *--------------------FIN TARIFAS SERVICIOS EDUCATIVOS
@@ -1135,6 +1142,7 @@ FUNCTION nFacConAno(cCodEst)
        LOCAL aAntici[16]                    // Anticipos. 8 Conceptos
        LOCAL aAntEst := {}                  // Anticipos del Estudiante
        LOCAL nAntici := 0                   // Anticipos de los Estudiantes
+       LOCAL nVlrMes := 0                   // Valor del Mes
 *>>>>FIN DECLARACION DE VARIABLES
 
        AFILL(aAntici,0)
@@ -1157,7 +1165,8 @@ FUNCTION nFacConAno(cCodEst)
 
 **********FACTURACION DEL MES
 	    aVlrCon := {}
-	    nFacAno += nVlrMes(@aVlrCon)
+	    nVlrMes := nVlrMes(@aVlrCon)
+	    nFacAno += nVlrMes
 **********FIN FACTURACION DEL MES
 
 **********ANTICIPOS DEL MES
@@ -1447,14 +1456,20 @@ FUNCTION Carte_482(aParam1,aParam2,aParam3)
 	    nTotPag := nTotFac
 **********FIN TOTAL FACTURADO
 
-**********TARIFAS DE LAS MATRICULAS
+**********LOCALIZACION RECIBO MATRICULA
 	    cCodigoTes := ALLTRIM(DN1->cCampo2)
 	    cCodigoTgr := ALLTRIM(DN1->cCampo3)
 
+	    SELECT PMT
+	    LOCATE FOR PMT->cCodigoEst == cCodigoTes .AND.;
+		       PMT->cMatricPag == '1'
+**********FIN LOCALIZACION RECIBO MATRICULA
+
+**********TARIFAS DE LAS MATRICULAS
 	    aVlrCon := {}
 	    IF !EMPTY(CAA->cConMatCaA)
 
-	       VlrTarMtr(CAA->cConMatCaA,cCodigoTgr,aVlrCon,.T.)
+	       VlrTarMtr(PMT->cConcepPag,cCodigoTgr,aVlrCon,.T.)
 
 	       nVlrMtr := nSuma(aVlrCon,3)
 	       nTotPag -= nVlrMtr
@@ -1502,14 +1517,14 @@ FUNCTION Carte_482(aParam1,aParam2,aParam3)
 
 	       ENDFOR
 
-	       IF nTotFac == nSuma(aVlrCon,3)
+*	       IF nTotFac == nSuma(aVlrCon,3)
 
 		  FOR i := 1 TO LEN(aVlrCon)
 		      cCampos := 'DN2->cVlr'+aVlrCon[i,1]
 		      REPL &cCampos WITH STR(aVlrCon[i,3],12)
 		  ENDFOR
 
-	       ENDIF
+*	       ENDIF
 
 	       DN2->(DBCOMMIT())
 
@@ -1557,12 +1572,11 @@ FUNCTION lVlrConPag(nTotPag,aVlrCon)
 
 *>>>>DECLARACION DE VARIABLES
        LOCAL lHayErr := .F.                 // .T. Hay Error
-       LOCAL       i := 0                   // Contador
+       LOCAL     i,k := 0                   // Contador
        LOCAL nSdoAnt := 0                   // Saldo Anterior
        LOCAL nMorAnt := 0                   // Mora Anterior
        LOCAL nVlrMes := 0                   // Valor del Mes
        LOCAL nIntMes := 0                   // Valor Intereses del Mes
-       LOCAL nVlrInt := 0                   // Valor de los Intereses
        LOCAL nRegAct := 0                   // Registro Actual
        LOCAL aRegPag := {}                  // Registro de Pagos
        LOCAL nVlrRec := 0                   // Valor Recargos
@@ -1571,87 +1585,94 @@ FUNCTION lVlrConPag(nTotPag,aVlrCon)
        LOCAL nVlrPag := 0                   // Valor Pagado
 *>>>>FIN DECLARACION DE VARIABLES
 
+
 *>>>>DESCRIMINACION TOTAL PAGADO
        nVlrPag := nTotPag
        nRegAct := PAG->(RECNO())
+
        IF nVlrPag # 0
 
-*=========LECTURA DE LOS REGISTROS DE PAGOS
+**********LECTURA DE LOS REGISTROS DE PAGOS
 	    aRegPag := aRegPagos(PAG->cCodigoEst)
+
 	    IF EMPTY(aRegPag)
 	       RETURN lHayErr
 	    ENDIF
-	    PAG->(DBGOTO(nRegAct))
-*=========FIN LECTURA DE LOS REGISTROS DE PAGOS
+**********FIN LECTURA DE LOS REGISTROS DE PAGOS
 
-*=========DESCRIMINACION DEL PAGO
-	    i := ASCAN(aRegPag,{|aArray| aArray == nRegAct})
-	    DO WHILE nVlrPag > 0
+**********RECORRIDO DE PAGOS
+	    FOR k := 1 TO LEN(aRegPag)
 
-*--------------ANALISIS DEL DEUDOR
-		 IF PAG->cEstadoPag == '*'
-		    i--
-		 ENDIF
-		 lHayErr := !lDbGoTo('PAG',aRegPag,i--)
-*--------------FIN ANALISIS DEL DEUDOR
+		PAG->(DBGOTO(aRegPag[k]))
 
-*--------------INTERESES
-		 IF (PAG->cEstadoPag == 'D' .OR.;
-		     PAG->cEstadoPag == 'A')
+*===============INTERESES
+		  IF nVlrPag > 0
 
-		    nIntMes := nVlrIntPag(CAA->lIntPenCaA,;
-					  PAG->nMesIniPag,;
-					  CAA->nMesAmnCaA)
+		     IF (PAG->cEstadoPag == 'D' .OR.;
+			 PAG->cEstadoPag == 'A')
 
-		    nVlrInt := PAG->nMorAntPag+nIntMes
+			nIntMes := nVlrIntPag(CAA->lIntPenCaA,;
+					      PAG->nMesIniPag,;
+					      CAA->nMesAmnCaA)
 
-		    IF nVlrInt # 0
-		       VlrCon('INT',;
-			      SUBS('INTERESES'+SPACE(16),1,16),;
-			      nVlrInt,;
-			      aVlrCon)
-		       nVlrPag -= nVlrInt
-		    ENDIF
-		 ENDIF
-*--------------FIN INTERESES
+			IF nIntMes # 0
 
-*--------------ANALISIS DEL RECARGO
-		 nMesRec := PAG->nMesIniPag
-		 nVlrRec := PAG->nVlrRecPag
-		 nVlrPag -= nVlrRec
-*--------------FIN ANALISIS DEL RECARGO
+			   VlrCon('INT',;
+				  SUBS('INTERESES'+SPACE(16),1,16),;
+				  nIntMes,;
+				  aVlrCon)
 
-*--------------DESCRIMINACION DEL SALDO
-		 IF nTotPag > 0
-		    ConVlrPag(@nVlrPag,aVlrCon)
-		 ENDIF
-*--------------FIN DESCRIMINACION DEL SALDO
+			   nVlrPag -= nIntMes
 
-*--------------DESCRIMINACION DEL RECARGO
-		 IF nVlrRec # 0
+			ENDIF
+		     ENDIF
 
-		    nRegDes := DES->(RECNO())
-		    IF (lSekCodDes(PAG->cCodigoEst,nMesRec,.F.) .AND.;
-				    DES->nTipDesDes == 2) .AND.;
-				    DES->nValorDes == nVlrRec     // Recargo
-		       VlrConDes(nVlrRec,aVlrCon)
-		    ELSE
-		       VlrCon('REC',;
-			      SUBS('ERROR EN RECARGO'+SPACE(16),1,16),;
-			      nVlrRec,;
-			      aVlrCon)
-		    ENDIF
-		    DES->(DBGOTO(nRegDes))
+		  ENDIF
+*===============FIN INTERESES
 
-		 ENDIF
-*--------------FIN DESCRIMINACION DEL RECARGO
+*===============ANALISIS DEL RECARGO
+		  IF nVlrPag > 0
 
-	    ENDDO
+		     nMesRec := PAG->nMesIniPag
+		     nVlrRec := PAG->nVlrRecPag
+
+		     nVlrPag -= nVlrRec
+
+		   ENDIF
+*===============FIN ANALISIS DEL RECARGO
+
+*===============DESCRIPCION DEL PAGO
+		  IF nVlrPag > 0
+		     ConVlrPag(@nVlrPag,aVlrCon)
+		  ENDIF
+*===============FIN DESCRIPCION DEL PAGO
+
+*===============DESCRIMINACION DEL RECARGO
+		  IF nVlrRec # 0
+
+		     nRegDes := DES->(RECNO())
+		     IF (lSekCodDes(PAG->cCodigoEst,nMesRec,.F.) .AND.;
+				     DES->nTipDesDes == 2) .AND.;
+				     DES->nValorDes == nVlrRec     // Recargo
+			VlrConDes(nVlrRec,aVlrCon)
+		     ELSE
+			VlrCon('REC',;
+			       SUBS('ERROR EN RECARGO'+SPACE(16),1,16),;
+			       nVlrRec,;
+			       aVlrCon)
+		     ENDIF
+		     DES->(DBGOTO(nRegDes))
+
+		  ENDIF
+*===============FIN DESCRIMINACION DEL RECARGO
+
+	    ENDFOR
 	    nTotPag := nVlrPag
-*=========FIN DESCRIMINACION DEL PAGO
+**********FIN RECORRIDO DE PAGOS
 
        ENDIF
        PAG->(DBGOTO(nRegAct))
+
        RETURN !lHayErr
 *>>>>FIN DESCRIMINACION TOTAL PAGADO
 

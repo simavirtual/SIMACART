@@ -697,7 +697,7 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 	     SELECT GRU
 	     GRU->(DBGOTOP())
 
-*lLocCodigo('cCodigoGru','GRU','0101')  // ojo
+*lLocCodigo('cCodigoGru','GRU','0001')  // ojo
 
 	     DO WHILE .NOT. GRU->(EOF())
 
@@ -722,7 +722,7 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 *===============RECORRIDO POR CLIENTES
 		  CLI->(DBGOTOP())
 
-*lLocCodigo('cCodigoEst','CLI','211204')  // ojo
+*lLocCodigo('cCodigoEst','CLI','212005')  // ojo
 
 
 		  DO WHILE .NOT. CLI->(EOF())
@@ -770,6 +770,12 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 		       ENDIF
 *--------------------FIN ANALISIS SI ESTUDIANTE ESTA RETIRADO
 
+*--------------------LOCALIZACION RECIBO MATRICULA
+		       SELECT PMT
+		       LOCATE FOR PMT->cCodigoEst == cCodigoTes .AND.;
+				  PMT->cMatricPag == '1'
+*--------------------LOCALIZACION RECIBO MATRICULA
+
 *--------------------TARIFAS DE MATRICULAS
 		       nTotFac := 0
 		       nTotPag := 0
@@ -777,8 +783,8 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 		       aVlrCon := {}
 		       nTotFac := 0
 		       nVlrMtr := 0
-		       IF !EMPTY(CAA->cConMatCaA)
-			  VlrTarMtr(CAA->cConMatCaA,GRU->cCodigoGru,;
+		       IF PMT->(FOUND())
+			  VlrTarMtr(PMT->cConcepPag,GRU->cCodigoGru,;
 				    aVlrCon,.F.)
 			  nVlrMtr := nSuma(aVlrCon,3)
 			  nTotFac += nVlrMtr
@@ -791,6 +797,7 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 			  SELECT PAG
 			  SET FILTER TO
 			  nVlrPag := nSuma(aVlrCon,3)
+
 			  nTotPag += nVlrPag
 		       ENDIF
 *--------------------FIN TARIFAS SERVICIOS EDUCATIVOS
@@ -1135,6 +1142,7 @@ FUNCTION nFacConAno(cCodEst)
        LOCAL aAntici[16]                    // Anticipos. 8 Conceptos
        LOCAL aAntEst := {}                  // Anticipos del Estudiante
        LOCAL nAntici := 0                   // Anticipos de los Estudiantes
+       LOCAL nVlrMes := 0                   // Valor del Mes
 *>>>>FIN DECLARACION DE VARIABLES
 
        AFILL(aAntici,0)
@@ -1157,7 +1165,8 @@ FUNCTION nFacConAno(cCodEst)
 
 **********FACTURACION DEL MES
 	    aVlrCon := {}
-	    nFacAno += nVlrMes(@aVlrCon)
+	    nVlrMes := nVlrMes(@aVlrCon)
+	    nFacAno += nVlrMes
 **********FIN FACTURACION DEL MES
 
 **********ANTICIPOS DEL MES
@@ -1447,14 +1456,20 @@ FUNCTION Carte_482(aParam1,aParam2,aParam3)
 	    nTotPag := nTotFac
 **********FIN TOTAL FACTURADO
 
-**********TARIFAS DE LAS MATRICULAS
+**********LOCALIZACION RECIBO MATRICULA
 	    cCodigoTes := ALLTRIM(DN1->cCampo2)
 	    cCodigoTgr := ALLTRIM(DN1->cCampo3)
 
+	    SELECT PMT
+	    LOCATE FOR PMT->cCodigoEst == cCodigoTes .AND.;
+		       PMT->cMatricPag == '1'
+**********FIN LOCALIZACION RECIBO MATRICULA
+
+**********TARIFAS DE LAS MATRICULAS
 	    aVlrCon := {}
 	    IF !EMPTY(CAA->cConMatCaA)
 
-	       VlrTarMtr(CAA->cConMatCaA,cCodigoTgr,aVlrCon,.T.)
+	       VlrTarMtr(PMT->cConcepPag,cCodigoTgr,aVlrCon,.T.)
 
 	       nVlrMtr := nSuma(aVlrCon,3)
 	       nTotPag -= nVlrMtr
@@ -1562,7 +1577,6 @@ FUNCTION lVlrConPag(nTotPag,aVlrCon)
        LOCAL nMorAnt := 0                   // Mora Anterior
        LOCAL nVlrMes := 0                   // Valor del Mes
        LOCAL nIntMes := 0                   // Valor Intereses del Mes
-       LOCAL nVlrInt := 0                   // Valor de los Intereses
        LOCAL nRegAct := 0                   // Registro Actual
        LOCAL aRegPag := {}                  // Registro de Pagos
        LOCAL nVlrRec := 0                   // Valor Recargos
@@ -1586,6 +1600,7 @@ FUNCTION lVlrConPag(nTotPag,aVlrCon)
 
 *=========DESCRIMINACION DEL PAGO
 	    i := ASCAN(aRegPag,{|aArray| aArray == nRegAct})
+
 	    DO WHILE nVlrPag > 0
 
 *--------------ANALISIS DEL DEUDOR
@@ -1603,14 +1618,13 @@ FUNCTION lVlrConPag(nTotPag,aVlrCon)
 					  PAG->nMesIniPag,;
 					  CAA->nMesAmnCaA)
 
-		    nVlrInt := PAG->nMorAntPag+nIntMes
-
-		    IF nVlrInt # 0
+		    IF nIntMes # 0
 		       VlrCon('INT',;
 			      SUBS('INTERESES'+SPACE(16),1,16),;
-			      nVlrInt,;
+			      nIntMes,;
 			      aVlrCon)
-		       nVlrPag -= nVlrInt
+		       nVlrPag -= nIntMes
+
 		    ENDIF
 		 ENDIF
 *--------------FIN INTERESES
