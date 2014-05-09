@@ -1350,15 +1350,26 @@ FUNCTION oConBrwPag(nFilSup,nColSup,nFilInf,nColInf,lModReg)
 
        lModReg := IF(EMPTY(lModReg),.F.,lModReg)
        SELECT PAG
-       oColumn	     := TBCOLUMNNEW('MES',;
-			{||cMes(PAG->nMesIniPag,03)})
-       oColumn:Cargo := {{'MODI',.F.}}
+
+       IF lModReg
+	  oColumn := TBCOLUMNNEW('MES',{||PAG->nMesIniPag})
+	  oColumn:Cargo := {{'MODI',.T.},{'ALIAS','PAG'},{'FIELD','nMesIniPag'},;
+			    {'PICTURE','99'}}
+       ELSE
+	  oColumn := TBCOLUMNNEW('MES',{||cMes(PAG->nMesIniPag,03)})
+	  oColumn:Cargo := {{'MODI',.F.}}
+       ENDIF
        oBrowse:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
-       oColumn	     := TBCOLUMNNEW('MES',;
-			{||cMes(PAG->nMesFinPag,03)})
-       oColumn:Cargo := {{'MODI',.F.}}
+       IF lModReg
+	  oColumn := TBCOLUMNNEW('MES',{||PAG->nMesFinPag})
+	  oColumn:Cargo := {{'MODI',.T.},{'ALIAS','PAG'},{'FIELD','nMesFinPag'},;
+			    {'PICTURE','99'}}
+       ELSE
+	  oColumn := TBCOLUMNNEW('MES',{||cMes(PAG->nMesFinPag,03)})
+	  oColumn:Cargo := {{'MODI',.F.}}
+       ENDIF
        oBrowse:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 

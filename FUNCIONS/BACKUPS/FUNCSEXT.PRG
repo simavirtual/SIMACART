@@ -492,6 +492,13 @@ FUNCTION MantenExt(aParam1,aParam2,aParam3,;
        ENDIF
 *>>>>FIN VALIDACION DEL ARCHIVO
 
+*>>>>EXTRACTO ACUMULADO
+       IF nNroMes == 13
+	  LeeExtAcu(lShared,nModCry,cNomSis,;
+		    cAnoUsr,cPatSis,cNroMes,oBrwExt)
+       ENDIF
+*>>>>FIN EXTRACTO ACUMULADO
+
 *>>>>ACTUALIZACION DE LA ESTRUCTURA
        IF nActStrExt(lShared,nModCry,cPatSis+'\MODEM\'+BAN->cCodigoBan,;
 		     FileMoB) == 1
@@ -1662,8 +1669,10 @@ FUNCTION LeeExtAcu(lShared,nModCry,cNomSis,cAnoUsr,cPatSis,cNroMes,oBrowse)
        NEXT
        Termometro(100)
        SELECT TRA
+/*
        oBrowse:GOTOP()
        oBrowse:FORCESTABLE()
+*/
        RESTSCREEN(0,0,24,79,cSavPan)
        RETURN NIL
 *>>>>FIN CONVERSION DEL ARCHIVO ASCII

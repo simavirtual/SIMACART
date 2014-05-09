@@ -1990,7 +1990,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	  AADD(aNroCol,12)
 	  AADD(aTitPrn,'F.PAGO')
 
-	  AADD(aNroCol,12)
+	  AADD(aNroCol,14)
 	  AADD(aTitPrn,'REFERENCIA')
 
 	  AADD(aNroCol,12)
@@ -2637,6 +2637,7 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
        ENDIF
 *>>>>FIN SELECION DE AREAS DE TRABAJO
 
+
 *>>>>ANALISIS DE LA INCONSISTENCIA
        cMesIni := STR(nMesIni,2)
        lCorrecion(@cMesIni,2)
@@ -2662,16 +2663,34 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 	  EXT->(DBGOTOP())
 	  LOCATE FOR ALLTRIM(EXT->cCodRefTra) == cCodRef        .AND.;
 				      dFecPag == EXT->dFechaTra
+
+
 	  SELECT EXT
 	  IF EXT->(FOUND())
+
+
 
 	     nCodCmv := 0
 	     IF lLocCodigo('nCodigoCmv','CMV',EXT->nCodigoCmv)
 
-		IF cAnoUsr # CMV->cAnoCmvCmv
-		   RETURN NIL
-		ENDIF
+* ESTUDIANTE LO ENCONTRO EN EL EXTRACTO REVISAR
+*		IF cAnoUsr # CMV->cAnoCmvCmv
+*		   RETURN NIL
+*		ENDIF
+
 		nCodCmv := CMV->nCodigoCmv
+
+		IF !(EXT->nCodigoCmv == 1 .OR. EXT->nCodigoCmv == 2)
+
+		   IF (CMV->nCodCmvCmv == 1  .OR.;
+		       CMV->nCodCmvCmv == 2) .AND.;
+		       cAnoUsr == CMV->cAnoCmvCmv
+
+		       nCodCmv := CMV->nCodCmvCmv
+		   ENDIF
+
+		ENDIF
+
 	     ENDIF
 
 	     IF nVlrPag # EXT->nValorTra
@@ -2689,6 +2708,29 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 				 0,;                // 10. Valor de la Transaci¢n
 				 ''})               // 11. Fecha de la Transaci¢n
 		ENDIF
+
+	     ELSE
+
+		IF !(nCodCmv == 1 .OR. nCodCmv == 2)
+
+
+		   IF k == 0
+		      AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag+cDiaPag,;
+				    FileMoB,;          // 2.  Archivo del Extracto
+				    cCodEst,;          // 3.  C¢digo de la Referencia
+				    cCodGru,;          // 4.  C¢digo del Grupo
+				    '',;               // 5.  Mes Inicial
+				    '',;               // 6.  Mes Final
+				    0,;                // 7.  Valor Pago
+				    CTOD('00/00/00'),; // 8.  Fecha de Pago
+				    '',;               // 9.  Referencia
+				    0,;                // 10. Valor de la Transaci¢n
+				    ''})               // 11. Fecha de la Transaci¢n
+		   ENDIF
+
+
+		ENDIF
+
 	     ENDIF
 
 
@@ -2710,6 +2752,7 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 
 	  ENDIF
        ELSE
+
 	 IF k == 0
 	    AADD(aVlrDif,{'',;
 			  '',;               // 2.  Archivo del Extracto
@@ -2738,15 +2781,34 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 
 	  SELECT EXT
 	  IF EXT->(FOUND())
+
+	     cCodRef := ALLTRIM(EXT->cCodRefTra)+'='+ALLTRIM(STR(nCodCmv))
+	     cCodRef := SUBS(cCodRef+SPACE(14),1,14)
+
 	     IF nVlrPag # EXT->nValorTra
 
 		aVlrDif[k,5]  := cMesIni
 		aVlrDif[k,6]  := cMesFin
 		aVlrDif[k,7]  := nVlrPag
 		aVlrDif[k,8]  := dFecPag
-		aVlrDif[k,9]  := EXT->cCodRefTra
+		aVlrDif[k,9]  := cCodRef
 		aVlrDif[k,10] := EXT->nValorTra
 		aVlrDif[k,11] := EXT->dFechaTra
+
+	     ELSE
+
+		IF !(nCodCmv == 1 .OR. nCodCmv == 2)
+
+		  aVlrDif[k,5]  := cMesIni
+		  aVlrDif[k,6]  := cMesFin
+		  aVlrDif[k,7]  := nVlrPag
+		  aVlrDif[k,8]  := dFecPag
+		  aVlrDif[k,9]  := cCodRef
+		  aVlrDif[k,10] := EXT->nValorTra
+		  aVlrDif[k,11] := EXT->dFechaTra
+
+		ENDIF
+
 
 	     ENDIF
 	  ELSE

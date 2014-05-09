@@ -205,7 +205,6 @@ FUNCTION FOtrExt13(aParam1,aParam2,aParam3,;
 *>>>>FIN FILTRACION DEL ARCHIVO DEL ESTRACTO
 
 *>>>>ANALISIS DE DECISION
-       ActivaPrn(lShared,cNomSis,PathSis,fSimCar,'cColaAcCar','Car',,nModCry)
        IF !lPregunta('DESEA CONTINUAR? Si No')
 	  SELECT TRA
 	  oBrowse:GOTOP()
@@ -218,7 +217,19 @@ FUNCTION FOtrExt13(aParam1,aParam2,aParam3,;
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  FilePrn := 'Ext'+cMes(VAL(cNroMes),3)
+	  IF VAL(cNroMes) == 13
+	     IF lTodos
+		FilePrn := 'Ext'+cAnoUsr
+	     ELSE
+		FilePrn := 'Ex'+cAnoUsr+ALLTRIM(STR(nNrodia,2))
+	     ENDIF
+	  ELSE
+	     IF lTodos
+		FilePrn := 'Ext'+cMes(VAL(cNroMes),3)
+	     ELSE
+		FilePrn := 'Ext'+cMes(VAL(cNroMes),3)+ALLTRIM(STR(nNrodia,2))
+	     ENDIF
+	  ENDIF
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     RETURN NIL

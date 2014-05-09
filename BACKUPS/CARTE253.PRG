@@ -2064,6 +2064,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        ENDIF
 *>>>>FIN IMPRESION DE LAS INCONSISTENCIAS
 
+/*
 
 *>>>>GRABACION DEL TOTAL PAGOS
        IF lLocCodigo('nNroMesCnc','CNC',nMesIniTpa)
@@ -2088,6 +2089,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        ENDIF
 *>>>>FIN GRABACION DEL TOTAL PAGOS
 
+*/
 
 *>>>>IMPRESION DERECHOS
        DerechosPrn(cNomSis,cNomEmp,n17Stan)
@@ -2635,6 +2637,11 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
        ENDIF
 *>>>>FIN SELECION DE AREAS DE TRABAJO
 
+IF cCodEst == '212140'
+wait 'paso1'
+ENDIF
+
+
 *>>>>ANALISIS DE LA INCONSISTENCIA
        cMesIni := STR(nMesIni,2)
        lCorrecion(@cMesIni,2)
@@ -2646,7 +2653,17 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 				    aArray[5] == cMesIni .AND.;
 				    aArray[6] == cMesFin})
 
+IF cCodEst == '212140'
+wait 'paso2'
+wait k
+ENDIF
+
        IF !EMPTY(dFecPag)
+
+IF cCodEst == '212140'
+wait 'paso3'
+wait dFecPag
+ENDIF
 
 	  cAnoPag := STR(YEAR(dFecPag),4)
 	  cMesPag := STR(MONTH(dFecPag),2)
@@ -2660,15 +2677,20 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 	  EXT->(DBGOTOP())
 	  LOCATE FOR ALLTRIM(EXT->cCodRefTra) == cCodRef        .AND.;
 				      dFecPag == EXT->dFechaTra
+
+
 	  SELECT EXT
 	  IF EXT->(FOUND())
+
+
 
 	     nCodCmv := 0
 	     IF lLocCodigo('nCodigoCmv','CMV',EXT->nCodigoCmv)
 
-		IF cAnoUsr # CMV->cAnoCmvCmv
-		   RETURN NIL
-		ENDIF
+* ESTUDIANTE LO ENCONTRO EN EL EXTRACTO REVISAR
+*		IF cAnoUsr # CMV->cAnoCmvCmv
+*		   RETURN NIL
+*		ENDIF
 		nCodCmv := CMV->nCodigoCmv
 	     ENDIF
 
@@ -2708,6 +2730,12 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 
 	  ENDIF
        ELSE
+
+IF cCodEst == '212140'
+wait 'paso4'
+wait k
+ENDIF
+
 	 IF k == 0
 	    AADD(aVlrDif,{'',;
 			  '',;               // 2.  Archivo del Extracto

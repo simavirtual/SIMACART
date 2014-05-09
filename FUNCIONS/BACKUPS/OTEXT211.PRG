@@ -41,6 +41,7 @@ FUNCTION FOtExt211(aParam1,aParam2,aParam3,;
        LOCAL cIntTre := ''                  // Path de integraci¢n tres
        LOCAL cIntCua := ''                  // Path de integraci¢n cuatro
        LOCAL lAnoAct := .T.                 // A¤o Actual
+       LOCAL PathTem := ''                  // Path temporal
 
        LOCAL nNroPag := 1                   // N£mero de p gina
        LOCAL lTamAnc := .F.                 // .T. Tama¤o Ancho
@@ -174,6 +175,7 @@ FUNCTION FOtExt211(aParam1,aParam2,aParam3,;
 	  CloseAll()
 	  RETURN NIL
        ENDIF
+       PathTem := cPatSis
        cPatSis := cAnoUsr+SUBS(cPatSis,5,4)
        cAnoSis := SUBS(cAnoUsr,3,2)
 *>>>>FIN LECTURA DEL A¥O ACTUAL
@@ -253,9 +255,11 @@ FUNCTION FOtExt211(aParam1,aParam2,aParam3,;
 	     TO &(cPatSis+'\MODEM\'+fNtxMoB+cNroMes+cAnoSis+cExtNtx)
 *>>>>FIN INDEXACION DEL ARCHIVO
 
+
 *>>>>SELECION DE LAS AREAS DE TRABAJO
        IF !lUseDbf(.T.,cPatSis+'\'+;
 		      fCarAno+cAnoUsr+ExtFile,'CAA',NIL,lShared,nModCry) .OR.;
+	  !lUseDbf(.T.,PathTem+'\'+FileCmv,'CMV',NIL,lShared,nModCry) .OR.;
 	  !lUseDbf(.T.,DIRNAME()+'\'+FileTem,'GRU',NIL,lShared)
 
 	  cError('ABRIENDO ARCHIVOS')
@@ -573,6 +577,7 @@ FUNCTION FOtExt211(aParam1,aParam2,aParam3,;
 		 IF !CLI->lRetGruCli .AND.;
 		    lSekCodigo(CLI->cCodigoEst,'TRA')
 
+
 		    DO WHILE CLI->cCodigoEst == SUBS(TRA->cCodRefTra,1,6)
 
 		       IF (TRA->nCodigoCmv == 1  .OR.;
@@ -588,6 +593,31 @@ FUNCTION FOtExt211(aParam1,aParam2,aParam3,;
 			     nVlrBan -= TRA->nValorTra
 			     nBanNiv -= TRA->nValorTra
 			  ENDIF
+
+		       ELSE
+
+			  IF lLocCodigo('nCodigoCmv','CMV',TRA->nCodigoCmv)
+
+			      IF (CMV->nCodCmvCmv == 1  .OR.;
+				  CMV->nCodCmvCmv == 2) .AND.;
+				  cAnoUsr == CMV->cAnoCmvCmv
+
+				  IF TRA->lSumarTra
+				     nVlrTra += TRA->nValorTra
+				     nVlrBan += TRA->nValorTra
+				     nBanNiv += TRA->nValorTra
+				  ELSE
+				     nVlrTra -= TRA->nValorTra
+				     nVlrBan -= TRA->nValorTra
+				     nBanNiv -= TRA->nValorTra
+				  ENDIF
+
+
+			      ENDIF
+
+
+			  ENDIF
+
 
 		       ENDIF
 		       TRA->(DBSKIP())

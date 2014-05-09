@@ -89,6 +89,8 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
        LOCAL nMesAbo := 0                   // Mes del Abono
        LOCAL cMsgMtr := ''                  // Mensaje para la Matr¡cula
        LOCAL lErrMtr := .F.                 // .T. Error en Matriculas
+       LOCAL cAnoTxt := ''                  // A¤o temporal
+
        LOCAL Getlist := {}                  // Variable del sistema
      *ÀVariables espec¡ficas
 
@@ -275,6 +277,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
        IF lTodos
 	  GO TOP
        ENDIF
+
        DO WHILE .T.
 
 **********ANALISIS DE FIN DE ARCHIVO
@@ -311,6 +314,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 	    nVlrCre := 0
 	    nVlrDeb := 0
 	    nVlrSdo := 0
+
 	    SELECT TRA
 	    GO TOP
 	    DO WHILE .NOT. TRA->(EOF())
@@ -325,6 +329,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 					     cNomSis)
 		 SET DEVICE TO PRINT
 *--------------FIN IMPRESION DE LA LINEA DE ESTADO
+
 
 *--------------ACUMULACION DE CONCEPTOS
 		 IF TRA->nCodigoCmv == CMV->nCodigoCmv
@@ -359,6 +364,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 *........................FIN CONSIGNACIONES POR RECIBOS PENSIONES
 
 		    CASE CMV->nCodigoCmv == 3  // Abonos
+
 
 *........................VALIDACION DEL MES DEL ABONO EN LA REFERENCIA
 			   nMesAbo := VAL(SUBS(TRA->cCodRefTra,9,2))
@@ -425,19 +431,80 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 
 		    OTHERWISE
 
-*........................OTRAS CONSIGNACIONES
-			   IF TRA->lSumarTra
-			      nVlrCre += TRA->nValorTra
-			      nVlrSdo += TRA->nValorTra
-			      nTotCre += TRA->nValorTra
-			      nTotSdo += TRA->nValorTra
-			   ELSE
-			      nVlrDeb += TRA->nValorTra
-			      nVlrSdo -= TRA->nValorTra
-			      nTotDeb += TRA->nValorTra
-			      nTotSdo -= TRA->nValorTra
-			   ENDIF
-*........................FIN OTRAS CONSIGNACIONES
+			 DO CASE
+			 CASE CMV->nCodCmvCmv == 2 // Pensiones otro a¤o
+
+*.............................VALIDACION DEL MES DE LA REFERENCIA
+				nMesPag := VAL(SUBS(TRA->cCodRefTra,7,2))
+				IF nMesPag <= 0 .OR. nMesPag > 12
+
+				   VerPrn(nOpcPrn,FilePrn)
+				   SET DEVICE TO SCREEN
+				   cError('LA REFERENCIA '+TRA->cCodRefTra+;
+					  'NO ESTA ASIGNADA A NINGUN MES DE PENSION')
+				   oBrowse:FORCESTABLE()
+				   oBrowse:REFRESHALL()
+				   RETURN NIL
+
+				ENDIF
+*.............................FIN VALIDACION DEL MES DE LA REFERENCIA
+
+*.............................CONSIGNACIONES POR RECIBOS PENSIONES
+				IF TRA->lSumarTra
+				   nTotCre += TRA->nValorTra
+				   aPagMes[nMesPag,1] += TRA->nValorTra
+				   nTotSdo += TRA->nValorTra
+				ELSE
+				   aPagMes[nMesPag,2] += TRA->nValorTra
+				   nTotDeb += TRA->nValorTra
+				   nTotSdo -= TRA->nValorTra
+				ENDIF
+*.............................FIN CONSIGNACIONES POR RECIBOS PENSIONES
+
+			 CASE CMV->nCodCmvCmv == 3  // Abonos otros a¤os
+
+*.............................VALIDACION DEL MES DEL ABONO EN LA REFERENCIA
+				nMesAbo := VAL(SUBS(TRA->cCodRefTra,9,2))
+				IF nMesAbo <= 0 .OR. nMesAbo > 12 .OR.;
+				   SUBS(TRA->cCodRefTra,7,2) # '14'
+
+				   nMesAbo := 13
+				   SET DEVICE TO SCREEN
+				   cError('LA REFERENCIA '+TRA->cCodRefTra+;
+					  ' ESTA MAL CODIFICADA')
+				   SET DEVICE TO PRINT
+				ENDIF
+*.............................FIN VALIDACION DEL MES DEL ABONO EN LA REFERENCIA
+
+*.............................CONSIGNACIONES POR ABONOS OTRO A¥OS
+				IF TRA->lSumarTra
+				   nTotCre += TRA->nValorTra
+				   aAboMes[nMesAbo,1] += TRA->nValorTra
+				   nTotSdo += TRA->nValorTra
+				ELSE
+				   aAboMes[nMesAbo,2] += TRA->nValorTra
+				   nTotDeb += TRA->nValorTra
+				   nTotSdo -= TRA->nValorTra
+				ENDIF
+*.............................FIN CONSIGNACIONES POR ABONOS OTRO A¥OS
+
+			 OTHERWISE
+
+*.............................OTRAS CONSIGNACIONES
+				IF TRA->lSumarTra
+				   nVlrCre += TRA->nValorTra
+				   nVlrSdo += TRA->nValorTra
+				   nTotCre += TRA->nValorTra
+				   nTotSdo += TRA->nValorTra
+				ELSE
+				   nVlrDeb += TRA->nValorTra
+				   nVlrSdo -= TRA->nValorTra
+				   nTotDeb += TRA->nValorTra
+				   nTotSdo -= TRA->nValorTra
+				ENDIF
+*.............................FIN OTRAS CONSIGNACIONES
+
+			 ENDCASE
 
 		    ENDCASE
 
@@ -679,6 +746,105 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 		 ENDIF
 *--------------FIN IMPRESION DE LAS MATRICULAS
 
+*--------------IMPRESION POR RECIBOS DE PENSIONES OTROS A¥OS
+		 IF CMV->nCodigoCmv # 1 .AND.;
+		    CMV->nCodigoCmv # 2 .AND.;
+		    CMV->nCodigoCmv # 3 .AND.;
+		    CMV->nCodigoCmv # 4 .AND.;
+		    CMV->nCodigoCmv # CMV->nCodCmvCmv .AND.;
+		    CMV->nCodCmvCmv == 2
+
+		    FOR i := 1 TO 13
+			IF aPagMes[i,1] # 0 .OR. aPagMes[i,2] # 0
+
+			   cNombreTcm := ALLTRIM(CMV->cNombreCmv)
+
+			   cAnoTxt := SUBS(cNombreTcm,LEN(cNombreTcm)-3,4)
+			   IF cAnoTxt # CMV->cAnoCmvCmv
+			      cNombreTcm += ' '+CMV->cAnoCmvCmv
+			   ENDIF
+
+			   IF i <= 12
+			      cNombreTcm += ' '+cMes(i,3)
+			   ELSE
+			      cNombreTcm := STR(nCodigoCmv,4)+' '+;
+					    ALLTRIM(CMV->cNombreCmv)+' '+;
+					    CMV->cAnoCmvCmv
+			   ENDIF
+
+			   cNombreTcm := SUBS(cNombreTcm+SPACE(40),1,40)
+
+			   aRegPrn := {cNombreTcm,;
+				       IF(aPagMes[i,1] == 0,SPACE(12),;
+					  TRANS(aPagMes[i,1],"####,###,###.##")),;
+				       IF(aPagMes[i,2] == 0,SPACE(12),;
+					  TRANS(aPagMes[i,2],"####,###,###.##")),;
+				       IF(aPagMes[i,1] - aPagMes[i,2] == 0,SPACE(12),;
+					  TRANS(aPagMes[i,1] - aPagMes[i,2],"####,###,###.##"))}
+
+			   lPrnOpc(lShared,nOpcPrn,FilePrn,nHanXml,01,;
+				   nColCab,aTitPrn,aRegPrn,aNroCol,;
+				   bPagina,bDerAut,bCabeza)
+
+			  AADD(aRegPrn,IF(i#13,'..\FACT'+cMes(i,3)+'\'+;
+					  'PAG'+cMes(i,3)+cAnoSis+'.XML','')) // Campo Url
+			  AADD(aRegXml,aRegPrn)
+			ENDIF
+		    ENDFOR
+		 ENDIF
+*--------------FIN IMPRESION POR RECIBOS DE PENSIONES OTROS A¥OS
+
+*--------------IMPRESION DE LOS ABONOS OTROS A¥OS
+		 IF CMV->nCodigoCmv # 1 .AND.;
+		    CMV->nCodigoCmv # 2 .AND.;
+		    CMV->nCodigoCmv # 3 .AND.;
+		    CMV->nCodigoCmv # 4 .AND.;
+		    CMV->nCodigoCmv # CMV->nCodCmvCmv .AND.;
+		    CMV->nCodCmvCmv == 3
+
+		    FOR i := 1 TO 13
+			IF aAboMes[i,1] # 0 .OR. aAboMes[i,2] # 0
+
+			   cNombreTcm := ALLTRIM(CMV->cNombreCmv)
+
+			   cAnoTxt := SUBS(cNombreTcm,LEN(cNombreTcm)-3,4)
+			   IF cAnoTxt # CMV->cAnoCmvCmv
+			      cNombreTcm += ' '+CMV->cAnoCmvCmv
+			   ENDIF
+
+			   IF i <= 12
+			      cNombreTcm += ' '+cMes(i,3)
+			   ELSE
+			      cNombreTcm := STR(nCodigoCmv,4)+' '+;
+					    ALLTRIM(CMV->cNombreCmv)+' '+;
+					    CMV->cAnoCmvCmv
+			   ENDIF
+
+			   cNombreTcm := SUBS(cNombreTcm+SPACE(40),1,40)
+
+			   aRegPrn := {cNombreTcm,;
+				       IF(aAboMes[i,1] == 0,SPACE(12),;
+					  TRANS(aAboMes[i,1],"####,###,###.##")),;
+				       IF(aAboMes[i,2] == 0,SPACE(12),;
+					  TRANS(aAboMes[i,2],"####,###,###.##")),;
+				       IF(aAboMes[i,1]-aAboMes[i,2]== 0,SPACE(12),;
+					  TRANS(aAboMes[i,1]-aAboMes[i,2],"####,###,###.##"))}
+
+			   lPrnOpc(lShared,nOpcPrn,FilePrn,nHanXml,01,;
+				   nColCab,aTitPrn,aRegPrn,aNroCol,;
+				   bPagina,bDerAut,bCabeza)
+
+			  AADD(aRegPrn,IF(i#13,'..\FACT'+cMes(i,3)+'\'+;
+					  'PAG'+cMes(i,3)+cAnoSis+'.XML','')) // Campo Url
+			  AADD(aRegXml,aRegPrn)
+
+			ENDIF
+		    ENDFOR
+
+		 ENDIF
+*--------------FIN IMPRESION DE LOS ABONOS OTROS A¥OS
+
+
 *--------------IMPRESION DE OTRAS CONSIGNACIONES
 		 IF (nVlrCre # 0 .OR. nVlrDeb # 0) .AND.;
 		    (CMV->nCodigoCmv # 1 .AND.;
@@ -700,6 +866,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 		     AADD(aRegXml,aRegPrn)
 		 ENDIF
 *--------------IMPRESION DE OTRAS CONSIGNACIONES
+
 
 	    ENDIF
 **********IMPRESION DE REGISTROS

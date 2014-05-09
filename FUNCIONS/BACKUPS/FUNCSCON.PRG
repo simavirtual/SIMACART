@@ -1416,6 +1416,7 @@ FUNCTION VlrTarMtr(cConcep,cCodGru,aVlrCon,lSiCert)
 	     LOCATE FOR TMT->cCodigoGru == SUBS(cCodGru,1,2)+'00' .AND.;
 			TMT->cCodigoCon == cCodigoTco
 
+
 	     IF FOUND()
 		nVlrCon := TMT->nValorTar
 	     ELSE
