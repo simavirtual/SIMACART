@@ -2637,7 +2637,6 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
        ENDIF
 *>>>>FIN SELECION DE AREAS DE TRABAJO
 
-
 *>>>>ANALISIS DE LA INCONSISTENCIA
        cMesIni := STR(nMesIni,2)
        lCorrecion(@cMesIni,2)
@@ -2668,8 +2667,6 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 	  SELECT EXT
 	  IF EXT->(FOUND())
 
-
-
 	     nCodCmv := 0
 	     IF lLocCodigo('nCodigoCmv','CMV',EXT->nCodigoCmv)
 
@@ -2679,6 +2676,7 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 *		ENDIF
 
 		nCodCmv := CMV->nCodigoCmv
+
 
 		IF !(EXT->nCodigoCmv == 1 .OR. EXT->nCodigoCmv == 2)
 
@@ -2711,8 +2709,7 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 
 	     ELSE
 
-		IF !(nCodCmv == 1 .OR. nCodCmv == 2)
-
+		IF !(nCodCmv == 1 .OR. nCodCmv == 2 .OR. nCodCmv == 3)
 
 		   IF k == 0
 		      AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag+cDiaPag,;
@@ -2797,7 +2794,7 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 
 	     ELSE
 
-		IF !(nCodCmv == 1 .OR. nCodCmv == 2)
+		IF !(nCodCmv == 1 .OR. nCodCmv == 2 .OR. nCodCmv == 3)
 
 		  aVlrDif[k,5]  := cMesIni
 		  aVlrDif[k,6]  := cMesFin

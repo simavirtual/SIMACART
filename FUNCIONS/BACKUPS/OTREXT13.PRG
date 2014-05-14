@@ -58,7 +58,7 @@ FUNCTION FOtrExt13(aParam1,aParam2,aParam3,;
        LOCAL nOpcPrn := 0                   // Opci¢n de Impresi¢n
      *ÀVariables de informe
 
-       LOCAL lTodos  := .T.                 // Imprimir todos los Conceptos
+       LOCAL nOpcion := 0                   // Opciones
        LOCAL nNroDia := 0                   // N£mero del d¡a.
        LOCAL nNroFil := 0                   // Fila de lectura
        LOCAL nNroCol := 0                   // Columna de lectura
@@ -69,6 +69,7 @@ FUNCTION FOtrExt13(aParam1,aParam2,aParam3,;
        LOCAL nTotDeb := 0                   // Total D‚bitos
        LOCAL cConcep := ''                  // Concepto de la Transacion
        LOCAL cNroDoc := ''                  // Numero del Documento
+       LOCAL cCodigo := ''                  // C¢digo
        LOCAL Getlist := {}                  // Variable del sistema
      *ÀVariables espec¡ficas
 
@@ -134,35 +135,129 @@ FUNCTION FOtrExt13(aParam1,aParam2,aParam3,;
 *>>>>FIN VALIDACION DEL CONTENIDO
 
 *>>>>ANALISIS DE DECISION
-       lTodos := .T.
-       IF !lPregunta('DESEA EL MOVIMIENTO TODOS LOS DIAS? Si No')
+       nOpcion := nLeeOpcion('ENTRE LA OPCION: '+;
+		 '1<EXTRACTO> 2<POR DIA> 3<POR CODIGO> 4<ABANDONAR>?',4,'0')
 
-***********LECTURA DEL CODIGO
-	     SET CURSOR ON
-	     nNroDia := 0
-	     TitBuscar(2,@nNroFil,@nNroCol,'ENTRE EL DIA:')
-	     @ nNroFil,nNroCol GET nNroDia PICT '99';
-			       VALID nNroDia <= 31
-	     READ
-	     lTodos := .F.
-***********FIN LECTURA DEL CODIGO
+       IF nOpcion == 4
+	  SELECT TRA
+	  oBrowse:GOTOP()
+	  oBrowse:FORCESTABLE()
+	  RETURN NIL
+       ENDIF
+*>>>>ANALISIS DE DECISION
+
+*>>>>LECTURA DEL DIA
+       IF nOpcion == 2
+
+	  SET CURSOR ON
+	  nNroDia := 0
+
+	  TitBuscar(2,@nNroFil,@nNroCol,'ENTRE EL DIA:')
+	  @ nNroFil,nNroCol GET nNroDia PICT '99';
+			    VALID nNroDia <= 31
+	  READ
+
+	  IF nNroDia == 0
+	     SELECT TRA
+	     oBrowse:GOTOP()
+	     oBrowse:FORCESTABLE()
+	     RETURN NIL
+	  ENDIF
 
        ENDIF
-*>>>>FIN CAPTURA DEL CODIGO
+*>>>>FIN LECTURA DEL DIA
+
+*>>>>LECTURA DEL CODIGO
+       IF nOpcion == 3
+
+	  SET CURSOR ON
+	  cCodigo := SPACE(06)
+
+	  TitBuscar(2,@nNroFil,@nNroCol,'CODIGO:')
+	  @ nNroFil,nNroCol GET cCodigo PICT '999999'
+	  READ
+
+	  IF EMPTY(cCodigo)
+	     SELECT TRA
+	     oBrowse:GOTOP()
+	     oBrowse:FORCESTABLE()
+	     RETURN NIL
+	  ENDIF
+
+       ENDIF
+*>>>>FIN LECTURA DEL CODIGO
+
 
 *>>>>DEFINCION DEL ENCABEZADO
        nNroPag := 0
        lTamAnc := .F.
 
        nTotReg := TRA->(RECCOUNT())+nLinTot
-       aCabeza := {cNomEmp,cNomSis,;
-		   'EXTRACTO DEL MES DE '+cMes(VAL(cNroMes))+;
-		   '. A¥O: '+cAnoUsr,;
-		   IF(lTodos,'TODOS LOS MOVIMIENTOS',;
-			     'MOVIMIENTOS DEL DIA '+STR(nNroDia,2)),;
-		   '',;
-		   nNroPag++,;
-		   IF(lTodos,cTotPagina(nTotReg),NIL),lTamAnc}
+       DO CASE
+       CASE nOpcion == 1 // Todos
+
+	    IF VAL(cNroMes) == 13
+	       aCabeza := {cNomEmp,cNomSis,;
+			   'EXTRACTO ACUMULADO'+;
+			   '. A¥O: '+cAnoUsr,;
+			   'TODOS LOS MOVIMIENTOS',;
+			   '',;
+			   nNroPag++,;
+			   cTotPagina(nTotReg),lTamAnc}
+	      ELSE
+	       aCabeza := {cNomEmp,cNomSis,;
+			   'EXTRACTO DEL MES DE '+cMes(VAL(cNroMes))+;
+			   '. A¥O: '+cAnoUsr,;
+			   'TODOS LOS MOVIMIENTOS',;
+			   '',;
+			   nNroPag++,;
+			   cTotPagina(nTotReg),lTamAnc}
+	      ENDIF
+
+       CASE nOpcion == 2 // D¡a
+
+	    IF VAL(cNroMes) == 13
+
+	       aCabeza := {cNomEmp,cNomSis,;
+			   'EXTRACTO ACUMULADO'+;
+			   '. A¥O: '+cAnoUsr,;
+			   'MOVIMIENTOS DEL DIA '+STR(nNroDia,2),;
+			   '',;
+			   nNroPag++,;
+			   NIL,lTamAnc}
+	    ELSE
+	       aCabeza := {cNomEmp,cNomSis,;
+			   'EXTRACTO DEL MES DE '+cMes(VAL(cNroMes))+;
+			   '. A¥O: '+cAnoUsr,;
+			   'MOVIMIENTOS DEL DIA '+STR(nNroDia,2),;
+			   '',;
+			   nNroPag++,;
+			   NIL,lTamAnc}
+	    ENDIF
+
+       CASE nOpcion == 3 // Por c¢digo
+
+	    IF VAL(cNroMes) == 13
+
+	       aCabeza := {cNomEmp,cNomSis,;
+			   'EXTRACTO ACUMULADO'+;
+			   '. A¥O: '+cAnoUsr,;
+			   'MOVIMIENTOS CODIGO:'+cCodigo,;
+			   '',;
+			   nNroPag++,;
+			   NIL,lTamAnc}
+	    ELSE
+
+	       aCabeza := {cNomEmp,cNomSis,;
+			   'EXTRACTO DEL MES DE '+cMes(VAL(cNroMes))+;
+			   '. A¥O: '+cAnoUsr,;
+			   'MOVIMIENTOS CODIGO:'+cCodigo,;
+			   '',;
+			   nNroPag++,;
+			   NIL,lTamAnc}
+	    ENDIF
+
+       ENDCASE
        cCodIni := DRAFT_ON+PICA+CONDEN_ON
        cCodFin := NEGRA_OF+DOBGOL_OF
 *>>>>FIN DEFINCION DEL ENCABEZADO
@@ -189,18 +284,27 @@ FUNCTION FOtrExt13(aParam1,aParam2,aParam3,;
 *>>>>FIN ANALISIS PARA CENTRAR EL INFORME
 
 *>>>>FILTRACION DEL ARCHIVO DEL ESTRACTO
-       IF !lTodos
+       SELECT TRA
+       DO CASE
+       CASE nOpcion == 1 // Todos
+
+       CASE nOpcion == 2 // D¡a
+	    SET FILTER TO DAY(TRA->dFechaTra) == nNrodia
+
+       CASE nOpcion == 3 // Por c¢digo
+	    SET FILTER TO TRA->cCodigoEst == cCodigo
+
+       ENDCASE
+
+       SELECT TRA
+       TRA->(DBGOTOP())
+       IF TRA->(EOF())
+	  SET FILTER TO
+	  cError('NO EXISTEN MOVIMIENTOS')
 	  SELECT TRA
-	  SET FILTER TO DAY(TRA->dFechaTra) == nNrodia
-	  GO TOP
-	  IF EOF()
-	     SET FILTER TO
-	     cError('NO EXISTEN MOVIMIENTOS PARA ESTE DIA')
-	     SELECT TRA
-	     oBrowse:GOTOP()
-	     oBrowse:FORCESTABLE()
-	     RETURN NIL
-	  ENDIF
+	  oBrowse:GOTOP()
+	  oBrowse:FORCESTABLE()
+	  RETURN NIL
        ENDIF
 *>>>>FIN FILTRACION DEL ARCHIVO DEL ESTRACTO
 
@@ -218,17 +322,33 @@ FUNCTION FOtrExt13(aParam1,aParam2,aParam3,;
 	  SET DEVICE TO PRINT
        ELSE
 	  IF VAL(cNroMes) == 13
-	     IF lTodos
-		FilePrn := 'Ext'+cAnoUsr
-	     ELSE
-		FilePrn := 'Ex'+cAnoUsr+ALLTRIM(STR(nNrodia,2))
-	     ENDIF
+
+	     DO CASE
+	     CASE nOpcion == 1 // Todos
+		  FilePrn := 'Ext'+cAnoUsr
+
+	     CASE nOpcion == 2 // D¡a
+		  FilePrn := 'EX'+cAnoUsr+ALLTRIM(STR(nNrodia,2))
+
+	     CASE nOpcion == 3 // Por c¢digo
+		  FilePrn := 'E'+cCodigo
+
+	     ENDCASE
+
 	  ELSE
-	     IF lTodos
-		FilePrn := 'Ext'+cMes(VAL(cNroMes),3)
-	     ELSE
-		FilePrn := 'Ext'+cMes(VAL(cNroMes),3)+ALLTRIM(STR(nNrodia,2))
-	     ENDIF
+
+	     DO CASE
+	     CASE nOpcion == 1 // Todos
+		  FilePrn := 'Ext'+cMes(VAL(cNroMes),3)
+
+	     CASE nOpcion == 2 // D¡a
+		  FilePrn := 'Ext'+cMes(VAL(cNroMes),3)+ALLTRIM(STR(nNrodia,2))
+
+	     CASE nOpcion == 3 // Por c¢digo
+		  FilePrn := 'Ex'+cCodigo
+
+	     ENDCASE
+
 	  ENDIF
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
@@ -330,7 +450,7 @@ FUNCTION FOtrExt13(aParam1,aParam2,aParam3,;
        VerPrn(nOpcPrn,FilePrn)
 
        SET DEVICE TO SCREEN
-       IF !lTodos
+       IF nOpcion # 1
 	  SELECT TRA
 	  SET FILTER TO
        ENDIF

@@ -1,10 +1,14 @@
 del \SimaClip.v52\simacart\f\objs\CART1259.obj
+del \SimaClip.v52\simacart\f\objs\CARTE613.obj
+del \SimaClip.v52\simacart\f\objs\CARTE614.obj
 
 del \SimaClip.v52\simacart\f\objs\OTRMOR6A.obj
 del \SimaClip.v52\simacart\f\objs\OTRMOR9A.obj
 
 
 clipper \SimaClip.v52\simacart\f\CART1259 /w/m/b
+clipper \SimaClip.v52\simacart\f\CARTE613 /w/m/b
+clipper \SimaClip.v52\simacart\f\CARTE614 /w/m/b
 
 clipper \SimaClip.v52\simacart\f\funcions\OTRMOR6A /w/m/b
 clipper \SimaClip.v52\simacart\f\funcions\OTRMOR9A /w/m/b

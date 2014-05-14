@@ -42,6 +42,7 @@ FUNCTION FOtrExt43(aParam1,aParam2,aParam3,;
        LOCAL cNomArc := ''                  // Nombre del archivo
        LOCAL PathAct := ''                  // Paht Actual
        LOCAL nVlrDec := 0                   // Valor Decimal
+       LOCAL FileTxt := ''                  // Archivo Texto
 
        LOCAL nMesIni := 0                   // Mes del pago
        LOCAL cCodRef := ''                  // C¢digo de la Referencia
@@ -167,6 +168,7 @@ FUNCTION FOtrExt43(aParam1,aParam2,aParam3,;
 *>>>>CIERRE DE AREAS DE TRABAJO
        FileTmv := FileTmv+BAN->cCodigoBan+ExtFile
        FileMoB := BAN->cCodigoBan+cAnoUsr+cNroMes+ExtFile
+       FileTxt := BAN->cCodigoBan+cAnoUsr+cNroMes+'.txt'
        CloseDbf('TRA',cPatSis+'\MODEM\'+BAN->cCodigoBan+'\'+FileMoB,nModCry)
        CloseDbf('TMV',cPatSis+'\'+FileTmv,nModCry)
        CloseDbf('CMV',cPatSis+'\'+FileCmv,nModCry)
@@ -183,6 +185,9 @@ FUNCTION FOtrExt43(aParam1,aParam2,aParam3,;
 *>>>>CREACION DEL ARCHIVO DEL ESTRACTO
        RESTSCREEN(nFilInf+1,00,nFilInf+2,79,cSavLin)
        cNomArc := ALLTRIM(cNomArc)
+
+       FILECOPY(cNomArc,;
+		cPatSis+'\MODEM\'+BAN->cCodigoBan+'\'+FileTxt)
 
        CreaDbfExt(lShared,nModCry,;
 		  cPatSis+'\MODEM\'+BAN->cCodigoBan,FileMoB)

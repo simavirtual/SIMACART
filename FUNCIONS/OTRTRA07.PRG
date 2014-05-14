@@ -41,6 +41,7 @@ FUNCTION OtrTra077(aParam1,aParam2,aParam3,;
        LOCAL cNomArc := ''                  // Nombre del archivo
        LOCAL PathAct := ''                  // Paht Actual
        LOCAL nVlrDec := 0                   // Valor Decimal
+       LOCAL FileTxt := ''                  // Archivo Texto
 
        LOCAL nMesIni := 0                   // Mes del pago
        LOCAL cCodRef := ''                  // C¢digo de la Referencia
@@ -117,10 +118,12 @@ FUNCTION OtrTra077(aParam1,aParam2,aParam3,;
 *>>>>PREPARACION DE VARIABLES DE ARCHIVO
        IF !EMPTY(cNroDia)
 	  FileTra := cAnoUsr+cNroMes+cNroDia+ExtFile
+	  FileTxt := cAnoUsr+cNroMes+cNroDia+'.txt'
 	  fNtxTra := cAnoUsr+cNroMes+cNroDia+cExtNtx
        ELSE
 	  cNroDia := ''
 	  FileTra := 'PA'+cAnoUsr+cNroMes+ExtFile
+	  FileTxt := 'PA'+cAnoUsr+cNroMes+'.txt'
 	  fNtxTra := 'PA'+cAnoUsr+cNroMes+cExtNtx
        ENDIF
 *>>>>FIN PREPARACION DE VARIABLES DE ARCHIVO
@@ -186,6 +189,10 @@ FUNCTION OtrTra077(aParam1,aParam2,aParam3,;
        CloseDbf('TRA',cPatSis+'\MODEM\'+BAN->cCodigoBan+'\'+;
 		FileTra,nModCry)
        cNomArc := ALLTRIM(cNomArc)
+
+
+       FILECOPY(cNomArc,;
+		cPatSis+'\MODEM\'+BAN->cCodigoBan+'\'+FileTxt)
 
        CreaDbfTra(lShared,nModCry,;
 		  cPatSis+'\MODEM\'+BAN->cCodigoBan,FileTra)

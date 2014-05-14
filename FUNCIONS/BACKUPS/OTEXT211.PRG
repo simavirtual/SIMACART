@@ -549,6 +549,7 @@ FUNCTION FOtExt211(aParam1,aParam2,aParam3,;
 	    nVlrDif := 0
 	    DO WHILE .NOT. CLI->(EOF())
 
+
 *--------------LOCALIZACION DEL PAGO
 		 lHayPag := lLocCodPag(CLI->cCodigoEst,nMesIni,.F.)
 		 IF lHayPag
@@ -570,7 +571,6 @@ FUNCTION FOtExt211(aParam1,aParam2,aParam3,;
 		    ENDIF
 		 ENDIF
 *-------------FIN ANALISIS DEL BANCO
-
 
 *--------------ANALISIS DE LOS PAGOS EN EL BANCO
 		 nVlrTra := 0
@@ -600,7 +600,8 @@ FUNCTION FOtExt211(aParam1,aParam2,aParam3,;
 
 			      IF (CMV->nCodCmvCmv == 1  .OR.;
 				  CMV->nCodCmvCmv == 2) .AND.;
-				  cAnoUsr == CMV->cAnoCmvCmv
+				  cAnoUsr == CMV->cAnoCmvCmv .AND.;
+				  VAL(SUBS(TRA->cCodRefTra,7,2)) == nMesIni
 
 				  IF TRA->lSumarTra
 				     nVlrTra += TRA->nValorTra

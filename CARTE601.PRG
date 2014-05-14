@@ -143,9 +143,13 @@ FUNCTION Carte_601(aParam1,aParam2,aParam3)
 
        AADD(aMenus,"1<ASIGNAR CONCEPTOS  >")
        AADD(aMenus,"2<TODOS LOS CONCEPTOS>")
+       AADD(aMenus,"3<TRANSPORTE         >")
+       AADD(aMenus,"4<RESTAURANTE        >")
 
        AADD(aAyuda,'Permite asignar conceptos individuales a los Estudiantes')
        AADD(aAyuda,'Permite Imprimir todos los Conceptos Individuales de los Estudiantes')
+       AADD(aAyuda,'Imprime los Estudiantes con Transporte')
+       AADD(aAyuda,'Imprime los Estudiantes con Restaurante')
 *>>>>FIN DECLARACION Y EJECUCION DEL MENU
 
 *>>>>VALIDACION DEL LIMITE DE LA ULTIMA COLUMNA
@@ -175,6 +179,14 @@ FUNCTION Carte_601(aParam1,aParam2,aParam3)
 	  CASE nNroOpc == 2
 	       Carte_612(aParam1,aParam2,aParam3)
 	      *Imprimir todos los Conceptos
+
+	  CASE nNroOpc == 3
+	       Carte_613(aParam1,aParam2,aParam3)
+	      *Imprimir Estudiantes con Transporte
+
+	  CASE nNroOpc == 4
+	       Carte_614(aParam1,aParam2,aParam3)
+	      *Imprimir Estudiantes con Transporte
 
 	  ENDCASE
 	  RESTSCREEN(0,0,24,79,cSavPan)
