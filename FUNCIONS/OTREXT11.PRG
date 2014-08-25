@@ -200,7 +200,6 @@ FUNCTION FOtrExt11(aParam1,aParam2,aParam3,;
 *>>>>FIN ANALISIS PARA CENTRAR EL INFORME
 
 *>>>>ANALISIS DE DECISION
-       ActivaPrn(lSiRed,cNomSis,PathSis,fSimCar,'cColaAcCar','Car',,nModCry)
        IF !lPregunta('DESEA CONTINUAR? Si No')
 	  SELECT TRA
 	  oBrowse:GOTOP()
@@ -209,11 +208,13 @@ FUNCTION FOtrExt11(aParam1,aParam2,aParam3,;
        ENDIF
 *>>>>FIN ANALISIS DE DECISION
 
+
 *>>>>ACTIVACION DE LA IMPRESORA
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.)
+	  FilePrn := SUBS(CAR->cSerFacCar,1,1)+'mvt'+cNroMes+BAN->cCodigoBan
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     RETURN NIL
 	  ENDIF
@@ -384,6 +385,7 @@ FUNCTION FOtrExt11(aParam1,aParam2,aParam3,;
        DerechosPrn(cNomSis,cNomEmp,nLenPrn)
        @ PROW()-PROW(),00 SAY ' '
       *Saca la ultima linea
+
        VerPrn(nOpcPrn,FilePrn)
 
        SET DEVICE TO SCREEN

@@ -38,6 +38,10 @@ FUNCTION Carte_101(aP1,aP2,aP3)
        LOCAL cSavPan := ''                  // Salvar Pantalla
        LOCAL lHayErr := .F.                 // .T. Hay Error
 
+       LOCAL PathAct := ''                  // Path Actual
+       LOCAL PathRfa := ''                  // Path Recibos facturados
+       LOCAL fRecFac := 'RECI'              // Ej: RECIENE.DAT
+
        LOCAL     i,j := 0                   // Contadores
        LOCAL cUsrIso := ''                  // Usuario de la Iso
        LOCAL nNroInf := 0                   // N£mero del informe
@@ -115,6 +119,9 @@ FUNCTION Carte_101(aP1,aP2,aP3)
        LOCAL nIntPen := 0                   // Intereses de pension
        LOCAL nIntDeu := 0                   // Intereses para el no pago
        LOCAL lPrnRec := .T.                 // .T. Imprimir el Recibo
+       LOCAL aDocNit := {}                  // Documento de los Contrantes
+       LOCAL nTipPer := 0                   // Tipo de Persona
+       LOCAL aRecFac := {}                  // Recibo Facturado
 
        LOCAL Getlist := {}                  // Variable del sistema
 
@@ -189,10 +196,31 @@ FUNCTION Carte_101(aP1,aP2,aP3)
        ENDIF
 *>>>>FIN CAPTURA DEL MES A PAGAR
 
+*>>>>DIRECTORIOS
+       PathAct := cPathAct()
+
+       PathRfa := cPatSis+'\RECIBOS\'+cMes(nMesIniTpa,3)
+       Mdir(PathRfa,PathAct)
+     *ÀDirectorio para el mes de los recibos facturados
+*>>>>FIN DIRECTORIOS
+
+*>>>>VALIDACION DEL ARCHIVO
+       fRecFac := 'RECI'+cMes(nMesIniTpa,3)+ExtFile
+       IF !FILE(PathRfa+'\'+fRecFac)
+	  CreaDbfRfa(lShared,nModCry,PathRfa,fRecFac)
+       ENDIF
+       nActStrRfa(lShared,nModCry,PathRfa,fRecFac)
+*>>>>FIN VALIDACION DEL ARCHIVO
+
 *>>>>AREAS DE TRABAJO
        aUseDbf := {}
+
+       AADD(aUseDbf,{.T.,PathUno+'\'+PathSis+'\'+;
+			 FilePer,'PER',NIL,lShared,nModCry})
+
        AADD(aUseDbf,{.T.,PathUno+'\'+PathSis+'\'+;
 			 fSimaCo,'SCO',NIL,lSiRed,0})
+
 
        AADD(aUseDbf,{.T.,PathUno+'\'+PathSis+'\'+FileRec,'REC',;
 			 PathUno+'\'+PathSis+'\'+fNtxRec,lShared,nModCry})
@@ -223,6 +251,7 @@ FUNCTION Carte_101(aP1,aP2,aP3)
 
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileCoE,'COE',NIL,lShared,nModCry})
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileCvn,'CVN',NIL,lShared,nModCry})
+       AADD(aUseDbf,{.T.,PathRfa+'\'+fRecFac,'RFA',NIL,lShared,nModCry})
 *>>>>FIN AREAS DE TRABAJO
 
 *>>>>SELECION DE LAS AREAS DE TRABAJO
@@ -522,6 +551,107 @@ FUNCTION Carte_101(aP1,aP2,aP3)
 	    cNombreTes := RTRIM(&cMaeAct->cApelliEst)+' '+;
 			  RTRIM(&cMaeAct->cNombreEst)
 **********FIN LECTURA DEL CODIGO DEL ESTUDIANTE
+
+**********LECTURA DE LOS CONTRATANTES
+	    aDocNit := {}
+
+	    IF !EMPTY(&cMaeAct->cNitCo1Est)
+	       AADD(aDocNit,{&cMaeAct->cNitCo1Est,;
+			     &cMaeAct->cTipCo1Est})
+	    ENDIF
+
+	    IF !EMPTY(&cMaeAct->cNitCo2Est)
+	       AADD(aDocNit,{&cMaeAct->cNitCo2Est,;
+			     &cMaeAct->cTipCo2Est})
+	    ENDIF
+**********FIN LECTURA DE LOS CONTRATANTES
+
+**********ANALISIS DEL CONTRATANTE
+	    aRecFac := {}
+	    AADD(aRecFac,{'cTxtUno',CAA->cTxtUnoCaA})
+	    AADD(aRecFac,{'cTxtDos',CAA->cTxtDosCaA})
+	    AADD(aRecFac,{'cCodeQr',CAA->cCodeQrCaA})
+
+	    AADD(aRecFac,{'cNitCn1',' '})
+	    AADD(aRecFac,{'cNomCn1',' '})
+	    AADD(aRecFac,{'cNitCn2',' '})
+	    AADD(aRecFac,{'cNomCn2',' '})
+
+
+	    FOR i:=1 TO LEN(aDocNit)
+
+	       IF EMPTY(aDocNit[i,1])
+		  LOOP
+	       ENDIF
+
+	       nTipPer := nTipPerMae(aDocNit[i,1],;
+				     &cMaeAct->cPadNitEst,;
+				     &cMaeAct->cMadNitEst)
+
+	       DO CASE
+	       CASE nTipPer == 1     // Padre
+
+		    IF i == 1
+		       nParameSet(aRecFac,'cNitCn1',aDocNit[i,1])
+		       nParameSet(aRecFac,'cNomCn1',ALLTRIM(&cMaeAct->cNomPadEst)+' '+;
+						    ALLTRIM(&cMaeAct->cApePadEst))
+		    ELSE
+		       nParameSet(aRecFac,'cNitCn2',aDocNit[i,1])
+		       nParameSet(aRecFac,'cNomCn2',ALLTRIM(&cMaeAct->cNomPadEst)+' '+;
+						    ALLTRIM(&cMaeAct->cApePadEst))
+
+		    ENDIF
+
+	       CASE nTipPer == 2     // Madre
+
+		    IF i == 1
+		       nParameSet(aRecFac,'cNitCn1',aDocNit[i,1])
+		       nParameSet(aRecFac,'cNomCn1',ALLTRIM(&cMaeAct->cNomMadEst)+' '+;
+						    ALLTRIM(&cMaeAct->cApeMadEst))
+		    ELSE
+		       nParameSet(aRecFac,'cNitCn2',aDocNit[i,1])
+		       nParameSet(aRecFac,'cNomCn2',ALLTRIM(&cMaeAct->cNomMadEst)+' '+;
+						    ALLTRIM(&cMaeAct->cApeMadEst))
+		    ENDIF
+                                            
+
+
+	       CASE nTipPer == 3     // Otra Persona
+
+		    IF lLocNitPer(aDocNit[i,1],aDocNit[i,2])
+
+		       IF i == 1
+			  nParameSet(aRecFac,'cNitCn1',aDocNit[i,1])
+			  nParameSet(aRecFac,'cNomCn1',cNomPer(PER->cApeUnoPer,;
+							       PER->cApeDosPer,;
+							       PER->cNomUnoPer,;
+							       PER->cNomDosPer))
+
+		       ELSE
+			  nParameSet(aRecFac,'cNitCn2',aDocNit[i,1])
+			  nParameSet(aRecFac,'cNomCn2',cNomPer(PER->cApeUnoPer,;
+							       PER->cApeDosPer,;
+							       PER->cNomUnoPer,;
+							       PER->cNomDosPer))
+		       ENDIF
+
+		    ELSE
+
+		       IF i == 1
+			  nParameSet(aRecFac,'cNitCn1',aDocNit[i,1])
+			  nParameSet(aRecFac,'cNomCn1','PERSONA NO EXISTE')
+		       ELSE
+			  nParameSet(aRecFac,'cNitCn2',aDocNit[i,1])
+			  nParameSet(aRecFac,'cNomCn2','PERSONA NO EXISTE')
+		       ENDIF
+
+		    ENDIF
+
+	       ENDCASE
+
+	    NEXT
+**********FIN ANALISIS DEL CONTRATANTE
+
 
 **********PREPARACION DE LAS VARIABLES DE ARCHIVOS
 	    FileCli := cPatSis+'\CLIENTES\CL'+;
@@ -909,7 +1039,7 @@ FUNCTION Carte_101(aP1,aP2,aP3)
 
 	    CASE CAA->nRecNroCaA == 8 .OR. CAA->nRecNroCaA == 9
 
-		 nVlrTot := nRecibo08(lShared,cEmpPal,cNitEmp,cNomEmp,;
+		 nVlrTot := nRecibo08(aRecFac,lShared,cEmpPal,cNitEmp,cNomEmp,;
 				      cNomUsr,cAnoUsr,cMaeAct,cJorTxt,;
 				      xPrm(aP3,'cCodIso'),@nNroFac,;
 				      &cMaeAct->cCodigoEst,cNombreTes,;
@@ -1171,5 +1301,206 @@ FUNCTION Carte_101(aP1,aP2,aP3)
        SET DEVICE TO SCREEN
        RETURN NIL
 *>>>>FIN IMPRESION DE LA FACTURACION
+
+
+/*************************************************************************
+* TITULO..: GRABACION DE UN REGISTRO          	                         *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: AGO 14/2000 MIE A
+       Colombia, Bucaramanga        INICIO: 02:45 PM   AGO 14/2000 MIE
+
+OBJETIVOS:
+
+1- Graba un registro con los detalles del recibo de pago facturado
+
+2- Retorna NIL
+
+SINTAXIS:
+
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION SaveRegRfa(aRecFac)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     aRecFac                              // Recibos Facturados */
+*>>>>FIN DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION DE VARIABLES
+       LOCAL lInsReg := .F.                 // .T. Insertar Registros
+
+       LOCAL lShared := xPrm(aRecFac,'lShared')
+
+       LOCAL cCodEst := xPrm(aRecFac,'cCodEst')
+       LOCAL nMesIni := xPrm(aRecFac,'nMesIni')
+       LOCAL nMesFin := xPrm(aRecFac,'nMesFin')
+       LOCAL cEmpPal := xPrm(aRecFac,'cEmpPal')
+       LOCAL cNroNit := xPrm(aRecFac,'cNroNit')
+       LOCAL cNroFac := xPrm(aRecFac,'cNroFac')
+       LOCAL cNomBan := xPrm(aRecFac,'cNomBan')
+       LOCAL cNroCta := xPrm(aRecFac,'cNroCta')
+       LOCAL cNombre := xPrm(aRecFac,'cNombre')
+       LOCAL cCodRef := xPrm(aRecFac,'cCodRef')
+       LOCAL cCodGru := xPrm(aRecFac,'cCodGru')
+       LOCAL cFecFac := xPrm(aRecFac,'cFecFac')
+       LOCAL cPagOpo := xPrm(aRecFac,'cPagOpo')
+       LOCAL cPagExt := xPrm(aRecFac,'cPagExt')
+       LOCAL cPerFac := xPrm(aRecFac,'cPerFac')
+
+       LOCAL cNomCo1 := xPrm(aRecFac,'cNomCo1')
+       LOCAL cVlrMo1 := xPrm(aRecFac,'cVlrMo1')
+       LOCAL cVlrMe1 := xPrm(aRecFac,'cVlrMe1')
+       LOCAL cVlrTo1 := xPrm(aRecFac,'cVlrTo1')
+       LOCAL cNomCo2 := xPrm(aRecFac,'cNomCo2')
+       LOCAL cVlrMo2 := xPrm(aRecFac,'cVlrMo2')
+       LOCAL cVlrMe2 := xPrm(aRecFac,'cVlrMe2')
+       LOCAL cVlrTo2 := xPrm(aRecFac,'cVlrTo2')
+       LOCAL cNomCo3 := xPrm(aRecFac,'cNomCo3')
+       LOCAL cVlrMo3 := xPrm(aRecFac,'cVlrMo3')
+       LOCAL cVlrMe3 := xPrm(aRecFac,'cVlrMe3')
+       LOCAL cVlrTo3 := xPrm(aRecFac,'cVlrTo3')
+       LOCAL cNomCo4 := xPrm(aRecFac,'cNomCo4')
+       LOCAL cVlrMo4 := xPrm(aRecFac,'cVlrMo4')
+       LOCAL cVlrMe4 := xPrm(aRecFac,'cVlrMe4')
+       LOCAL cVlrTo4 := xPrm(aRecFac,'cVlrTo4')
+       LOCAL cNomCo5 := xPrm(aRecFac,'cNomCo5')
+       LOCAL cVlrMo5 := xPrm(aRecFac,'cVlrMo5')
+       LOCAL cVlrMe5 := xPrm(aRecFac,'cVlrMe5')
+       LOCAL cVlrTo5 := xPrm(aRecFac,'cVlrTo5')
+       LOCAL cNomCo6 := xPrm(aRecFac,'cNomCo6')
+       LOCAL cVlrMo6 := xPrm(aRecFac,'cVlrMo6')
+       LOCAL cVlrMe6 := xPrm(aRecFac,'cVlrMe6')
+       LOCAL cVlrTo6 := xPrm(aRecFac,'cVlrTo6')
+       LOCAL cNomCo7 := xPrm(aRecFac,'cNomCo7')
+       LOCAL cVlrMo7 := xPrm(aRecFac,'cVlrMo7')
+       LOCAL cVlrMe7 := xPrm(aRecFac,'cVlrMe7')
+       LOCAL cVlrTo7 := xPrm(aRecFac,'cVlrTo7')
+       LOCAL cNomCo8 := xPrm(aRecFac,'cNomCo8')
+       LOCAL cVlrMo8 := xPrm(aRecFac,'cVlrMo8')
+       LOCAL cVlrMe8 := xPrm(aRecFac,'cVlrMe8')
+       LOCAL cVlrTo8 := xPrm(aRecFac,'cVlrTo8')
+       LOCAL cNomCo9 := xPrm(aRecFac,'cNomCo9')
+       LOCAL cVlrMo9 := xPrm(aRecFac,'cVlrMo9')
+       LOCAL cVlrMe9 := xPrm(aRecFac,'cVlrMe9')
+       LOCAL cVlrTo9 := xPrm(aRecFac,'cVlrTo9')
+
+       LOCAL cVlrOpo := xPrm(aRecFac,'cVlrOpo')
+       LOCAL cVlrExt := xPrm(aRecFac,'cVlrExt')
+       LOCAL cBarOpo := xPrm(aRecFac,'cBarOpo')
+       LOCAL cBarExt := xPrm(aRecFac,'cBarExt')
+       LOCAL cTxtUno := xPrm(aRecFac,'cTxtUno')
+       LOCAL cTxtDos := xPrm(aRecFac,'cTxtDos')
+       LOCAL cCodeQr :=	xPrm(aRecFac,'cCodeQr')
+
+       LOCAL cNitCn1 :=	xPrm(aRecFac,'cNitCn1')
+       LOCAL cNomCn1 :=	xPrm(aRecFac,'cNomCn1')
+       LOCAL cNitCn2 :=	xPrm(aRecFac,'cNitCn2')
+       LOCAL cNomCn2 :=	xPrm(aRecFac,'cNomCn2')
+
+       LOCAL cNomUsr := xPrm(aRecFac,'cNomUsr')
+       LOCAL dFecUsr := xPrm(aRecFac,'dFecUsr')
+       LOCAL cHorUsr := xPrm(aRecFac,'cHorUsr')
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>LOCALIZACION DEL RECIBO
+       SELECT RFA
+       LOCATE FOR RFA->cCodigoEst == cCodEst .AND.;
+		  RFA->nMesIniPag == nMesIni
+
+       IF RFA->(FOUND())
+	  lInsReg := .F.
+       ELSE
+	  lInsReg := .T.
+       ENDIF
+*>>>>FIN LOCALIZACION DEL RECIBO
+
+
+*>>>>GRABACION DEL REGISTRO
+       SELECT RFA
+       IF RFA->(lRegLock(lShared,lInsReg))
+
+	  REPL RFA->nIdeCodRfa WITH RFA->(RECNO())
+
+	  REPL RFA->cCodigoEst WITH cCodEst
+	  REPL RFA->nMesIniPag WITH nMesIni
+	  REPL RFA->nMesFinPag WITH nMesFin
+	  REPL RFA->cNomEmpCon WITH cEmpPal
+	  REPL RFA->cNroNitCon WITH cNroNit
+	  REPL RFA->cNroFacCaA WITH cNroFac
+	  REPL RFA->cNomBanRec WITH cNomBan
+	  REPL RFA->cNroCtaBan WITH cNroCta
+	  REPL RFA->cNombreRec WITH cNombre
+	  REPL RFA->cCodRefRec WITH cCodRef
+	  REPL RFA->cCodigoGru WITH cCodGru
+	  REPL RFA->cFecFacPag WITH cFecFac
+	  REPL RFA->cPagOpoPag WITH cPagOpo
+	  REPL RFA->cPagExtPag WITH cPagExt
+	  REPL RFA->cPerFacRec WITH cPerFac
+
+	  REPL RFA->cNomCo1Rec WITH cNomCo1
+	  REPL RFA->cVlrMo1Rec WITH cVlrMo1
+	  REPL RFA->cVlrMe1Rec WITH cVlrMe1
+	  REPL RFA->cVlrTo1Rec WITH cVlrTo1
+	  REPL RFA->cNomCo2Rec WITH cNomCo2
+	  REPL RFA->cVlrMo2Rec WITH cVlrMo2
+	  REPL RFA->cVlrMe2Rec WITH cVlrMe2
+	  REPL RFA->cVlrTo2Rec WITH cVlrTo2
+	  REPL RFA->cNomCo3Rec WITH cNomCo3
+	  REPL RFA->cVlrMo3Rec WITH cVlrMo3
+	  REPL RFA->cVlrMe3Rec WITH cVlrMe3
+	  REPL RFA->cVlrTo3Rec WITH cVlrTo3
+	  REPL RFA->cNomCo4Rec WITH cNomCo4
+	  REPL RFA->cVlrMo4Rec WITH cVlrMo4
+	  REPL RFA->cVlrMe4Rec WITH cVlrMe4
+	  REPL RFA->cVlrTo4Rec WITH cVlrTo4
+	  REPL RFA->cNomCo5Rec WITH cNomCo5
+	  REPL RFA->cVlrMo5Rec WITH cVlrMo5
+	  REPL RFA->cVlrMe5Rec WITH cVlrMe5
+	  REPL RFA->cVlrTo5Rec WITH cVlrTo5
+	  REPL RFA->cNomCo6Rec WITH cNomCo6
+	  REPL RFA->cVlrMo6Rec WITH cVlrMo6
+	  REPL RFA->cVlrMe6Rec WITH cVlrMe6
+	  REPL RFA->cVlrTo6Rec WITH cVlrTo6
+	  REPL RFA->cNomCo7Rec WITH cNomCo7
+	  REPL RFA->cVlrMo7Rec WITH cVlrMo7
+	  REPL RFA->cVlrMe7Rec WITH cVlrMe7
+	  REPL RFA->cVlrTo7Rec WITH cVlrTo7
+	  REPL RFA->cNomCo8Rec WITH cNomCo8
+	  REPL RFA->cVlrMo8Rec WITH cVlrMo8
+	  REPL RFA->cVlrMe8Rec WITH cVlrMe8
+	  REPL RFA->cVlrTo8Rec WITH cVlrTo8
+	  REPL RFA->cNomCo9Rec WITH cNomCo9
+	  REPL RFA->cVlrMo9Rec WITH cVlrMo9
+	  REPL RFA->cVlrMe9Rec WITH cVlrMe9
+	  REPL RFA->cVlrTo9Rec WITH cVlrTo9
+
+	  REPL RFA->cVlrOpoRec WITH cVlrOpo
+	  REPL RFA->cVlrExtRec WITH cVlrExt
+	  REPL RFA->cBarOpoRec WITH cBarOpo
+	  REPL RFA->cBarExtRec WITH cBarExt
+	  REPL RFA->cTxtUnoRec WITH cTxtUno
+	  REPL RFA->cTxtDosRec WITH cTxtDos
+
+	  REPL RFA->cCodeQrRec WITH cCodeQr
+	  REPL RFA->cNitCn1Rec WITH cNitCn1
+	  REPL RFA->cNomCn1Rec WITH cNomCn1
+	  REPL RFA->cNitCn2Rec WITH cNitCn2
+	  REPL RFA->cNomCn2Rec WITH cNomCn2
+
+	  REPL RFA->cNomUsrRfa WITH cNomUsr
+	  REPL RFA->dFecUsrRfa WITH dFecUsr
+	  REPL RFA->cHorUsrRfa WITH cHorUsr
+
+
+	  RFA->(DBCOMMIT())
+       ENDIF
+       IF lShared
+	  RFA->(DBUNLOCK())
+       ENDIF
+       RETURN NIL
+*>>>>FIN GRABACION DEL REGISTRO
 
 

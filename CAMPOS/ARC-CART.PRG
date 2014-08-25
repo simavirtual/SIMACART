@@ -145,6 +145,11 @@ OBJETIVOS:
        LOCAL FileFpg := 'FORMAPAG'+ExtFile           // Ej: FORMAPAG.DAT
      *ÀArchivo de Forma de pago
 
+/*
+       LOCAL fRecFac := 'RECI'                       // Ej: RECIENE.DAT
+     *ÀArchivos Recibos facturados
+*/
+
        LOCAL FileRec := 'RECIBOS'+ExtFile             // Ej: RECIBOS.DAT
        LOCAL fNtxRec := 'RECIBOS'+cExtNtx
      *ÀArchivo de Control de Recibos

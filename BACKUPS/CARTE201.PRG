@@ -638,7 +638,7 @@ FUNCTION PagosGru(aParam1,aParam2,aParam3,;
 
 *>>>>ACTIVACION DE LA IMPRESORA
        SET DEVICE TO PRINT
-       @ PROW(),00 SAY INICIALIZA
+       SendCodes(PCL('Reset'))
        EVAL(bCabeza)
       *Impresi¢n del Encabezado
 *>>>>FIN ACTIVACION DE LA IMPRESORA

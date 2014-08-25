@@ -38,6 +38,10 @@ FUNCTION Carte_102(aP1,aP2,aP3)
        LOCAL cSavPan := ''                  // Salvar Pantalla
        LOCAL lHayErr := .F.                 // .T. Hay Error
 
+       LOCAL PathAct := ''                  // Path Actual
+       LOCAL PathRfa := ''                  // Path Recibos facturados
+       LOCAL fRecFac := 'RECI'              // Ej: RECIENE.DAT
+
        LOCAL     i,j := 0                   // Contadores
        LOCAL cUsrIso := ''                  // Usuario de la Iso
        LOCAL nNroInf := 0                   // N£mero del informe
@@ -200,6 +204,22 @@ FUNCTION Carte_102(aP1,aP2,aP3)
        ENDIF
 *>>>>FIN CAPTURA DEL MES A PAGAR
 
+*>>>>DIRECTORIOS
+       PathAct := cPathAct()
+
+       PathRfa := cPatSis+'\RECIBOS\'+cMes(nMesIniTpa,3)
+       Mdir(PathRfa,PathAct)
+     *ÀDirectorio para el mes de los recibos facturados
+*>>>>FIN DIRECTORIOS
+
+*>>>>VALIDACION DEL ARCHIVO
+       fRecFac := 'RECI'+cMes(nMesIniTpa,3)+ExtFile
+       IF !FILE(PathRfa+'\'+fRecFac)
+	  CreaDbfRfa(lShared,nModCry,PathRfa,fRecFac)
+       ENDIF
+       nActStrRfa(lShared,nModCry,PathRfa,fRecFac)
+*>>>>FIN VALIDACION DEL ARCHIVO
+
 *>>>>AREAS DE TRABAJO
        aUseDbf := {}
        AADD(aUseDbf,{.T.,PathUno+'\'+PathSis+'\'+;
@@ -231,6 +251,7 @@ FUNCTION Carte_102(aP1,aP2,aP3)
 
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileCoE,'COE',NIL,lShared,nModCry})
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileCvn,'CVN',NIL,lShared,nModCry})
+       AADD(aUseDbf,{.T.,PathRfa+'\'+fRecFac,'RFA',NIL,lShared,nModCry})
 *>>>>FIN AREAS DE TRABAJO
 
 *>>>>SELECION DE LAS AREAS DE TRABAJO

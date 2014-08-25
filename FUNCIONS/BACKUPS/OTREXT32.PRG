@@ -248,9 +248,9 @@ FUNCTION FOtrExt32(aP1,aP2,aP3,;
        IF CAR->lPrnArcCar
           SET DEVICE TO PRINT
        ELSE
-	  FilePrn := 'mvc'
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,.T.)
-          IF EMPTY(nOpcPrn)
+	  FilePrn := SUBS(CAR->cSerFacCar,1,1)+'mv1'+cNroMes+BAN->cCodigoBan
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,.T.,,PathDoc)
+	  IF EMPTY(nOpcPrn)
              RETURN NIL
           ENDIF
        ENDIF

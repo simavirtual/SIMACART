@@ -360,6 +360,7 @@ FUNCTION Carte_411(aParam1,aParam2,aParam3)
        ENDIF
 *>>>>FIN CAPTURA DE LOS GRUPOS POR INTERVALO
 
+
 *>>>>SELECION DEL TIPO DE INFORME
        nOpcion := 1
        IF CAA->lLeeFecCaA .AND. CAA->lPrnFecCaA
@@ -456,19 +457,27 @@ FUNCTION Carte_411(aParam1,aParam2,aParam3)
 
 *>>>>ENCABEZADOS DE COLUMNA
        IF nTipPrn == 0 .OR. nTipPrn == 1
-	  aNroCol := {04,06,08,30,12}
-	  aTitulo := {'No.','CODIGO','GRUPO ','NOMBRE DEL ESTUDIANTE ',;
-		      'SALDO ACTUAL'}
+	  IF nTipPrn == 0
+	     aNroCol := {04,06,08,42,12}
+	     aTitulo := {'No.','CODIGO','GRUPO ','NOMBRE DEL ESTUDIANTE ',;
+			 'SALDO ACTUAL'}
+	  ELSE
+	     aNroCol := {04,06,08,30,12}
+	     aTitulo := {'No.','CODIGO','GRUPO ','NOMBRE DEL ESTUDIANTE ',;
+			 'SALDO ACTUAL'}
+	  ENDIF
        ENDIF
 
        DO CASE
        CASE nTipPrn = 0
 
-	    AADD(aNroCol,04)
-	    AADD(aNroCol,18)
+	    AADD(aNroCol,04) // Mora
+	    AADD(aNroCol,60)
+/*
 	    AADD(aNroCol,18)
 	    AADD(aNroCol,14)
 	    AADD(aNroCol,14)
+*/
 
 /*
 	    AADD(aNroCol,14)
@@ -476,10 +485,14 @@ FUNCTION Carte_411(aParam1,aParam2,aParam3)
 */
 
 	    AADD(aTitulo,'MORA')
+	    AADD(aTitulo,'CONTACTO')
+
+/*
 	    AADD(aTitulo,'NOMBRE DEL PADRE')
 	    AADD(aTitulo,'TELPADRE')
 	    AADD(aTitulo,'NOMBRE DE LA MADRE')
 	    AADD(aTitulo,'TELMADRE')
+*/
 /*
 	    AADD(aTitulo,'TELEACUD')
 	    AADD(aTitulo,'TELECASA')
@@ -998,6 +1011,7 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
        LOCAL aConAlu := {}                  // Conceptos por Estudiante
        LOCAL nDiaMor := 0                   // Dias en Mora
        LOCAL nMesSdo := 0                   // Mes del saldo
+       LOCAL cTxtTem := ''                  // Texto temporal
 
        LOCAL lHayAlu := .T.                 // .T. Existe alumno
        LOCAL lMesAct := .T.                 // .T. Mes Actual
@@ -1115,7 +1129,12 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 	    ELSE
 	       cNombreTes := 'EL ALUMNO NO EXISTE'
 	    ENDIF
-	    cNombreTes := SUBS(cNombreTes+SPACE(20),1,20)
+
+	    IF nTipPrn == 0
+	       cNombreTes := SUBS(cNombreTes+SPACE(20),1,42)
+	    ELSE
+	       cNombreTes := SUBS(cNombreTes+SPACE(20),1,20)
+	    ENDIF
 **********FIN BUSQUEDA DEL CODIGO DEL ESTUDIANTE
 
 
@@ -1389,7 +1408,11 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 	       IF lHayErr
 		  AADD(aTitulo,'ERROR. FAVOR REVISAR')
 	       ELSE
-		  AADD(aTitulo,SPACE(01)+SUBS(cNombreTes,1,19))
+		  IF nTipPrn == 0
+		     AADD(aTitulo,SPACE(01)+SUBS(cNombreTes,1,41))
+		  ELSE
+		     AADD(aTitulo,SPACE(01)+SUBS(cNombreTes,1,19))
+		  ENDIF
 	       ENDIF
 	       AADD(aTitulo,TRANS(nSdoActTcl+nSdoMorTcl,'####,###,###'))
 
@@ -1399,12 +1422,20 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 	    CASE nTipPrn == 0
 
 		 AADD(aTitulo,STR(nDiaMor,3)) // EDAD DE LA CARTERA
+
+		 cTxtTem := ALLTRIM(&cNalias->cNomPadEst)+':'+;
+			    ALLTRIM(&cNalias->cTelPadEst)+','+;
+			    ALLTRIM(&cNalias->cNomMadEst)+':'+;
+			    ALLTRIM(&cNalias->cTelMadEst)
+		 cTxtTem := SUBS(cTxtTem+SPACE(60),1,60)
+		 AADD(aTitulo,cTxtTem)
+
+/*
 		 AADD(aTitulo,SUBS(&cNalias->cNomPadEst,1,18))
 		 AADD(aTitulo,&cNalias->cTelPadEst)
 		 AADD(aTitulo,SUBS(&cNalias->cNomMadEst,1,18))
 		 AADD(aTitulo,&cNalias->cTelMadEst)
 
-/*
 		 AADD(aTitulo,&cNalias->cTe1AcuEst)
 		 AADD(aTitulo,&cNalias->cTelefnEst)
 */

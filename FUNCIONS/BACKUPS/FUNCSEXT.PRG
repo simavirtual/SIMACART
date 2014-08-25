@@ -510,8 +510,8 @@ FUNCTION MantenExt(aParam1,aParam2,aParam3,;
 *>>>>AREAS DE TRABAJO
        aUseDbfs := {}
        FileTmv := FileTmv+BAN->cCodigoBan+ExtFile
-       AADD(aUseDbfs,{.T.,cPatSis+'\'+FileTmv,'TMV',NIL,lNoRed,nModCry})
-       AADD(aUseDbfs,{.T.,cPatSis+'\'+FileCmv,'CMV',NIL,lNoRed,nModCry})
+       AADD(aUseDbfs,{.T.,cPatSis+'\'+FileTmv,'TMV',NIL,lShared,nModCry})
+       AADD(aUseDbfs,{.T.,cPatSis+'\'+FileCmv,'CMV',NIL,lShared,nModCry})
        AADD(aUseDbfs,{.T.,cPatSis+'\MODEM\'+BAN->cCodigoBan+'\'+;
 			  FileMoB,'TRA',NIL,lShared,nModCry})
        AADD(aUseDbfs,{.T.,cIntDos+'\'+FilePag,'PMT',NIL,lShared,nModCry})
@@ -1285,11 +1285,13 @@ FUNCTION MenuExt01(aParam1,aParam2,aParam3,;
 		      AADD(aMenus,'1<VALIDACION         >')
 		      AADD(aMenus,'2<PAGOS POR CONCEPTOS>')
 *		      AADD(aMenus,'3<PAGOS POR GRUPOS   >')
+		      AADD(aMenus,'4<PAGOS CONTRATANTES >')
 
 		      aAyuda := {}
 		      AADD(aAyuda,'Imprime validar la descriminaci¢n de los conceptos')
 		      AADD(aAyuda,'Imprime los pagos descriminados por conceptos')
 *		      AADD(aAyuda,'Imprime los pagos descriminado por grupos')
+		      AADD(aAyuda,'Imprime los pagos descriminado por Contratantes')
 
 		 CASE nOpcExt == 4  // OTROS
 
@@ -1360,10 +1362,15 @@ FUNCTION MenuExt01(aParam1,aParam2,aParam3,;
 				cNroMes,oBrowse)
 		     *Pagos por conceptos.
 
-		 CASE nOpcExt == 3 .AND. nOpcMvt == 3
+*		 CASE nOpcExt == 3 .AND. nOpcMvt == 3
 *		      FOtrExt33(aParam1,aParam2,aParam3,;
 *				cNroMes,oBrowse)
 		     *Pagos por grupos.
+
+		 CASE nOpcExt == 3 .AND. nOpcMvt == 3 // Ojo
+		      FOtrExt34(aParam1,aParam2,aParam3,;
+				cNroMes,oBrowse)
+		     *Pagos por Contratantes
 
 		 CASE nOpcExt == 4 .AND. nOpcMvt == 1
 		      OrdenaExt(lShared,nModCry,cAnoUsr,cPatSis,cNroMes,oBrowse)

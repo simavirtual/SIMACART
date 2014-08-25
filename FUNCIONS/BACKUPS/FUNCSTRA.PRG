@@ -389,8 +389,13 @@ FUNCTION MantenTra(aParam1,aParam2,aParam3,;
 
 *>>>>CAPTURA DEL MES A PAGAR
        cSavPan := SAVESCREEN(0,0,24,79)
-       nNroMes := nMesano(nFilInf+1,IF(nColInf+49>80,31,nColInf),;
-			     'Por Favor Seleccione el Mes',.T.)
+       IF EMPTY(cNroDia)
+	  nNroMes := nMesano(nFilInf+1,IF(nColInf+49>80,31,nColInf),;
+				'Por Favor Seleccione el Mes',.T.,{'TOT'})
+       ELSE
+	  nNroMes := nMesano(nFilInf+1,IF(nColInf+49>80,31,nColInf),;
+				'Por Favor Seleccione el Mes',.T.)
+       ENDIF
        RESTSCREEN(0,0,24,79,cSavPan)
        IF nNroMes == 0
 	  CloseAll()
@@ -416,7 +421,7 @@ FUNCTION MantenTra(aParam1,aParam2,aParam3,;
 *>>>>FIN VERIFICACION O CREACION DEL DIRECTORIO DE LA FACTURACION
 
 *>>>>LECTURA DEL DIA
-       IF cNroDia # NIL
+       IF cNroDia # NIL .AND. nNroMes # 13
 
 **********INICIALIZACION DEL DIA
 	    cNroDia := DAY(DATE())
@@ -428,7 +433,7 @@ FUNCTION MantenTra(aParam1,aParam2,aParam3,;
 
 	  @ nFilInf+1,nColInf SAY 'DIA' GET cNroDia PICT '99';
 					VALID VAL(cNroDia) >= 0 .AND.;
-					      VAL(cNroDia) <= 31
+					      VAL(cNroDia) <= 32
 	  READ
 	  IF EMPTY(cNroDia)
 	     CloseAll()
@@ -439,14 +444,14 @@ FUNCTION MantenTra(aParam1,aParam2,aParam3,;
 *>>>>FIN LECTURA DEL NUMERO DE COPIA
 
 *>>>>PREPARACION DE VARIABLES DE ARCHIVO
-       IF cNroDia # NIL
-	  FileTra := cAnoUsr+cNroMes+cNroDia+ExtFile
-	  fNtxTra := cAnoUsr+cNroMes+cNroDia+cExtNtx
-	  dFecUsr := CTOD(cNroMes+'/'+cNroDia+'/'+cAnoUsr)
-       ELSE
+       IF EMPTY(cNroDia)
 	  cNroDia := ''
 	  FileTra := 'PA'+cAnoUsr+cNroMes+ExtFile
 	  fNtxTra := 'PA'+cAnoUsr+cNroMes+cExtNtx
+       ELSE
+	  FileTra := cAnoUsr+cNroMes+cNroDia+ExtFile
+	  fNtxTra := cAnoUsr+cNroMes+cNroDia+cExtNtx
+	  dFecUsr := CTOD(cNroMes+'/'+cNroDia+'/'+cAnoUsr)
        ENDIF
 *>>>>FIN PREPARACION DE VARIABLES DE ARCHIVO
 
@@ -614,7 +619,8 @@ FUNCTION MantenTra(aParam1,aParam2,aParam3,;
 *>>>>FIN ACTUALIZACION DE LA ESTRUCTURA
 
 *>>>>LECTURA DEL ARCHIVO DEL EXTRACTO
-       IF !FILE(cPatSis+'\MODEM\'+BAN->cCodigoBan+'\'+FileTra)
+       IF !FILE(cPatSis+'\MODEM\'+BAN->cCodigoBan+'\'+FileTra) .AND.;
+	  (nNroMes < 13 .AND. VAL(cNroDia) < 32)
 
 **********ANALISIS DE DECISION
 	    IF !lPregunta('DESEA LEER LOS PAGOS DE '+;
@@ -633,6 +639,13 @@ FUNCTION MantenTra(aParam1,aParam2,aParam3,;
 
        ENDIF
 *>>>>FIN LECTURA DEL ARCHIVO DEL EXTRACTO
+
+*>>>>MOVIMIENTOS ACUMULADOS
+       IF nNroMes == 13 .OR. VAL(cNroDia) == 32
+	  LeeTraAcu(lShared,nModCry,cNomSis,cAnoUsr,;
+		    cPatSis,cNroMes,cNroDia,FileTra)
+       ENDIF
+*>>>>FIN MOVIMIENTOS ACUMULADOS
 
 *>>>>AREAS DE TRABAJO
        AADD(aUseDbf,{.T.,cIntDos+'\'+;
@@ -1615,3 +1628,110 @@ FUNCTION OrdenaTra(lShared,nModCry,FileTra,oBrowse)
        ENDIF
        RETURN NIL
 *>>>>FIN SELECION DE LAS AREAS DE TRABAJO
+
+/*************************************************************************
+* TITULO..: LEER EL MOVIMIENTOS ACUMULADOS                               *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: MAY 10/2014 MIE A
+       Colombia, Bucaramanga        INICIO: 06:00 AM   MAY 10/2014 MIE
+
+OBJETIVOS:
+
+1- Appendiza los movimientos diarios del extracto.
+
+2- Appendiza los movimientos de facturaci¢n del extracto.
+
+3- Retorna NIL
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION LeeTraAcu(lShared,nModCry,cNomSis,cAnoUsr,;
+		   cPatSis,cNroMes,cNroDia,fArchvo)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     lShared                              // .T. Sistema Compartido
+       nModCry                              // Modo de Protecci¢n
+       cNomSis                              // Nombre del Sistema
+       cAnoUsr                              // A¤o del Usuario
+       cPatSis                              // Path del sistema
+       cNroMes                              // N£mero del Mes
+       cNroDia                              // N£mero del Dia
+       fArchvo                              // Nombre del Archivo */
+*>>>>DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION DE VARIABLES
+       #INCLUDE "ARC-CART.PRG"       // Archivos del Sistema
+
+       LOCAL       i := 0                   // Contador
+       LOCAL    cMes := ''                  // Mes
+       LOCAL    cDia := ''                  // Dia
+       LOCAL cSavPan := ''                  // Salvar Pantalla
+
+       LOCAL GetList := {}                  // Variable del Sistema
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>CREACION DEL ARCHIVO DEL ESTRACTO
+       cSavPan := SAVESCREEN(0,0,24,79)
+
+       CloseDbf('TRA')
+
+       CreaDbfTra(lShared,nModCry,cPatSis+'\MODEM\'+BAN->cCodigoBan,fArchvo)
+      *Creaci¢n de archivo de trasaciones
+*>>>>FIN CREACION DEL ARCHIVO DEL ESTRACTO
+
+*>>>>AREAS DE TRABAJO
+       aUseDbf := {}
+       AADD(aUseDbf,{.T.,cPatSis+'\MODEM\'+BAN->cCodigoBan+'\'+;
+			 fArchvo,'TRA',NIL,lShared,0})
+*>>>>FIN AREAS DE TRABAJO
+
+*>>>>SELECION DE LAS AREAS DE TRABAJO
+       IF !lUseDbfs(aUseDbf)
+	  cError('ABRIENDO EL ARCHIVO ACUMULADO DEL EXTRACTO')
+	  CloseDbf('TRA')
+	  RETURN NIL
+       ENDIF
+*>>>>FIN SELECION DE LAS AREAS DE TRABAJO
+
+*>>>>LECTURA DEL ARCHIVO
+       Termometro(0,'ACUMULADO EXTRACTOS')
+       FOR i := 1 TO IF(EMPTY(cNroDia),12,31)
+
+***********PREPARACION DEL DE ARCHIVO
+	     IF EMPTY(cNroDia)
+		cMes := STR(i,2)
+		lCorrecion(@cMes)
+		FileTem := 'PA'+cAnoUsr+cMes+ExtFile
+	     ELSE
+		cDia := STR(i,2)
+		lCorrecion(@cDia)
+		FileTem := cAnoUsr+cNroMes+cDia+ExtFile
+	     ENDIF
+	     FileTem := cPatSis+'\MODEM\'+BAN->cCodigoBan+'\'+FileTem
+***********FIN PREPARACION DEL DE ARCHIVO
+
+***********APPEND DEL ARCHIVO
+	     IF FILE(FileTem)
+
+*---------------LINEA DE ESTADO
+		  LineaEstado('MOVIMIENTO:'+STR(i,2),cNomSis)
+*---------------LINEA DE ESTADO
+
+*---------------COPIA DE LOS REGISTRO
+		  APPEND FROM &FileTem
+		  Termometro(i*100/12)
+*---------------FIN COPIA DE LOS REGISTRO
+
+	     ENDIF
+***********FIN APPEND DEL ARCHIVO
+
+       ENDFOR
+       Termometro(100)
+       SELECT TRA
+
+       RESTSCREEN(0,0,24,79,cSavPan)
+       RETURN NIL
+*>>>>FIN LECTURA DEL ARCHIVO

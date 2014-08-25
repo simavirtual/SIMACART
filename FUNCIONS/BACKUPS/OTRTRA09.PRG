@@ -242,6 +242,7 @@ FUNCTION PrnTra09(cNomEmp,cNomSis,cNomUsr,cAnoUsr,cPatSis,;
 
 *>>>>DECLARACION DE VARIABLES
        LOCAL cAnoSis := SUBS(cAnoUsr,3,2)   // A¤o del sistema
+       LOCAL PathDoc := 'c:\misdoc'         // Path de Documentos del sima
 
        LOCAL nNroPag := 1                   // N£mero de p gina
        LOCAL lTamAnc := .F.                 // .T. Tama¤o Ancho
@@ -341,8 +342,8 @@ FUNCTION PrnTra09(cNomEmp,cNomSis,cNomUsr,cAnoUsr,cPatSis,;
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  FilePrn := 'MvtoOfi'
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.T.)
+	  FilePrn := IF(VAL(cNroMes)==13,'MESXMV','DIAX')+cNroMes+cNroDia
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.T.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     RETURN NIL
 	  ENDIF

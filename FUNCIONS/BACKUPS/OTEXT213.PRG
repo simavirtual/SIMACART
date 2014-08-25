@@ -31,6 +31,7 @@ FUNCTION FOtExt213(aParam1,aParam2,aParam3,;
        LOCAL cSavPan := ''                  // Salvar Pantalla
      *ÀVariables generales
 
+       LOCAL PathDoc := 'c:\misdoc'         // Path de Documentos del sima
        LOCAL FilePrn := ''                  // Archivo de impresion
        LOCAL nRegPrn := 0                   // Registro de Impresi¢n
        LOCAL nHanXml := 0                   // Manejador del Archivo
@@ -172,7 +173,7 @@ FUNCTION FOtExt213(aParam1,aParam2,aParam3,;
 	  SET DEVICE TO PRINT
        ELSE
 	  FilePrn := 'ValiMatr'
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,.T.)
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,.T.,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     RETURN NIL
 	  ENDIF

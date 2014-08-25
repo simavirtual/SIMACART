@@ -38,6 +38,10 @@ FUNCTION Carte_102(aP1,aP2,aP3)
        LOCAL cSavPan := ''                  // Salvar Pantalla
        LOCAL lHayErr := .F.                 // .T. Hay Error
 
+       LOCAL PathAct := ''                  // Path Actual
+       LOCAL PathRfa := ''                  // Path Recibos facturados
+       LOCAL fRecFac := 'RECI'              // Ej: RECIENE.DAT
+
        LOCAL     i,j := 0                   // Contadores
        LOCAL cUsrIso := ''                  // Usuario de la Iso
        LOCAL nNroInf := 0                   // N£mero del informe
@@ -120,6 +124,9 @@ FUNCTION Carte_102(aP1,aP2,aP3)
        LOCAL cMesIni := ''                  // Mes Inicial
        LOCAL nMesFin := 0                   // Mes Final
        LOCAL lHayCoE := .F.                 // .T. Hay Concptos Individuales
+       LOCAL aDocNit := {}                  // Documento de los Contrantes
+       LOCAL nTipPer := 0                   // Tipo de Persona
+       LOCAL aRecFac := {}                  // Recibo Facturado
        LOCAL Getlist := {}                  // Variable del sistema
 
        LOCAL cNombreTes := ''               // Nombre del Estudiante
@@ -200,8 +207,28 @@ FUNCTION Carte_102(aP1,aP2,aP3)
        ENDIF
 *>>>>FIN CAPTURA DEL MES A PAGAR
 
+*>>>>DIRECTORIOS
+       PathAct := cPathAct()
+
+       PathRfa := cPatSis+'\RECIBOS\'+cMes(nMesIniTpa,3)
+       Mdir(PathRfa,PathAct)
+     *ÀDirectorio para el mes de los recibos facturados
+*>>>>FIN DIRECTORIOS
+
+*>>>>VALIDACION DEL ARCHIVO
+       fRecFac := 'RECI'+cMes(nMesIniTpa,3)+ExtFile
+       IF !FILE(PathRfa+'\'+fRecFac)
+	  CreaDbfRfa(lShared,nModCry,PathRfa,fRecFac)
+       ENDIF
+       nActStrRfa(lShared,nModCry,PathRfa,fRecFac)
+*>>>>FIN VALIDACION DEL ARCHIVO
+
 *>>>>AREAS DE TRABAJO
        aUseDbf := {}
+
+       AADD(aUseDbf,{.T.,PathUno+'\'+PathSis+'\'+;
+			 FilePer,'PER',NIL,lShared,nModCry})
+
        AADD(aUseDbf,{.T.,PathUno+'\'+PathSis+'\'+;
 			 fSimaCo,'SCO',NIL,lSiRed,0})
 
@@ -231,6 +258,7 @@ FUNCTION Carte_102(aP1,aP2,aP3)
 
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileCoE,'COE',NIL,lShared,nModCry})
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileCvn,'CVN',NIL,lShared,nModCry})
+       AADD(aUseDbf,{.T.,PathRfa+'\'+fRecFac,'RFA',NIL,lShared,nModCry})
 *>>>>FIN AREAS DE TRABAJO
 
 *>>>>SELECION DE LAS AREAS DE TRABAJO
@@ -691,8 +719,6 @@ FUNCTION Carte_102(aP1,aP2,aP3)
 		 ENDIF
 *--------------FIN ANALISIS SI EL ESTUDIANTE ESTA RETIRADO
 
-
-
 *--------------VERIFICACION DEL GRUPO
 		 IF &cNalias->cCodigoGru # GRU->cCodigoGru .AND.;
 		    !(CLI->lRetGruCli)
@@ -707,6 +733,106 @@ FUNCTION Carte_102(aP1,aP2,aP3)
 		    LOOP
 		 ENDIF
 *--------------FIN VERIFICACION DEL GRUPO
+
+*--------------LECTURA DE LOS CONTRATANTES
+		 aDocNit := {}
+
+		 IF !EMPTY(&cMaeAct->cNitCo1Est)
+		    AADD(aDocNit,{&cMaeAct->cNitCo1Est,;
+				  &cMaeAct->cTipCo1Est})
+		 ENDIF
+
+		 IF !EMPTY(&cMaeAct->cNitCo2Est)
+		    AADD(aDocNit,{&cMaeAct->cNitCo2Est,;
+				  &cMaeAct->cTipCo2Est})
+		 ENDIF
+*--------------FIN LECTURA DE LOS CONTRATANTES
+
+*--------------ANALISIS DEL CONTRATANTE
+		 aRecFac := {}
+		 AADD(aRecFac,{'cTxtUno',CAA->cTxtUnoCaA})
+		 AADD(aRecFac,{'cTxtDos',CAA->cTxtDosCaA})
+		 AADD(aRecFac,{'cCodeQr',CAA->cCodeQrCaA})
+
+		 AADD(aRecFac,{'cNitCn1',' '})
+		 AADD(aRecFac,{'cNomCn1',' '})
+		 AADD(aRecFac,{'cNitCn2',' '})
+		 AADD(aRecFac,{'cNomCn2',' '})
+
+
+		 FOR i:=1 TO LEN(aDocNit)
+
+		    IF EMPTY(aDocNit[i,1])
+		       LOOP
+		    ENDIF
+
+		    nTipPer := nTipPerMae(aDocNit[i,1],;
+					  &cMaeAct->cPadNitEst,;
+					  &cMaeAct->cMadNitEst)
+
+		    DO CASE
+		    CASE nTipPer == 1     // Padre
+
+			 IF i == 1
+			    nParameSet(aRecFac,'cNitCn1',aDocNit[i,1])
+			    nParameSet(aRecFac,'cNomCn1',ALLTRIM(&cMaeAct->cNomPadEst)+' '+;
+							 ALLTRIM(&cMaeAct->cApePadEst))
+			 ELSE
+			    nParameSet(aRecFac,'cNitCn2',aDocNit[i,1])
+			    nParameSet(aRecFac,'cNomCn2',ALLTRIM(&cMaeAct->cNomPadEst)+' '+;
+							 ALLTRIM(&cMaeAct->cApePadEst))
+
+			 ENDIF
+
+		    CASE nTipPer == 2     // Madre
+
+			 IF i == 1
+			    nParameSet(aRecFac,'cNitCn1',aDocNit[i,1])
+			    nParameSet(aRecFac,'cNomCn1',ALLTRIM(&cMaeAct->cNomMadEst)+' '+;
+							 ALLTRIM(&cMaeAct->cApeMadEst))
+			 ELSE
+			    nParameSet(aRecFac,'cNitCn2',aDocNit[i,1])
+			    nParameSet(aRecFac,'cNomCn2',ALLTRIM(&cMaeAct->cNomMadEst)+' '+;
+							 ALLTRIM(&cMaeAct->cApeMadEst))
+			 ENDIF
+
+
+
+		    CASE nTipPer == 3     // Otra Persona
+
+			 IF lLocNitPer(aDocNit[i,1],aDocNit[i,2])
+
+			    IF i == 1
+			       nParameSet(aRecFac,'cNitCn1',aDocNit[i,1])
+			       nParameSet(aRecFac,'cNomCn1',cNomPer(PER->cApeUnoPer,;
+								    PER->cApeDosPer,;
+								    PER->cNomUnoPer,;
+								    PER->cNomDosPer))
+
+			    ELSE
+			       nParameSet(aRecFac,'cNitCn2',aDocNit[i,1])
+			       nParameSet(aRecFac,'cNomCn2',cNomPer(PER->cApeUnoPer,;
+								    PER->cApeDosPer,;
+								    PER->cNomUnoPer,;
+								    PER->cNomDosPer))
+			    ENDIF
+
+			 ELSE
+
+			    IF i == 1
+			       nParameSet(aRecFac,'cNitCn1',aDocNit[i,1])
+			       nParameSet(aRecFac,'cNomCn1','PERSONA NO EXISTE')
+			    ELSE
+			       nParameSet(aRecFac,'cNitCn2',aDocNit[i,1])
+			       nParameSet(aRecFac,'cNomCn2','PERSONA NO EXISTE')
+			    ENDIF
+
+			 ENDIF
+
+		    ENDCASE
+
+		 NEXT
+*--------------FIN ANALISIS DEL CONTRATANTE
 
 *-------------GRABACION DEL CONTROL CONCEPTOS INDIVIDUALES
 		lHayCoE := lHayConCoE(CLI->cCodigoEst,;
@@ -990,7 +1116,8 @@ FUNCTION Carte_102(aP1,aP2,aP3)
 		     *Recibo c¢digo de Barras la Kiosera
 
 		 CASE CAA->nRecNroCaA == 8 .OR. CAA->nRecNroCaA == 9
-		      nVlrTot := nRecibo08(lShared,cEmpPal,cNitEmp,cNomEmp,;
+		      nVlrTot := nRecibo08(aRecFac,;
+					   lShared,cEmpPal,cNitEmp,cNomEmp,;
 					   cNomUsr,cAnoUsr,cNalias,cJorTxt,;
 					   xPrm(aP3,'cCodIso'),@nNroFac,;
 					   CLI->cCodigoEst,cNombreTes,;

@@ -291,6 +291,9 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
        Mdir(cPatSis+'\MOVIM',PathAct)
      *ÀDirectorio de movimientos.
 
+       Mdir(cPatSis+'\RECIBOS',PathAct)
+     *ÀDirectorio de movimientos.
+
        Mdir(PathPrn,PathAct)
      *ÀPrinter
 
@@ -628,6 +631,8 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
 	   nActStrGru(lShared,cIntUno+'\'+cMaeAct,;
 			      FileGru+cMaeAct+cAnoSis+ExtFile)
        NEXT
+
+       GruposAno(lShared,cIntUno,cPatSis,cAnoUsr,cMaeAlu)
 *>>>>FIN ACTUALIZACION DE CONTABILIDAD
 
 *>>>>INDEXAR LOS ARCHIVOS
@@ -663,18 +668,6 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
        cEmpCob := CAR->cEmpCobCar
        cSerFac := ALLTRIM(CAR->cSerFacCar)
 *>>>>FIN VALIDACION DE CONTENIDOS DE ARCHIVOS
-
-*>>>>LECTURA DEL ULTIMO MES CONCILIADO
-       nMesVal := 0
-       FOR i := 1 TO 12
-	   nMesVal += VAL(SUBS(CAA->cValConCaA,i,1))
-       ENDFOR
-       IF VAL(SUBS(CAA->cValConCaA,13,2)) # nMesVal
-	  cError('DATOS INCORRECTOS DE VALIDACION')
-	  CloseAll()
-	  QUIT
-       ENDIF
-*>>>>FIN LECTURA DEL ULTIMO MES CONCILIADO
 
 *>>>>ACTIVACION DEL DISPOSITIVO DE IMPRESION
        IF lPrnArc

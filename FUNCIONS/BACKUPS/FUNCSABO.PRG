@@ -1693,7 +1693,8 @@ FUNCTION RecAbo06(lShared,nModCry,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 	  Post('MZP 0.0,9.0; BOX 20.33,0.4;')
 	  Post('MZP 0.0,9.0; BOX 6.5,0.8;')
 	  Post('MZP 12.5,9.0; BOX 2.5,0.8;')
-	  Post('MZP 17.0,10.5; TEXT "ALUMNO";')
+	  Post('MZP 17.0,10.2; TEXT "ALUMNO";')
+	  Post('MZP 0.0,11.2; TEXT ">-------------------------------------------------------------------------------<";')
 
 	  Post('CMNT "BOLANTE COLEGIO";')
 	  Post('MZP 0.0,11.5; BOX 20.33,7.3;')
@@ -1714,6 +1715,7 @@ FUNCTION RecAbo06(lShared,nModCry,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 	  Post('MZP 0.0,18.0; BOX 6.5,0.8;')
 	  Post('MZP 12.5,18.0; BOX 2.5,0.8;')
 	  Post('MZP 17.0,19.3; TEXT "COLEGIO";')
+	  Post('MZP 0.0,19.7; TEXT ">-------------------------------------------------------------------------------<";')
 
 	  Post('CMNT "BOLANTE BANCO";')
 	  Post('MZP 0.0,20.0; BOX 20.33,6.5;')
@@ -1754,10 +1756,12 @@ FUNCTION RecAbo06(lShared,nModCry,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 	  Post('MZP 0.3,12.5; TEXT "NIT '+cNitEmp+'";')
 	  Post('MZP 0.3,20.7; TEXT "NIT '+cNitEmp+'";')
 
+/*
 	  Post('FSET 1p6v;')
 	  Post('MZP 2.0,3.5;  TEXT "ASIMILADOS A GRANDES CONTRIBUYENTES - AGENTES RETENEDORES";')
 	  Post('MZP 2.0,12.5; TEXT "ASIMILADOS A GRANDES CONTRIBUYENTES - AGENTES RETENEDORES";')
 	  Post('MZP 2.0,20.7; TEXT "ASIMILADOS A GRANDES CONTRIBUYENTES - AGENTES RETENEDORES";')
+*/
        ENDIF
 *>>>>IMPRESION DEL RECIBO
 
@@ -1934,8 +1938,16 @@ FUNCTION RecAbo06(lShared,nModCry,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 	*ÀValor del abono en fecha Extemporanea.
        ENDIF
 
-*       cMensaj := ''
-*       Post('MZP 0.3,10.1; TEXT "'+cMensaj+'";')
+       IF nRecNro == 8
+
+	  DO CASE
+	  CASE cNitEmp == '8600099850'
+	       Post('MZP 0.3,10.2; TEXT "SOLO SE RECIBEN PAGOS EN EFECTIVO O CHEQUES DE GERENCIA.";')
+	       Post('MZP 0.3,10.5; TEXT "LA CONGREGACION DE LOS HERMANOS DE LAS ESCUELAS CRISTIANAS REALIZA EL REPORTE DE HABITO DE PAGO DE TODOS LOS CONTRATANTES AL OPERADOR";')
+	       Post('MZP 0.3,10.8; TEXT "DE INFORMACION DATACREDITO. RECUERDE QUE EL NO PAGO DE LOS SERVICIOS EDUCATIVOS SE REFLEJARA EN SU HISTORIA DE CREDITO. LEY 1266 DE 2008.";')
+	  ENDCASE
+
+       ENDIF
 
        SET FIXED ON
 *>>>>FIN IMPRESION DEL TOTAL A PAGAR EN FECHA EXTEMPORANEA

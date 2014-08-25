@@ -859,16 +859,25 @@ FUNCTION oBrwCarAno(lShared,cAnoUsr,nFilSup,nColSup,nFilInf,nColInf)
        oBrwCaA:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
+/*
+       oColumn	:= TBCOLUMNNEW('MENSAJE PARA;EL RECIBO DE PAGO',;
+				    {||CAA->cMenFacCaA})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CAA'},;
+			 {'FIELD','cMenFacCaA'},{'PICTURE','@S76X'}}
+       oBrwCaA:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+*/
+
        oColumn := TBCOLUMNNEW('INFORMES;CONCEPTOS',{||CAA->lPrnConCaA})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CAA'},;
 			 {'FIELD','lPrnConCaA'},{'PICTURE','@!'}}
        oBrwCaA:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
-       oColumn := TBCOLUMNNEW('CONCILIACION;CON CONTABILIDAD',;
+       oColumn := TBCOLUMNNEW('CONCILIACION;CON CONTABILIDAD.',;
 			      {||CAA->cValConCaA})
-       oColumn:Cargo := {{'MODI',.F.},{'ALIAS','CAA'},;
-			 {'FIELD','cValConCaA'},{'PICTURE','999999999999'}}
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CAA'},;
+			 {'FIELD','cValConCaA'},{'PICTURE','99999999999999'}}
        oBrwCaA:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 

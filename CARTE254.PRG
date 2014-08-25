@@ -81,6 +81,7 @@ FUNCTION Carte_254(aParam1,aParam2,aParam3)
        LOCAL nFacMes := 0                   // Facturaci¢n del Mes
        LOCAL nVlrMes := 0                   // Valor de lo facturado
 
+       LOCAL cNroMes := ''                  // N£mero del Mes
        LOCAL lFechOk := .T.                 // Fecha de Acuerdo al intervalo
        LOCAL dFecIni := CTOD('00/00/00')    // Fecha Inicial
        LOCAL dFecFin := CTOD('00/00/00')    // Fecha Final
@@ -244,6 +245,8 @@ FUNCTION Carte_254(aParam1,aParam2,aParam3)
 	  ENDIF
 	  RETURN NIL
        ENDIF
+       cNroMes := STR(nMesIniTpa,2)
+       lCorrecion(@cNroMes)
 *>>>>FIN CAPTURA DEL MES A PAGAR
 
 *>>>>AREAS DE TRABAJO
@@ -400,11 +403,11 @@ FUNCTION Carte_254(aParam1,aParam2,aParam3)
 *>>>>FIN ANALISIS PARA CENTRAR EL INFORME
 
 *>>>>ACTIVACION DE LA IMPRESORA
-       ActivaPrn(lShared,cNomSis,PathSis,fSimCar,'cColaAcCar','Car',,nModCry)
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.)
+	  FilePrn := SUBS(CAR->cSerFacCar,1,1)+'g'+cAnoUsr+cNroMes
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     CloseAll(aUseDbf)
 	     IF !lFileDelete(FileTem)

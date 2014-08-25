@@ -130,6 +130,8 @@ FUNCTION Carte_106(aParam1,aParam2,aParam3)
 		       fPazEst+cAnoSis+ExtFile,'PAZ',;
 		       NIL,lShared,nModCry) .OR.;
 	  !lUseDbf(.T.,cPatSis+'\'+FileCoE,'COE',NIL,lShared,nModCry) .OR.;
+	  !lUseDbf(.T.,cPatSis+'\'+;
+		   fCarAno+cAnoUsr+ExtFile,'CAA',NIL,lShared,nModCry) .OR.;
 	  !lUseDbf(.T.,cPatSis+'\'+FileDes,'DES',;
 		       cPatSis+'\'+fNtxDes,lShared,nModCry)
 	  cError('ABRIENDO ARCHIVOS')
@@ -222,9 +224,21 @@ FUNCTION Carte_106(aParam1,aParam2,aParam3)
 	    ENDIF
 **********FIN LOCALIZACION DEL ULTIMO RECIBO
 
-**********VALIDACION DEL ULTIMO RECIBO
+**********VALIDACION DE LA CONCILIACION
 	    nMesIniTpa := PAG->nMesIniPag
+	    IF SUBS(CAA->cValConCaA,nMesIniTpa,1) # SPACE(01)
 
+	       cError('EL RECIBO DE '+cMes(nMesIniTpa,10)+' '+;
+		      'YA SE REPORTO A CONTABILIDAD')
+
+	       CloseDbf('CLI',FileCli,nModCry)
+	       CloseDbf('PAG',FilePag,nModCry)
+	       LOOP
+
+	    ENDIF
+**********FIN VALIDACION DE LA CONCILIACION
+
+**********VALIDACION DEL ULTIMO RECIBO
 	    IF !EMPTY(PAG->dFecPagPag) .AND. PAG->cEstadoPag # 'D'
 
 	       cError('EL ULTIMO RECIBO FIGURA PAGADO. '+;

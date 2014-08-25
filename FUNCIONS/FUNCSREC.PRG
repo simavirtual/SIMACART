@@ -113,6 +113,16 @@ FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
        LOCAL nNroLen := 0                   // Longitud del recibo
        LOCAL nAvance := 0                   // L¡neas de avances
 
+       LOCAL cNroFac := ''                  // N£mero de la Factura
+       LOCAL cMeses  := ''                  // Meses de Pago
+       LOCAL cCodEan := ''                  // C¢digo EAN-13
+       LOCAL cCodBar := ''                  // C¢digo de Barras
+       LOCAL cBarOpo := ''                  // C¢digo Barra Oportuno
+       LOCAL cBarExt := ''                  // C¢digo Barra Extemporanea
+       LOCAL cTxtOpo := ''                  // Texto Oportuno
+       LOCAL cTxtExt := ''                  // Texto Extemporaneo
+       LOCAL cVlrBar := ''                  // Valor de la Barra
+
        LOCAL cCodFac := ''                  // Codigo de la Factura
        LOCAL bDigChe := ''                  // Funcion Digito de Chequeo
        LOCAL cMesIni := ''                  // Mes inicial de pago
@@ -131,6 +141,8 @@ FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
        LOCAL nPorBec := 0                   // Porcentaje de la beca
        LOCAL nVlrPag := 0                   // Valor del mes a pagar
        LOCAL nVl2Mes := 0                   // Valor del mes del valor2
+       LOCAL aRecFac := {}                  // Recibo Facturado
+
        SET FIXED OFF
 *>>>>FIN DECLARACION DE VARIABLES
 
@@ -156,6 +168,9 @@ FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
 
 	     nNroFac := CAA->nNroFacCaA+1
 	    *Lectura del n£mero de la factura
+
+	     cNroFac := STR(nNroFac,8)
+	     lCorrecion(@cNroFac,.T.)
 
 	     REPL CAA->nNroFacCaA WITH CAA->nNroFacCaA+1
 	     CAA->(DBCOMMIT())
@@ -235,7 +250,11 @@ FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
        ENDIF
      *ÀCalculo del digito de Chequeo
 
+       cMeses := cMes(nMesIni,3)+'-'+;
+		 IF(lPorAde,cMes(nMesFin,3),cMes(nMesIni,3))
+
        IF lPrePrn
+
 	  Linea_Recibo(cCodFac+;
 		       SPACE(11)+;
 		       cConverNiv(SUBS(cCodGru,1,2))+SUBS(cCodGru,3,2)+;
@@ -406,7 +425,7 @@ FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
 **********IMPRESION DEL VALOR DE LOS CONCEPTOS
 	    lHayBec := .F.
 	    nSdoFav := IF(nSdoFav == NIL,0,nSdoFav)
-	    nVlrMes := nVlrCon01(nMesIni,nMesIni,cCodGru,cConcep,;
+	    nVlrMes := nVlrCon01(aRecFac,nMesIni,nMesIni,cCodGru,cConcep,;
 				 CLI->nSdoActCli+CLI->nSdoMorCli,NIL,;
 				 lHayDes,lPrePrn,nNroLen,@nVlrCo1,;
 				 @nVlrCo2,@nVlrCo3,@nVlrCo4,;
@@ -415,6 +434,7 @@ FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
 				 @nVl2Co1,@nVl2Co2,@nVl2Co3,@nVl2Co4,;
 				 @nVl2Co5,@nVl2Co6,@nVl2Co7,@nVl2Co8,;
 				 @nVl2Mes)
+
 	   *Impresi¢n de conceptos
 
 	    IF VALTYPE(nVlrMes) == 'C'
@@ -470,7 +490,7 @@ FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
 **********IMPRESION DE LOS CONCEPTOS
 	    nVlrPen := 0
 	    lHayBec := .F.
-	    nVlrMes := nVlrCon01(nMesIni,nMesFin,cCodGru,cConcep,;
+	    nVlrMes := nVlrCon01(aRecFac,nMesIni,nMesFin,cCodGru,cConcep,;
 				 CLI->nSdoActCli+CLI->nSdoMorCli,;
 				 @nVlrPen,lHayDes,lPrePrn,nNroLen,;
                                  @nVlrCo1,@nVlrCo2,@nVlrCo3,@nVlrCo4,;
@@ -680,8 +700,84 @@ FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
       *Impresion del mensaje de la facturacion
 
        SET FIXED ON
-       RETURN nVlrTot
 *>>>>FIN IMPRESION DEL TOTAL A PAGAR EN FECHA EXTEMPORANEA
+
+*>>>>GRABACION DEL RECIBO FACTURADO
+       AADD(aRecFac,{'lShared',lShared})
+
+       AADD(aRecFac,{'cCodEst',cCodEst})
+       AADD(aRecFac,{'nMesIni',nMesIni})
+       AADD(aRecFac,{'nMesFin',nMesIni})
+       AADD(aRecFac,{'cEmpPal',cEmpPal})
+       AADD(aRecFac,{'cNroNit',cNitEmp})
+       AADD(aRecFac,{'cNroFac',cNroFac})
+       AADD(aRecFac,{'cNomBan',cNomBan})
+       AADD(aRecFac,{'cNroCta',cCtaBan})
+       AADD(aRecFac,{'cNombre',cNomEst})
+       AADD(aRecFac,{'cCodRef',cCodFac})
+       AADD(aRecFac,{'cCodGru',cCodGru})
+       AADD(aRecFac,{'cFecFac',cFecha(DATE())})
+       AADD(aRecFac,{'cPagOpo',cFecha(dPagOpo)})
+       AADD(aRecFac,{'cPagExt',cFecha(dPagExt)})
+       AADD(aRecFac,{'cPerFac',cMeses})
+
+/*
+       AADD(aRecFac,{'cNomCo1',})
+       AADD(aRecFac,{'cVlrMo1',})
+       AADD(aRecFac,{'cVlrMe1',})
+       AADD(aRecFac,{'cVlrTo1',})
+       AADD(aRecFac,{'cNomCo2',})
+       AADD(aRecFac,{'cVlrMo2',})
+       AADD(aRecFac,{'cVlrMe2',})
+       AADD(aRecFac,{'cVlrTo2',})
+       AADD(aRecFac,{'cNomCo3',})
+       AADD(aRecFac,{'cVlrMo3',})
+       AADD(aRecFac,{'cVlrMe3',})
+       AADD(aRecFac,{'cVlrTo3',})
+       AADD(aRecFac,{'cNomCo4',})
+       AADD(aRecFac,{'cVlrMo4',})
+       AADD(aRecFac,{'cVlrMe4',})
+       AADD(aRecFac,{'cVlrTo4',})
+       AADD(aRecFac,{'cNomCo5',})
+       AADD(aRecFac,{'cVlrMo5',})
+       AADD(aRecFac,{'cVlrMe5',})
+       AADD(aRecFac,{'cVlrTo5',})
+       AADD(aRecFac,{'cNomCo6',})
+       AADD(aRecFac,{'cVlrMo6',})
+       AADD(aRecFac,{'cVlrMe6',})
+       AADD(aRecFac,{'cVlrTo6',})
+       AADD(aRecFac,{'cNomCo7',})
+       AADD(aRecFac,{'cVlrMo7',})
+       AADD(aRecFac,{'cVlrMe7',})
+       AADD(aRecFac,{'cVlrTo7',})
+       AADD(aRecFac,{'cNomCo8',})
+       AADD(aRecFac,{'cVlrMo8',})
+       AADD(aRecFac,{'cVlrMe8',})
+       AADD(aRecFac,{'cVlrTo8',})
+       AADD(aRecFac,{'cNomCo9',})
+       AADD(aRecFac,{'cVlrMo9',})
+       AADD(aRecFac,{'cVlrMe9',})
+       AADD(aRecFac,{'cVlrTo9',})
+*/
+
+       AADD(aRecFac,{'cVlrOpo',TRANSFORM(nVlrTot+nSdoFav,"***,***,***")})
+       AADD(aRecFac,{'cVlrExt',TRANSFORM(nVlrTot+nVlrInt+nSdoFav,"***,***,***")})
+       AADD(aRecFac,{'cBarOpo',cTxtOpo})
+       AADD(aRecFac,{'cBarExt',cTxtExt})
+       AADD(aRecFac,{'cTxtUno','SOLO SE RECIBEN PAGOS EN EFECTIVO O CHEQUES DE GERENCIA'})
+       AADD(aRecFac,{'cTxtDos','"LA CONGREGACION DE LOS HERMANOS DE LAS ESCUELAS ..."'})
+
+       AADD(aRecFac,{'cNomUsr','system'})
+       AADD(aRecFac,{'dFecUsr',DATE()})
+       AADD(aRecFac,{'cHorUsr',TIME()})
+
+
+       IF nMesIni == nMesFin
+	  SaveRegRfa(aRecFac)
+       ENDIF
+
+       RETURN nVlrTot
+*>>>>FIN GRABACION DEL RECIBO FACTURADO
 
 /*************************************************************************
 * TITULO DEL PROGRAMA..: IMPRIME LOS CONCEPTO A COBRAR                   *
@@ -709,7 +805,7 @@ SINTAXIS:
 *                              PROGRAMA                                  *
 *------------------------------------------------------------------------*/
 
-FUNCTION nVlrCon01(nMesIni,nMesFin,cCodGru,cConcep,;
+FUNCTION nVlrCon01(aRecFac,nMesIni,nMesFin,cCodGru,cConcep,;
 		   nSdoAct,nVlrPen,lHayDes,lPrePrn,;
 		   nNroLen,nVlrCo1,nVlrCo2,nVlrCo3,;
 		   nVlrCo4,nVlrCo5,nVlrCo6,nVlrCo7,;
@@ -719,7 +815,8 @@ FUNCTION nVlrCon01(nMesIni,nMesFin,cCodGru,cConcep,;
 		   nTotal2)
 
 *>>>>DESCRIPCION DE PARAMETROS
-/*     nMesIni                              // Mes inicial de pago
+/*     aRecFac                              // Recibos facturados
+       nMesIni                              // Mes inicial de pago
        nMesFin                              // Mes final de pago
        cCodGru                              // C¢digo del grupo
        cConcep                              // Conceptos por cobrar
@@ -795,6 +892,53 @@ FUNCTION nVlrCon01(nMesIni,nMesFin,cCodGru,cConcep,;
        nVl2Co1 := 0; nVl2Co2 := 0; nVl2Co3 := 0; nVl2Co4 := 0
        nVl2Co5 := 0; nVl2Co6 := 0; nVl2Co7 := 0; nVl2Co8 := 0
 *>>>>FIN CALCULO DE LOS CONCEPTOS
+
+*>>>>INICIALIZACION
+       AADD(aRecFac,{'cNomCo1',' '})
+       AADD(aRecFac,{'cVlrMo1',' '})
+       AADD(aRecFac,{'cVlrMe1',' '})
+       AADD(aRecFac,{'cVlrTo1',' '})
+
+       AADD(aRecFac,{'cNomCo2',' '})
+       AADD(aRecFac,{'cVlrMo2',' '})
+       AADD(aRecFac,{'cVlrMe2',' '})
+       AADD(aRecFac,{'cVlrTo2',' '})
+
+       AADD(aRecFac,{'cNomCo3',' '})
+       AADD(aRecFac,{'cVlrMo3',' '})
+       AADD(aRecFac,{'cVlrMe3',' '})
+       AADD(aRecFac,{'cVlrTo3',' '})
+
+       AADD(aRecFac,{'cNomCo4',' '})
+       AADD(aRecFac,{'cVlrMo4',' '})
+       AADD(aRecFac,{'cVlrMe4',' '})
+       AADD(aRecFac,{'cVlrTo4',' '})
+
+       AADD(aRecFac,{'cNomCo5',' '})
+       AADD(aRecFac,{'cVlrMo5',' '})
+       AADD(aRecFac,{'cVlrMe5',' '})
+       AADD(aRecFac,{'cVlrTo5',' '})
+
+       AADD(aRecFac,{'cNomCo6',' '})
+       AADD(aRecFac,{'cVlrMo6',' '})
+       AADD(aRecFac,{'cVlrMe6',' '})
+       AADD(aRecFac,{'cVlrTo6',' '})
+
+       AADD(aRecFac,{'cNomCo7',' '})
+       AADD(aRecFac,{'cVlrMo7',' '})
+       AADD(aRecFac,{'cVlrMe7',' '})
+       AADD(aRecFac,{'cVlrTo7',' '})
+
+       AADD(aRecFac,{'cNomCo8',' '})
+       AADD(aRecFac,{'cVlrMo8',' '})
+       AADD(aRecFac,{'cVlrMe8',' '})
+       AADD(aRecFac,{'cVlrTo8',' '})
+
+       AADD(aRecFac,{'cNomCo9',' '})
+       AADD(aRecFac,{'cVlrMo9',' '})
+       AADD(aRecFac,{'cVlrMe9',' '})
+       AADD(aRecFac,{'cVlrTo9',' '})
+*>>>>INICIALIZACION
 
 *>>>>IMPRESION DE LOS CONCEPTOS
        cBlanco := '|                |         |         |         |'
@@ -1026,6 +1170,87 @@ FUNCTION nVlrCon01(nMesIni,nMesFin,cCodGru,cConcep,;
 	      *Suma del total a pagar
 	    ENDIF
 **********FIN IMPRESION DEL VALOR DEL CONCEPTO
+
+**********CONCEPTOS FACTURADOS DEL RECIBO
+	    IF cCodigoTco <> SPACE(02)
+
+	       DO CASE
+	       CASE i == 1
+
+		    nParameSet(aRecFac,'cNomCo1',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo1',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe1',TRANS(nValor1,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo1',TRANS(nSubTot,'9,999,999'))
+
+
+	       CASE i == 2
+
+		    nParameSet(aRecFac,'cNomCo2',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo2',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe2',TRANS(nValor1,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo2',TRANS(nSubTot,'9,999,999'))
+
+	       CASE i == 3
+
+		    nParameSet(aRecFac,'cNomCo3',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo3',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe3',TRANS(nValor1,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo3',TRANS(nSubTot,'9,999,999'))
+
+	       CASE i == 4
+
+		    nParameSet(aRecFac,'cNomCo4',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo4',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe4',TRANS(nValor1,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo4',TRANS(nSubTot,'9,999,999'))
+
+	       CASE i == 5
+
+		    nParameSet(aRecFac,'cNomCo5',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo5',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe5',TRANS(nValor1,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo5',TRANS(nSubTot,'9,999,999'))
+
+	       CASE i == 6
+
+		    nParameSet(aRecFac,'cNomCo6',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo6',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe6',TRANS(nValor1,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo6',TRANS(nSubTot,'9,999,999'))
+
+	       CASE i == 7
+
+		    nParameSet(aRecFac,'cNomCo7',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo7',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe7',TRANS(nValor1,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo7',TRANS(nSubTot,'9,999,999'))
+
+	       CASE i == 8
+
+		    nParameSet(aRecFac,'cNomCo8',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo8',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe8',TRANS(nValor1,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo8',TRANS(nSubTot,'9,999,999'))
+
+	       ENDCASE
+	    ENDIF
+**********FIN CONCEPTOS FACTURADOS DEL RECIBO
 
 	  i := i + 1
 
@@ -5820,7 +6045,7 @@ OBJETIVOS:
 *                              PROGRAMA                                  *
 *------------------------------------------------------------------------*/
 
-FUNCTION nRecibo08(lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
+FUNCTION nRecibo08(aRecFac,lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 		   cMaeAct,cJorTxt,cCodIso,nNroFac,cCodEst,cNomEst,;
 		   cCodGru,nNroLis,cNomBan,cCtaBan,cLugBan,cConcep,;
 		   nIntMor,dPagOpo,dPagExt,lPagExt,cMensaj,nVlrMes,;
@@ -5829,8 +6054,9 @@ FUNCTION nRecibo08(lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 		   nVlrBec,nDescue,nPagPar,nRecarg,nDesGen,nRecGen,;
 		   cConGen,nFavDes,nSdoFav,nRecNro)
 
-*>>>>PARAMETROS DE LA FUNCION
-/*     lShared                              // .T. Archivos Compartidos
+*>>>>DESCRIPCION DE PARAMETROS
+/*     aRecFac                              // Recibo Facturado
+       lShared                              // .T. Archivos Compartidos
        cEmpPal                              // Nombre de la Empresa principal
        cNitEmp                              // Nit de la Empresa
        cNomEmp                              // Nombre de la Empresa
@@ -5876,7 +6102,7 @@ FUNCTION nRecibo08(lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
        nFavDes                              // @Saldo a Favor Descontado
        nSdoFav                              // Saldo a Favor
        nRecNro                              // N£mero del Recibo */
-*>>>>FIN PARAMETROS DE LA FUNCION
+*>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
        LOCAL cDelimi := CHR(13)+CHR(10)     // Delimitador de fin de l¡nea
@@ -6023,7 +6249,8 @@ FUNCTION nRecibo08(lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 	  Post('MZP 0.0,9.0; BOX 20.33,0.4;')
 	  Post('MZP 0.0,9.0; BOX 6.5,0.8;')
 	  Post('MZP 12.5,9.0; BOX 2.5,0.8;')
-	  Post('MZP 17.0,10.5; TEXT "ALUMNO";')
+	  Post('MZP 17.0,10.2; TEXT "ALUMNO";')
+	  Post('MZP 0.0,11.2; TEXT ">-------------------------------------------------------------------------------<";')
 
 	  Post('CMNT "BOLANTE COLEGIO";')
 	  Post('MZP 0.0,11.5; BOX 20.33,7.3;')
@@ -6044,6 +6271,7 @@ FUNCTION nRecibo08(lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 	  Post('MZP 0.0,18.0; BOX 6.5,0.8;')
 	  Post('MZP 12.5,18.0; BOX 2.5,0.8;')
 	  Post('MZP 17.0,19.3; TEXT "COLEGIO";')
+	  Post('MZP 0.0,19.7; TEXT ">-------------------------------------------------------------------------------<";')
 
 	  Post('CMNT "BOLANTE BANCO";')
 	  Post('MZP 0.0,20.0; BOX 20.33,6.5;')
@@ -6376,15 +6604,18 @@ IF nNroLis # 0
 				 lHayDes,nNroLen,@nVlrCo1,;
 				 @nVlrCo2,@nVlrCo3,@nVlrCo4,;
 				 @nVlrCo5,@nVlrCo6,@nVlrCo7,;
-				 @nVlrCo8,@lHayBec,@nVlrBec,nSdoFav,nNroLis)
+				 @nVlrCo8,@lHayBec,@nVlrBec,nSdoFav,nNroLis,;
+				 aRecFac)
 	   *Impresi¢n de conceptos
+
 ELSE
 	    nVlrMes := nVlrCon08(nMesIni,nMesIni,cCodGru,cConcep,;
 				 0,NIL,;
 				 lHayDes,nNroLen,@nVlrCo1,;
 				 @nVlrCo2,@nVlrCo3,@nVlrCo4,;
 				 @nVlrCo5,@nVlrCo6,@nVlrCo7,;
-				 @nVlrCo8,@lHayBec,@nVlrBec,nSdoFav,nNroLis)
+				 @nVlrCo8,@lHayBec,@nVlrBec,nSdoFav,nNroLis,;
+				 aRecFac)
 	   *Impresi¢n de conceptos
 
 	    lHayBec := .F.
@@ -6445,7 +6676,8 @@ ENDIF
 				 @nVlrPen,lHayDes,nNroLen,;
                                  @nVlrCo1,@nVlrCo2,@nVlrCo3,@nVlrCo4,;
 				 @nVlrCo5,@nVlrCo6,@nVlrCo7,@nVlrCo8,;
-				 @lHayBec,NIL,nSdoFav,nNroLis)
+				 @lHayBec,NIL,nSdoFav,nNroLis,;
+				 aRecFac)
 	   *Impresi¢n de conceptos
 
 	    IF VALTYPE(nVlrMes) == 'C'
@@ -6585,11 +6817,17 @@ ENDIF
 	  ENDIF
        ENDIF
 
-/*
-       cMensaj := ''
-       cCodMzp := '0.3,10.2;'
-       LineaMzp(cCodMzp,cMensaj,1)
-*/
+       IF nRecNro == 8
+
+	  DO CASE
+	  CASE cNitEmp == '8600099850'
+	       Post('MZP 0.3,10.2; TEXT "SOLO SE RECIBEN PAGOS EN EFECTIVO O CHEQUES DE GERENCIA.";')
+	       Post('MZP 0.3,10.5; TEXT "LA CONGREGACION DE LOS HERMANOS DE LAS ESCUELAS CRISTIANAS REALIZA EL REPORTE DE HABITO DE PAGO DE TODOS LOS CONTRATANTES AL OPERADOR";')
+	       Post('MZP 0.3,10.8; TEXT "DE INFORMACION DATACREDITO. RECUERDE QUE EL NO PAGO DE LOS SERVICIOS EDUCATIVOS SE REFLEJARA EN SU HISTORIA DE CREDITO. LEY 1266 DE 2008.";')
+	  ENDCASE
+
+       ENDIF
+
 
        SET FIXED ON
 *>>>>FIN IMPRESION DEL TOTAL A PAGAR EN FECHA EXTEMPORANEA
@@ -6715,8 +6953,83 @@ ENDIF
 		     CAA->cCodigoBan,;
 		     SCO->cCodEmpCon)
        ENDIF
-       RETURN nVlrTot
 *>>>>FIN GRABACION DEL CONTROL DEL RECIBO
+
+*>>>>GRABACION DEL RECIBO FACTURADO
+       AADD(aRecFac,{'lShared',lShared})
+
+       AADD(aRecFac,{'cCodEst',cCodEst})
+       AADD(aRecFac,{'nMesIni',nMesIni})
+       AADD(aRecFac,{'nMesFin',nMesFin})
+       AADD(aRecFac,{'cEmpPal',cEmpPal})
+       AADD(aRecFac,{'cNroNit',cNitEmp})
+       AADD(aRecFac,{'cNroFac',cNroFac})
+       AADD(aRecFac,{'cNomBan',cNomBan})
+       AADD(aRecFac,{'cNroCta',cCtaBan})
+       AADD(aRecFac,{'cNombre',cNomEst})
+       AADD(aRecFac,{'cCodRef',cCodFac})
+       AADD(aRecFac,{'cCodGru',cCodGru})
+       AADD(aRecFac,{'cFecFac',cFecha(DATE())})
+       AADD(aRecFac,{'cPagOpo',cFecha(dPagOpo)})
+       AADD(aRecFac,{'cPagExt',cFecha(dPagExt)})
+       AADD(aRecFac,{'cPerFac',cMeses})
+
+/*
+       AADD(aRecFac,{'cNomCo1',})
+       AADD(aRecFac,{'cVlrMo1',})
+       AADD(aRecFac,{'cVlrMe1',})
+       AADD(aRecFac,{'cVlrTo1',})
+       AADD(aRecFac,{'cNomCo2',})
+       AADD(aRecFac,{'cVlrMo2',})
+       AADD(aRecFac,{'cVlrMe2',})
+       AADD(aRecFac,{'cVlrTo2',})
+       AADD(aRecFac,{'cNomCo3',})
+       AADD(aRecFac,{'cVlrMo3',})
+       AADD(aRecFac,{'cVlrMe3',})
+       AADD(aRecFac,{'cVlrTo3',})
+       AADD(aRecFac,{'cNomCo4',})
+       AADD(aRecFac,{'cVlrMo4',})
+       AADD(aRecFac,{'cVlrMe4',})
+       AADD(aRecFac,{'cVlrTo4',})
+       AADD(aRecFac,{'cNomCo5',})
+       AADD(aRecFac,{'cVlrMo5',})
+       AADD(aRecFac,{'cVlrMe5',})
+       AADD(aRecFac,{'cVlrTo5',})
+       AADD(aRecFac,{'cNomCo6',})
+       AADD(aRecFac,{'cVlrMo6',})
+       AADD(aRecFac,{'cVlrMe6',})
+       AADD(aRecFac,{'cVlrTo6',})
+       AADD(aRecFac,{'cNomCo7',})
+       AADD(aRecFac,{'cVlrMo7',})
+       AADD(aRecFac,{'cVlrMe7',})
+       AADD(aRecFac,{'cVlrTo7',})
+       AADD(aRecFac,{'cNomCo8',})
+       AADD(aRecFac,{'cVlrMo8',})
+       AADD(aRecFac,{'cVlrMe8',})
+       AADD(aRecFac,{'cVlrTo8',})
+       AADD(aRecFac,{'cNomCo9',})
+       AADD(aRecFac,{'cVlrMo9',})
+       AADD(aRecFac,{'cVlrMe9',})
+       AADD(aRecFac,{'cVlrTo9',})
+*/
+
+       AADD(aRecFac,{'cVlrOpo',TRANSFORM(nVlrTot+nSdoFav,"***,***,***")})
+       AADD(aRecFac,{'cVlrExt',TRANSFORM(nVlrTot+nVlrInt+nSdoFav,"***,***,***")})
+       AADD(aRecFac,{'cBarOpo',cTxtOpo})
+       AADD(aRecFac,{'cBarExt',cTxtExt})
+       AADD(aRecFac,{'cTxtUno','SOLO SE RECIBEN PAGOS EN EFECTIVO O CHEQUES DE GERENCIA'})
+       AADD(aRecFac,{'cTxtDos','"LA CONGREGACION DE LOS HERMANOS DE LAS ESCUELAS ..."'})
+
+       AADD(aRecFac,{'cNomUsr',cNomUsr})
+       AADD(aRecFac,{'dFecUsr',DATE()})
+       AADD(aRecFac,{'cHorUsr',TIME()})
+
+       nMesFin := IF(nMesFin==NIL,nMesIni,nMesFin)
+
+       SaveRegRfa(aRecFac)
+
+       RETURN nVlrTot
+*>>>>FIN GRABACION DEL RECIBO FACTURADO
 
 /*************************************************************************
 * TITULO..: IMPRIME LOS CONCEPTO A COBRAR                                *
@@ -6748,7 +7061,7 @@ SINTAXIS:
 FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
 		   lHayDes,nNroLen,nVlrCo1,nVlrCo2,nVlrCo3,nVlrCo4,;
 		   nVlrCo5,nVlrCo6,nVlrCo7,nVlrCo8,lHayBec,nVlrBec,;
-		   nSdoFav,nNroLis)
+		   nSdoFav,nNroLis,aRecFac)
 
 *>>>>PARAMATROS DE LA FUNCION
 /*     nMesIni                              // Mes inicial de pago
@@ -6769,7 +7082,9 @@ FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
        nVlrCo8                              // @Valor Concepto No. 8
        lHayBec                              // @.T. Se aplico la Beca
        nVlrBec                              // @ Valor de la Beca
-       nSdoFav                              // Saldo a Favor */
+       nSdoFav                              // Saldo a Favor
+       nNroLis                              // N£mero de lista
+       aRecFac                              // Recibos Facturados */
 *>>>>FIN PARAMATROS DE LA FUNCION
 
 *>>>>DECLARACION DE VARIABLES
@@ -6807,6 +7122,53 @@ FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
        nVlrCo1 := 0; nVlrCo2 := 0; nVlrCo3 := 0; nVlrCo4 := 0
        nVlrCo5 := 0; nVlrCo6 := 0; nVlrCo7 := 0; nVlrCo8 := 0
 *>>>>FIN CALCULO DE LOS CONCEPTOS
+
+*>>>>INICIALIZACION
+       AADD(aRecFac,{'cNomCo1',' '})
+       AADD(aRecFac,{'cVlrMo1',' '})
+       AADD(aRecFac,{'cVlrMe1',' '})
+       AADD(aRecFac,{'cVlrTo1',' '})
+
+       AADD(aRecFac,{'cNomCo2',' '})
+       AADD(aRecFac,{'cVlrMo2',' '})
+       AADD(aRecFac,{'cVlrMe2',' '})
+       AADD(aRecFac,{'cVlrTo2',' '})
+
+       AADD(aRecFac,{'cNomCo3',' '})
+       AADD(aRecFac,{'cVlrMo3',' '})
+       AADD(aRecFac,{'cVlrMe3',' '})
+       AADD(aRecFac,{'cVlrTo3',' '})
+
+       AADD(aRecFac,{'cNomCo4',' '})
+       AADD(aRecFac,{'cVlrMo4',' '})
+       AADD(aRecFac,{'cVlrMe4',' '})
+       AADD(aRecFac,{'cVlrTo4',' '})
+
+       AADD(aRecFac,{'cNomCo5',' '})
+       AADD(aRecFac,{'cVlrMo5',' '})
+       AADD(aRecFac,{'cVlrMe5',' '})
+       AADD(aRecFac,{'cVlrTo5',' '})
+
+       AADD(aRecFac,{'cNomCo6',' '})
+       AADD(aRecFac,{'cVlrMo6',' '})
+       AADD(aRecFac,{'cVlrMe6',' '})
+       AADD(aRecFac,{'cVlrTo6',' '})
+
+       AADD(aRecFac,{'cNomCo7',' '})
+       AADD(aRecFac,{'cVlrMo7',' '})
+       AADD(aRecFac,{'cVlrMe7',' '})
+       AADD(aRecFac,{'cVlrTo7',' '})
+
+       AADD(aRecFac,{'cNomCo8',' '})
+       AADD(aRecFac,{'cVlrMo8',' '})
+       AADD(aRecFac,{'cVlrMe8',' '})
+       AADD(aRecFac,{'cVlrTo8',' '})
+
+       AADD(aRecFac,{'cNomCo9',' '})
+       AADD(aRecFac,{'cVlrMo9',' '})
+       AADD(aRecFac,{'cVlrMe9',' '})
+       AADD(aRecFac,{'cVlrTo9',' '})
+*>>>>INICIALIZACION
 
 *>>>>IMPRESION DE LOS CONCEPTOS
        SELECT CON
@@ -6920,6 +7282,7 @@ FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
 	    ENDIF
 **********FIN PREPARACION DEL NOMBRE DEL CONCEPTO
 
+
 **********ASIGNACION DEL VALOR DEL CONCEPTO
 	    IF cCodigoTco <> SPACE(02)
 	       DO CASE
@@ -7026,6 +7389,87 @@ FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
 	    ENDIF
 	   *Suma del total a pagar
 **********FIN ACUMULACION DE LOS VALORES A COBRAR SIN SALDO
+
+**********CONCEPTOS FACTURADOS DEL RECIBO
+	    IF cCodigoTco <> SPACE(02)
+
+	       DO CASE
+	       CASE i == 1
+
+		    nParameSet(aRecFac,'cNomCo1',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo1',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe1',TRANS(nValor,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo1',TRANS(nSubTot,'9,999,999'))
+
+
+	       CASE i == 2
+
+		    nParameSet(aRecFac,'cNomCo2',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo2',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe2',TRANS(nValor,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo2',TRANS(nSubTot,'9,999,999'))
+
+	       CASE i == 3
+
+		    nParameSet(aRecFac,'cNomCo3',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo3',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe3',TRANS(nValor,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo3',TRANS(nSubTot,'9,999,999'))
+
+	       CASE i == 4
+
+		    nParameSet(aRecFac,'cNomCo4',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo4',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe4',TRANS(nValor,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo4',TRANS(nSubTot,'9,999,999'))
+
+	       CASE i == 5
+
+		    nParameSet(aRecFac,'cNomCo5',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo5',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe5',TRANS(nValor,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo5',TRANS(nSubTot,'9,999,999'))
+
+	       CASE i == 6
+
+		    nParameSet(aRecFac,'cNomCo6',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo6',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe6',TRANS(nValor,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo6',TRANS(nSubTot,'9,999,999'))
+
+	       CASE i == 7
+
+		    nParameSet(aRecFac,'cNomCo7',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo7',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe7',TRANS(nValor,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo7',TRANS(nSubTot,'9,999,999'))
+
+	       CASE i == 8
+
+		    nParameSet(aRecFac,'cNomCo8',cNombreTco)
+		    nParameSet(aRecFac,'cVlrMo8',IF(CAA->nMesAmnCaA==nMesIni,;
+						   'PENDIENTE',;
+						   TRANS(nSdoAct,'9,999,999')))
+		    nParameSet(aRecFac,'cVlrMe8',TRANS(nValor,'9,999,999'))
+		    nParameSet(aRecFac,'cVlrTo8',TRANS(nSubTot,'9,999,999'))
+
+	       ENDCASE
+	    ENDIF
+**********FIN CONCEPTOS FACTURADOS DEL RECIBO
 
 	  i := i + 1
 

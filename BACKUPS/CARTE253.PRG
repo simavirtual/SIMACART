@@ -160,6 +160,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        LOCAL PathAct := ''                  // Path Actual
        LOCAL cLinUrl := ''                  // Link de Url
        LOCAL PathWww := ''                  // Path del Sitio
+       LOCAL cCodBan := ''                  // C¢digo del Banco
 
        LOCAL Getlist := {}                  // Variable del sistema
      *ÀVariables espec¡ficas
@@ -323,6 +324,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileTar,'TAR',NIL,lShared,nModCry})
 
        AADD(aUseDbf,{.T.,cPatSis+'\'+FileCnc,'CNC',NIL,lShared,nModCry})
+       AADD(aUseDbf,{.T.,cPatSis+'\'+FileBan,'BAN',NIL,lShared,nModCry})
 *>>>>FIN AREAS DE TRABAJO
 
 *>>>>SELECION DE LAS AREAS DE TRABAJO
@@ -370,6 +372,8 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	  ENDIF
 	  RETURN NIL
        ENDIF
+       BAN->(DBGOTOP())
+       cCodBan := BAN->cCodigoBan
 *>>>>FIN VALIDACION DE CONTENIDOS DE ARCHIVOS
 
 *>>>>LOCALIZACION DE LA IMPRESORA
@@ -1252,6 +1256,16 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	    GO TOP
 	    DO WHILE .NOT. DES->(EOF())
 
+*--------------IMPRESION DE LA LINEA DE ESTADO
+		 SET DEVICE TO SCREEN
+		 LineaEstado('MES : '+cMes(nMesIniTpa)+;
+			     'ºCODIGO: '+DES->cCodigoEst+'/'+cGruFin+;
+			     'ºNo. '+STR(DES->(RECNO()),4)+'/'+;
+				     STR(DES->(RECCOUNT()),4),cNomSis)
+		 SET DEVICE TO PRINT
+*--------------FIN IMPRESION DE LA LINEA DE ESTADO
+
+
 	       DO CASE
 	       CASE DES->nTipDesDes == 3 .AND.;  // ABONOS
 		    DES->nNroMesDes == nMesIniTpa .AND. !DES->lDesEfeDes
@@ -1277,13 +1291,15 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 					   DES->nValorDes,@aVlrPag,2)
 
 				 aVlrPagExt(cPatSis,;
-					    NIL,; // cCodBan
+					    cCodBan,; // cCodBan
 					    DES->dFechaDes,;
 					    DES->nValorDes,;
 					    0,; // nVlrTra
 					    2,; // Abono
 					    @aFilExt,;
 					    @FileMoB)
+
+
 
 				 aVlrDifExt(cAnoUsr,FileMoB,;
 					    DES->cCodigoEst,;
@@ -1303,13 +1319,14 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 				       DES->nValorDes,@aVlrPag,2)
 
 			     aVlrPagExt(cPatSis,;
-					NIL,; // cCodBan
+					cCodBan,; // cCodBan
 					DES->dFechaDes,;
 					DES->nValorDes,;
 					0,; // nVlrTra
 					2,; // Abono
 					@aFilExt,;
 					@FileMoB)
+
 
 			     aVlrDifExt(cAnoUsr,FileMoB,;
 					DES->cCodigoEst,;
@@ -1352,7 +1369,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 					   DES->nValorDes,@aVlrPag,4)
 
 				 aVlrPagExt(cPatSis,;
-					    NIL,; // cCodBan
+					    cCodBan,; // cCodBan
 					    DES->dFechaDes,;
 					    DES->nValorDes,;
 					    0,; // nVlrTra
@@ -1369,7 +1386,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 				       DES->nValorDes,@aVlrPag,4)
 
 			     aVlrPagExt(cPatSis,;
-					NIL,; // cCodBan
+					cCodBan,; // cCodBan
 					DES->dFechaDes,;
 					DES->nValorDes,;
 					0,; // nVlrTra
@@ -2637,7 +2654,6 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
        ENDIF
 *>>>>FIN SELECION DE AREAS DE TRABAJO
 
-
 *>>>>ANALISIS DE LA INCONSISTENCIA
        cMesIni := STR(nMesIni,2)
        lCorrecion(@cMesIni,2)
@@ -2668,8 +2684,6 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 	  SELECT EXT
 	  IF EXT->(FOUND())
 
-
-
 	     nCodCmv := 0
 	     IF lLocCodigo('nCodigoCmv','CMV',EXT->nCodigoCmv)
 
@@ -2679,6 +2693,7 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 *		ENDIF
 
 		nCodCmv := CMV->nCodigoCmv
+
 
 		IF !(EXT->nCodigoCmv == 1 .OR. EXT->nCodigoCmv == 2)
 
@@ -2711,8 +2726,7 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 
 	     ELSE
 
-		IF !(nCodCmv == 1 .OR. nCodCmv == 2)
-
+		IF !(nCodCmv == 1 .OR. nCodCmv == 2 .OR. nCodCmv == 3)
 
 		   IF k == 0
 		      AADD(aVlrDif,{cCodBan+cAnoPag+cMesPag+cDiaPag,;
@@ -2797,7 +2811,7 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 
 	     ELSE
 
-		IF !(nCodCmv == 1 .OR. nCodCmv == 2)
+		IF !(nCodCmv == 1 .OR. nCodCmv == 2 .OR. nCodCmv == 3)
 
 		  aVlrDif[k,5]  := cMesIni
 		  aVlrDif[k,6]  := cMesFin

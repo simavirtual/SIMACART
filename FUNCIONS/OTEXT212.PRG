@@ -206,7 +206,6 @@ FUNCTION FOtExt212(aParam1,aParam2,aParam3,;
 *>>>>FIN ANALISIS PARA CENTRAR EL INFORME
 
 *>>>>ANALISIS DE DECISION
-       ActivaPrn(lSiRed,cNomSis,PathSis,fSimCar,'cColaAcCar','Car')
        IF !lPregunta('DESEA CONTINUAR? Si No')
 	  SELECT TRA
 	  oBrowse:GOTOP()
@@ -219,7 +218,8 @@ FUNCTION FOtExt212(aParam1,aParam2,aParam3,;
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.)
+	  FilePrn := 'ValiExt'
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,.T.,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     RETURN NIL
 	  ENDIF
