@@ -42,7 +42,7 @@ SINTAXIS:
 *                              PROGRAMA                                  *
 *------------------------------------------------------------------------*/
 
-FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
+FUNCTION nRecibo01(aRecFac,lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
 		   nNroFac,cCodEst,cNomEst,cCodGru,nNroLis,cNomBan,;
 		   cCtaBan,cLugBan,cConcep,nIntMor,dPagOpo,dPagExt,;
 		   lPagExt,cMensaj,nVlrMes,nMesIni,nMesFin,lPrePrn,;
@@ -53,7 +53,8 @@ FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
 		   cConGen,nFavDes,nSdoFav)
 
 *>>>>DESCRIPCION DE PARAMETROS
-/*     lShared                              // .T. Archivos Compartidos
+/*     aRecFac                              // Recibo Facturado
+       lShared                              // .T. Archivos Compartidos
        cEmpPal                              // Nombre de la Empresa principal
        cNitEmp                              // Nit de la Empresa
        cNomEmp                              // Nombre de la Empresa
@@ -141,7 +142,6 @@ FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
        LOCAL nPorBec := 0                   // Porcentaje de la beca
        LOCAL nVlrPag := 0                   // Valor del mes a pagar
        LOCAL nVl2Mes := 0                   // Valor del mes del valor2
-       LOCAL aRecFac := {}                  // Recibo Facturado
 
        SET FIXED OFF
 *>>>>FIN DECLARACION DE VARIABLES
@@ -771,10 +771,7 @@ FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
        AADD(aRecFac,{'dFecUsr',DATE()})
        AADD(aRecFac,{'cHorUsr',TIME()})
 
-
-       IF nMesIni == nMesFin
-	  SaveRegRfa(aRecFac)
-       ENDIF
+       SaveRegRfa(aRecFac)
 
        RETURN nVlrTot
 *>>>>FIN GRABACION DEL RECIBO FACTURADO
@@ -980,7 +977,15 @@ FUNCTION nVlrCon01(aRecFac,nMesIni,nMesFin,cCodGru,cConcep,;
 	       nVl2Con := nValor2
 
 	       IF nValor1 == 0
-		  RETURN 'Error'
+
+		  nValor1 := nVlrHon(CLI->nSdoActCli)
+		  nVl1Con := nValor1
+		  nVl2Con := nValor2
+
+		  IF nValor1 == 0
+		     RETURN 'Error'
+		  ENDIF
+
 	       ENDIF
 	    ENDIF
 	    cNombreTco := ALLTRIM(cNombreTco)
@@ -6953,6 +6958,7 @@ ENDIF
 		     CAA->cCodigoBan,;
 		     SCO->cCodEmpCon)
        ENDIF
+       nMesFin := IF(nMesFin==NIL,nMesIni,nMesFin)
 *>>>>FIN GRABACION DEL CONTROL DEL RECIBO
 
 *>>>>GRABACION DEL RECIBO FACTURADO
@@ -7024,8 +7030,6 @@ ENDIF
        AADD(aRecFac,{'dFecUsr',DATE()})
        AADD(aRecFac,{'cHorUsr',TIME()})
 
-       nMesFin := IF(nMesFin==NIL,nMesIni,nMesFin)
-
        SaveRegRfa(aRecFac)
 
        RETURN nVlrTot
@@ -7063,7 +7067,7 @@ FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
 		   nVlrCo5,nVlrCo6,nVlrCo7,nVlrCo8,lHayBec,nVlrBec,;
 		   nSdoFav,nNroLis,aRecFac)
 
-*>>>>PARAMATROS DE LA FUNCION
+*>>>>DESCRIPCION DE PARAMETROS
 /*     nMesIni                              // Mes inicial de pago
        nMesFin                              // Mes final de pago
        cCodGru                              // C¢digo del grupo
@@ -7085,7 +7089,7 @@ FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
        nSdoFav                              // Saldo a Favor
        nNroLis                              // N£mero de lista
        aRecFac                              // Recibos Facturados */
-*>>>>FIN PARAMATROS DE LA FUNCION
+*>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
        LOCAL       i := 0                   // Contador
@@ -7101,6 +7105,7 @@ FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
        LOCAL cFilas2 := ''                  // Filas Desprendible No. 2
        LOCAL cFilUno := ''                  // N£mero Fila Uno
        LOCAL cFilDos := ''                  // N£mero Fila Dos
+       LOCAL nVlrHon := 0                   // Valor Honorarios de Cobranza
 
        LOCAL cCodigoTco := ''               // C¢digo del concepto
        LOCAL cNombreTco := ''               // Nombre del concepto
@@ -7201,8 +7206,16 @@ FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
 
 	       nVlrCon := nValor
 	       IF nValor == 0
-		  RETURN 'Error'
+
+		   nValor := nVlrHon(CLI->nSdoActCli)
+		   nVlrCon := nValor
+		   IF nValor == 0
+		      RETURN 'Error'
+		   ENDIF
+
+		  
 	       ENDIF
+
 	    ENDIF
 **********FIN LECTURA DE LA TARIFA Y DESCRIPCION DEL CONCEPTO
 

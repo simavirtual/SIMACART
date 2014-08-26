@@ -62,7 +62,9 @@ FUNCTION CreaDbfCon(lShared,nModCry,PathCon,FileCon,fNtxCon,aStrDbf)
 			 {"nMesIniCon","Numeric"  ,02,0},; // Mes Inicial del Concepto
 			 {"nMesFinCon","Numeric"  ,02,0},; // Mes Final del Concepto
 			 {"lDesEfeDes","Logical"  ,01,0},; // .T. Descuento del Efectivo .F. No Descuento de Efectio implica ingreso
-			 {"cNomExtCon","Character",16,0}}  // Nombre Extra
+			 {"cNomExtCon","Character",16,0},; // Nombre Extra
+			 {"nIntHonCaA","Numeric"  ,05,2},; // Intereses Honorarios por cobranza
+			 {"nVlrHonCaA","Numeric"  ,12,2}} // Valor Honorarios por cobranza
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>RETORNO DE LA ESTRUCTURA
@@ -644,6 +646,18 @@ FUNCTION oDefBrwCon(lShared,nFilSup,nColSup,nFilInf,nColInf)
        oColumn	     := TBCOLUMNNEW('NOMBRE EXTRA', {||CON->cNomExtCon})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CON'},{'FIELD','cNomExtCon'},;
 			 {'PICTURE','@!'}}
+       oBrowse:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('%HONORARIOS COBRANZA', {||CON->nIntHonCaA})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CON'}, {'FIELD','nIntHonCaA '},;
+			 {'PICTURE','99.99'}}
+       oBrowse:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('HONORARIOS COBRANZA', {||CON->nVlrHonCaA})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CON'}, {'FIELD','nVlrHonCaA'},;
+			 {'PICTURE','999999999.99'}}
        oBrowse:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
@@ -2278,3 +2292,45 @@ FUNCTION OtrCon011(aParam1,aParam2,aParam3)
        SET DEVICE TO SCREEN
        RETURN NIL
 *>>>>FIN IMPRESION DERECHOS
+
+/*************************************************************************
+* TITULO..: VALOR HONORARIOS DE COBRANZA                                 *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: AGO 26/2014 MAR A
+       Colombia, Bucaramanga        INICIO: 10:30 AM   AGO 26/2014 MAR
+
+OBJETIVOS:
+
+1- Calcula el valor de los honorarios por cobranza
+
+2- Retorna el valor de los Honorarios
+
+SINTAXIS:
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION nVlrHon(nVlrDeu)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     nVlrDeu			            // Valor de la Deuda */
+*>>>>FIN DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION DE VARIABLES
+       LOCAL nVlrHon := 0                   // Honorarios de Cobranza
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>CALCULO HONORARIOS DE COBRANZA
+       IF CON->nIntHonCaA + CON->nVlrHonCaA > 0
+
+	  IF CON->nIntHonCaA > 0
+	     nVlrHon := ROUND((nVlrDeu*CON->nIntHonCaA)/100,0)
+	  ELSE
+	     nVlrHon := CON->nVlrHonCaA
+	  ENDIF
+
+       ENDIF
+       RETURN nVlrHon
+*>>>>FIN CALCULO HONORARIOS DE COBRANZA

@@ -86,6 +86,9 @@ FUNCTION CreaCarAno(lShared,nModCry,PathCaA,FileCaA,fNtxCaA,lGrabar,aStrDbf)
 			 {"lPrnConCaA","Logical"  ,01,0},; // .T. Informes Discriminados por Conceptps.
 			 {"lPagExtCaA","Logical"  ,01,0},; // Visualizar Fecha Extemporanea
 			 {"cMensajCaA","Character",100,0},; // Mensaje para la facturaci¢n
+			 {"cTxtUnoCaA","Character",250,0},; // Texto Uno para la Facturaci¢n
+			 {"cTxtDosCaA","Character",250,0},; // Texto Dos para la Facturaci¢n
+			 {"cCodeQrCaA","Character",250,0},; // C¢digo QR para el recibo.
 			 {"lPrePrnCaA","Logical"  ,01,0},; // .T. Imprimir Forma Preimpresa
 			 {"nNomFacCaA","Numeric"  ,01,0},; // C¢digo del Nombre de la Factura 0=>Alumno 1=>Alumno/Padre 2=>Alumno/Madre 3=>Alumno/Acudiente 4=>Padre 5=>Madre 6=>Acudiente
 			 {"nNomRepCaA","Numeric"  ,01,0},; // Nombre a Reportar. 0=>No Reportar 1=>Padre,Madre o Acudiente, 2=>Fiador Uno 3=>Fiador Dos
@@ -852,12 +855,34 @@ FUNCTION oBrwCarAno(lShared,cAnoUsr,nFilSup,nColSup,nFilInf,nColInf)
        oBrwCaA:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
-       oColumn	:= TBCOLUMNNEW('MENSAJE PARA;LA FACTURACION',;
+       oColumn	:= TBCOLUMNNEW('MENSAJE DE;LA FACTURACION',;
 				    {||CAA->cMensajCaA})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CAA'},;
 			 {'FIELD','cMensajCaA'},{'PICTURE','@S76X'}}
        oBrwCaA:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
+
+       oColumn	:= TBCOLUMNNEW('TEXTO UNO DE;LA FACTURACION',;
+				    {||CAA->cTxtUnoCaA})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CAA'},;
+			 {'FIELD','cTxtUnoCaA'},{'PICTURE','@S76X'}}
+       oBrwCaA:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	:= TBCOLUMNNEW('TEXTO DOS DE;LA FACTURACION',;
+				    {||CAA->cTxtDosCaA})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CAA'},;
+			 {'FIELD','cTxtDosCaA'},{'PICTURE','@S76X'}}
+       oBrwCaA:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	:= TBCOLUMNNEW('CODIGO QR DE;LA FACTURACION',;
+				    {||CAA->cCodeQrCaA})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CAA'},;
+			 {'FIELD','cCodeQrCaA'},{'PICTURE','@S76X'}}
+       oBrwCaA:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
 
 /*
        oColumn	:= TBCOLUMNNEW('MENSAJE PARA;EL RECIBO DE PAGO',;

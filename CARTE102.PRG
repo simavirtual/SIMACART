@@ -997,7 +997,8 @@ FUNCTION Carte_102(aP1,aP2,aP3)
 		 DO CASE
 		 CASE CAA->nRecNroCaA == 1
 
-		      nVlrTot := nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,;
+		      nVlrTot := nRecibo01(aRecFac,;
+					   lShared,cEmpPal,cNitEmp,cNomEmp,;
 					   cJorTxt,xPrm(aP3,'cCodIso'),;
 					   @nNroFac,CLI->cCodigoEst,;
 					   cNombreTes,&cNalias->cCodigoGru,;

@@ -771,6 +771,7 @@ FUNCTION nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
        AADD(aRecFac,{'dFecUsr',DATE()})
        AADD(aRecFac,{'cHorUsr',TIME()})
 
+
        IF nMesIni == nMesFin
 	  SaveRegRfa(aRecFac)
        ENDIF
@@ -6044,7 +6045,7 @@ OBJETIVOS:
 *                              PROGRAMA                                  *
 *------------------------------------------------------------------------*/
 
-FUNCTION nRecibo08(lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
+FUNCTION nRecibo08(aRecFac,lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 		   cMaeAct,cJorTxt,cCodIso,nNroFac,cCodEst,cNomEst,;
 		   cCodGru,nNroLis,cNomBan,cCtaBan,cLugBan,cConcep,;
 		   nIntMor,dPagOpo,dPagExt,lPagExt,cMensaj,nVlrMes,;
@@ -6053,8 +6054,9 @@ FUNCTION nRecibo08(lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 		   nVlrBec,nDescue,nPagPar,nRecarg,nDesGen,nRecGen,;
 		   cConGen,nFavDes,nSdoFav,nRecNro)
 
-*>>>>PARAMETROS DE LA FUNCION
-/*     lShared                              // .T. Archivos Compartidos
+*>>>>DESCRIPCION DE PARAMETROS
+/*     aRecFac                              // Recibo Facturado
+       lShared                              // .T. Archivos Compartidos
        cEmpPal                              // Nombre de la Empresa principal
        cNitEmp                              // Nit de la Empresa
        cNomEmp                              // Nombre de la Empresa
@@ -6100,7 +6102,7 @@ FUNCTION nRecibo08(lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
        nFavDes                              // @Saldo a Favor Descontado
        nSdoFav                              // Saldo a Favor
        nRecNro                              // N£mero del Recibo */
-*>>>>FIN PARAMETROS DE LA FUNCION
+*>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
        LOCAL cDelimi := CHR(13)+CHR(10)     // Delimitador de fin de l¡nea
@@ -6142,7 +6144,6 @@ FUNCTION nRecibo08(lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
        LOCAL nPorBec := 0                   // Porcentaje de la beca
        LOCAL nVlrPag := 0                   // Valor del mes a pagar
        LOCAL nNroCop := 0                   // N£mero de Copias
-       LOCAL aRecFac := {}                  // Recibo Facturado
        SET FIXED OFF
 *>>>>FIN DECLARACION DE VARIABLES
 
@@ -6959,7 +6960,7 @@ ENDIF
 
        AADD(aRecFac,{'cCodEst',cCodEst})
        AADD(aRecFac,{'nMesIni',nMesIni})
-       AADD(aRecFac,{'nMesFin',nMesIni})
+       AADD(aRecFac,{'nMesFin',nMesFin})
        AADD(aRecFac,{'cEmpPal',cEmpPal})
        AADD(aRecFac,{'cNroNit',cNitEmp})
        AADD(aRecFac,{'cNroFac',cNroFac})
@@ -7023,9 +7024,9 @@ ENDIF
        AADD(aRecFac,{'dFecUsr',DATE()})
        AADD(aRecFac,{'cHorUsr',TIME()})
 
-       IF nMesIni == nMesFin
-	  SaveRegRfa(aRecFac)
-       ENDIF
+       nMesFin := IF(nMesFin==NIL,nMesIni,nMesFin)
+
+       SaveRegRfa(aRecFac)
 
        RETURN nVlrTot
 *>>>>FIN GRABACION DEL RECIBO FACTURADO

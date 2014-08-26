@@ -1345,6 +1345,8 @@ OBJETIVOS:
 
 1- Calcula el £ltimo mes conciliado con la contabilidad.
 
+2- Revisar si sirve para implemtar. OJO
+
 *------------------------------------------------------------------------*
 *                              PROGRAMA                                  *
 *------------------------------------------------------------------------*/

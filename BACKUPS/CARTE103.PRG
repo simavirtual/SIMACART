@@ -39,6 +39,10 @@ FUNCTION Carte_103(aP1,aP2,aP3)
        LOCAL cSavPan := ''                  // Salvar Pantalla
        LOCAL lHayErr := .F.                 // .T. Hay Error
 
+       LOCAL PathAct := ''                  // Path Actual
+       LOCAL PathRfa := ''                  // Path Recibos facturados
+       LOCAL fRecFac := 'RECI'              // Ej: RECIENE.DAT
+
        LOCAL     i,j := 0                   // Contadores
        LOCAL cUsrIso := ''                  // Usuario de la Iso
        LOCAL nNroInf := 0                   // N£mero del informe
@@ -111,6 +115,9 @@ FUNCTION Carte_103(aP1,aP2,aP3)
 
        LOCAL nIntPen := 0                   // Intereses de pension
        LOCAL nIntDeu := 0                   // Intereses para el no pago
+       LOCAL aDocNit := {}                  // Documento de los Contrantes
+       LOCAL nTipPer := 0                   // Tipo de Persona
+       LOCAL aRecFac := {}                  // Recibo Facturado
 
        LOCAL Getlist := {}                  // Variable del sistema
 
@@ -176,6 +183,10 @@ FUNCTION Carte_103(aP1,aP2,aP3)
 
 *>>>>AREAS DE TRABAJO
        aUseDbf := {}
+
+       AADD(aUseDbf,{.T.,PathUno+'\'+PathSis+'\'+;
+			 FilePer,'PER',NIL,lShared,nModCry})
+
        AADD(aUseDbf,{.T.,PathUno+'\'+PathSis+'\'+FileRec,'REC',;
 			 PathUno+'\'+PathSis+'\'+fNtxRec,lShared,nModCry})
 
@@ -533,6 +544,8 @@ FUNCTION Carte_103(aP1,aP2,aP3)
 	    ENDIF
 **********FIN PREGUNTA DE DECISION
 
+
+
 **********ANALISIS PARA LA IMPRESION DEL RECIBO
 	    nRegPag := 0
 	    IF !lDobleFac(CLI->cCodigoEst,nMesIniTpa,nMesFinTpa,;
@@ -595,6 +608,129 @@ FUNCTION Carte_103(aP1,aP2,aP3)
 	    ENDIF
 	    ReplTitIso(@aTitIso,aMezIso)
 **********FIN SUSTITUCION DE TEXTO
+
+**********LECTURA DE LOS CONTRATANTES
+	    aDocNit := {}
+
+	    IF !EMPTY(&cNalias->cNitCo1Est)
+	       AADD(aDocNit,{&cNalias->cNitCo1Est,;
+			     &cNalias->cTipCo1Est})
+	    ENDIF
+
+	    IF !EMPTY(&cNalias->cNitCo2Est)
+	       AADD(aDocNit,{&cNalias->cNitCo2Est,;
+			     &cNalias->cTipCo2Est})
+	    ENDIF
+**********FIN LECTURA DE LOS CONTRATANTES
+
+**********ANALISIS DEL CONTRATANTE
+	    aRecFac := {}
+	    AADD(aRecFac,{'cTxtUno',CAA->cTxtUnoCaA})
+	    AADD(aRecFac,{'cTxtDos',CAA->cTxtDosCaA})
+	    AADD(aRecFac,{'cCodeQr',CAA->cCodeQrCaA})
+
+	    AADD(aRecFac,{'cNitCn1',' '})
+	    AADD(aRecFac,{'cNomCn1',' '})
+	    AADD(aRecFac,{'cNitCn2',' '})
+	    AADD(aRecFac,{'cNomCn2',' '})
+
+
+	    FOR i:=1 TO LEN(aDocNit)
+
+	       IF EMPTY(aDocNit[i,1])
+		  LOOP
+	       ENDIF
+
+	       nTipPer := nTipPerMae(aDocNit[i,1],;
+				     &cNalias->cPadNitEst,;
+				     &cNalias->cMadNitEst)
+
+	       DO CASE
+	       CASE nTipPer == 1     // Padre
+
+		    IF i == 1
+		       nParameSet(aRecFac,'cNitCn1',aDocNit[i,1])
+		       nParameSet(aRecFac,'cNomCn1',ALLTRIM(&cNalias->cNomPadEst)+' '+;
+						    ALLTRIM(&cNalias->cApePadEst))
+		    ELSE
+		       nParameSet(aRecFac,'cNitCn2',aDocNit[i,1])
+		       nParameSet(aRecFac,'cNomCn2',ALLTRIM(&cNalias->cNomPadEst)+' '+;
+						    ALLTRIM(&cNalias->cApePadEst))
+
+		    ENDIF
+
+	       CASE nTipPer == 2     // Madre
+
+		    IF i == 1
+		       nParameSet(aRecFac,'cNitCn1',aDocNit[i,1])
+		       nParameSet(aRecFac,'cNomCn1',ALLTRIM(&cNalias->cNomMadEst)+' '+;
+						    ALLTRIM(&cNalias->cApeMadEst))
+		    ELSE
+		       nParameSet(aRecFac,'cNitCn2',aDocNit[i,1])
+		       nParameSet(aRecFac,'cNomCn2',ALLTRIM(&cNalias->cNomMadEst)+' '+;
+						    ALLTRIM(&cNalias->cApeMadEst))
+		    ENDIF
+                                            
+
+
+	       CASE nTipPer == 3     // Otra Persona
+
+		    IF lLocNitPer(aDocNit[i,1],aDocNit[i,2])
+
+		       IF i == 1
+			  nParameSet(aRecFac,'cNitCn1',aDocNit[i,1])
+			  nParameSet(aRecFac,'cNomCn1',cNomPer(PER->cApeUnoPer,;
+							       PER->cApeDosPer,;
+							       PER->cNomUnoPer,;
+							       PER->cNomDosPer))
+
+		       ELSE
+			  nParameSet(aRecFac,'cNitCn2',aDocNit[i,1])
+			  nParameSet(aRecFac,'cNomCn2',cNomPer(PER->cApeUnoPer,;
+							       PER->cApeDosPer,;
+							       PER->cNomUnoPer,;
+							       PER->cNomDosPer))
+		       ENDIF
+
+		    ELSE
+
+		       IF i == 1
+			  nParameSet(aRecFac,'cNitCn1',aDocNit[i,1])
+			  nParameSet(aRecFac,'cNomCn1','PERSONA NO EXISTE')
+		       ELSE
+			  nParameSet(aRecFac,'cNitCn2',aDocNit[i,1])
+			  nParameSet(aRecFac,'cNomCn2','PERSONA NO EXISTE')
+		       ENDIF
+
+		    ENDIF
+
+	       ENDCASE
+
+	    NEXT
+**********FIN ANALISIS DEL CONTRATANTE
+
+**********DIRECTORIOS
+	    PathAct := cPathAct()
+
+	    PathRfa := cPatSis+'\RECIBOS\'+cMes(nMesIniTpa,3)
+	    Mdir(PathRfa,PathAct)
+	  *ÀDirectorio para el mes de los recibos facturados
+**********FIN DIRECTORIOS
+
+**********VALIDACION DEL ARCHIVO
+	    fRecFac := 'RECI'+cMes(nMesIniTpa,3)+ExtFile
+	    IF !FILE(PathRfa+'\'+fRecFac)
+	       CreaDbfRfa(lShared,nModCry,PathRfa,fRecFac)
+	    ENDIF
+	    nActStrRfa(lShared,nModCry,PathRfa,fRecFac)
+**********FIN VALIDACION DEL ARCHIVO
+
+**********SELECION DE LAS AREAS DE TRABAJO
+	    IF !lUseDbf(.T.,PathRfa+'\'+fRecFac,'RFA',NIL,lShared,nModCry)
+	       cError('ABRIENDO EL ARCHIVO '+fRecFac)
+	       LOOP
+	    ENDIF
+**********FIN SELECION DE LAS AREAS DE TRABAJO
 
 **********PARAMETROS DEL INFORME
 	    aP3 := {}
@@ -776,7 +912,8 @@ FUNCTION Carte_103(aP1,aP2,aP3)
 
 	    CASE CAA->nRecNroCaA == 8 .OR. CAA->nRecNroCaA == 9
 
-		 nVlrTot := nRecibo08(lShared,cEmpPal,cNitEmp,cNomEmp,;
+		 nVlrTot := nRecibo08(aRecFac,;
+				      lShared,cEmpPal,cNitEmp,cNomEmp,;
 				      cNomUsr,cAnoUsr,cNalias,cJorTxt,;
 				      xPrm(aP3,'cCodIso'),@nNroFac,;
 				      &cNalias->cCodigoEst,cNombreTes,;
@@ -996,6 +1133,7 @@ FUNCTION Carte_103(aP1,aP2,aP3)
 	    EJECT
 	    CloseDbf('CLI',FileCli,nModCry)
 	    CloseDbf('PAG',FilePag,nModCry)
+	    CloseDbf('RFA')
 **********FIN GRABACION DE LOS DETALLES DEL PAGO
 
        ENDDO
