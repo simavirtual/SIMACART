@@ -1137,7 +1137,6 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 	    ENDIF
 **********FIN BUSQUEDA DEL CODIGO DEL ESTUDIANTE
 
-
 **********CALCULO DEL SALDO ACTUAL
 	    nSdoAct := nSdoActEst(CLI->cCodigoEst,lRetadoTes,;
 				  cMaeAlu,nMesIniTpa,lPrnFec,;
@@ -1206,7 +1205,6 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 
 **********ANALISIS DEL PAGO
 	    IF !lMesAct .AND. lHayAlu .AND. lHayPag
-
 
 *--------------CALCULO DE LOS INTERESES
 		 nVlrInt := nVlrIntNoP(CAA->lIntPenCaA,;
@@ -1396,7 +1394,6 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 
 	    ENDIF
 **********FIN LOCALIZACION DE LOS DIAS EN MORA
-
 
 **********IMPRESION DEL CONTENIDO DEL INFORME
 	    IF nTipPrn == 0 .OR. nTipPrn == 1

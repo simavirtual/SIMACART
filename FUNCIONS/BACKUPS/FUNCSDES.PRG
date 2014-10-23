@@ -621,18 +621,14 @@ FUNCTION oDefBrwDes(lShared,nFilSup,nColSup,nFilInf,nColInf,nNroFil,;
        oBrowse:ColSep    := '³'
        oBrowse:HeadSep   := 'Ä'
 
-       IF nMesVal() == 12
-	  oBrowse:Cargo     := {'<<MANTENIMIENTO DE DESCUENTOS Y RECARGOS>>',;
-			       '<F5>Buscar '+;
-			       '<F9>Imprimir <ESC>Abandonar'}
-       ELSE
-	  oBrowse:Cargo     := {'<<MANTENIMIENTO DE DESCUENTOS Y RECARGOS>>',;
-			       '<F5>Buscar '+;
-			       '<INS>Incluir <F9>Imprimir <ESC>Abandonar',;
-			       {||IncluirDes(lShared,nNroFil,nNroCol,nFilPal,;
-					     cNomEmp,cNomSis,cNomUsr,cAnoUsr,;
-					     cMaeAlu,cPatSis,lAnoAct)}}
-       ENDIF
+
+       oBrowse:Cargo     := {'<<MANTENIMIENTO DE DESCUENTOS Y RECARGOS>>',;
+			    '<F5>Buscar '+;
+			    '<INS>Incluir <F9>Imprimir <ESC>Abandonar',;
+			    {||IncluirDes(lShared,nNroFil,nNroCol,nFilPal,;
+					  cNomEmp,cNomSis,cNomUsr,cAnoUsr,;
+					  cMaeAlu,cPatSis,lAnoAct)}}
+
 
      *ÀDefinici¢n de cabeceras y l¡neas de cabeceras
 
@@ -974,7 +970,7 @@ FUNCTION IncluirDes(lShared,nFilInf,nColInf,nFilPal,cNomEmp,;
 		    cNomSis,cNomUsr,cAnoUsr,cMaeAlu,cPatSis,;
 		    lAnoAct)
 
-*>>>>PARAMETROS DE LA FUNCION
+*>>>>DESCRIPCION DE PARAMETROS
 /*     lShared                              // .T. Archivos Compartidos
        nFilInf                              // Fila Inferior del SubMen£
        nColInf                              // Columna Inferior del SubMen£
@@ -986,7 +982,7 @@ FUNCTION IncluirDes(lShared,nFilInf,nColInf,nFilPal,cNomEmp,;
        cMaeAlu                              // Maestros Habilitados
        cPatSis                              // Path del sistema
        lAnoAct                              // .T. A¤o Actual */
-*>>>>FIN PARAMETROS DE LA FUNCION
+*>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
        #INCLUDE "ARC-CART.PRG"       // Archivos del Sistema
@@ -1042,8 +1038,18 @@ FUNCTION IncluirDes(lShared,nFilInf,nColInf,nFilPal,cNomEmp,;
        IF nNroMesTde == 0
 	  RETURN NIL
        ENDIF
-       LineaEstado('MES DE PROCESO: '+cMes(nNroMesTde,10),cNomSis)
 *>>>>FIN SELECION DE MES A PROCESAR
+
+*>>>>VALIDACION DE LA CONCILIACION
+       IF SUBS(CAA->cValConCaA,nNroMesTde,1) # SPACE(01)
+
+	  cError('EL MES DE '+cMes(nNroMesTde,10)+' '+;
+		 'YA SE REPORTO A CONTABILIDAD')
+	  RETURN NIL
+
+       ENDIF
+       LineaEstado('MES DE PROCESO: '+cMes(nNroMesTde,10),cNomSis)
+*>>>>FIN VALIDACION DE LA CONCILIACION
 
 *>>>>IMPRESION DE LOS ENCABEZADOS
        nNroFil := nMarco(nFilPal+1,'POR FAVOR ENTRE LOS DESCUENTOS'+;

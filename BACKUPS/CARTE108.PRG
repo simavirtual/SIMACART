@@ -104,6 +104,7 @@ FUNCTION Carte_108(aParam1,aParam2,aParam3)
 
 *>>>>AREAS DE TRABAJO
        aUseDbf := {}
+       AADD(aUseDbf,{.T.,PathSis+'\'+FSimCar,'CAR',NIL,lSiRed,nModCry})
        AADD(aUseDbf,{.T.,cPatSis+'\'+;
 			 fCarAno+cAnoUsr+ExtFile,'CAA',NIL,lShared,nModCry})
 *>>>>FIN AREAS DE TRABAJO
@@ -121,6 +122,9 @@ FUNCTION Carte_108(aParam1,aParam2,aParam3)
        DO CASE
        CASE CAA->(RECCOUNT()) == 0
 	    cError('NO EXISTEN CONFIGURACION PARA EL A¥O')
+
+       CASE EMPTY(CAR->cCodFacCar)
+	    cError('NO SE HA CONFIRGURADO EL CODIGO DEL SERVICIO FACTURADO')
 
        OTHERWISE
 	    lHayErr :=.F.

@@ -1012,7 +1012,7 @@ FUNCTION BuscarExt(lShared,oBrowse,FileNtx)
 *>>>>SELECCION DEL METODO DE BUSQUEDA
        aMenus := {'1<POR REFERENCIA>',;
 		  '2<POR CODIGO    >',;
-		  '3<PRO CONCEPTO  >'}
+		  '3<POR CONCEPTO  >'}
 
        cSavPan := SAVESCREEN(0,0,24,79)
        nNroOpc := nMenu(aMenus,NIL,09,30,'BUSQUEDA',NIL,1,.F.)

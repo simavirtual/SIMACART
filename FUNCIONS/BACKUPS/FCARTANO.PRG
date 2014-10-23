@@ -71,6 +71,7 @@ FUNCTION CreaCarAno(lShared,nModCry,PathCaA,FileCaA,fNtxCaA,lGrabar,aStrDbf)
 			 {"cCodigoBan","Character",02,0},; // C¢digo del Banco por defecto para el pago
 			 {"cConPenCaA","Character",14,0},; // Conceptos de Pension por defecto para el pago
 			 {"cConMatCaA","Character",28,0},; // Conceptos de la Matricula para el Certificado
+			 {"cConPrnCaA","Character",32,0},; //*Conceptos a imprimir en los reportes
 			 {"lIntPenCaA","Logical"  ,01,0},; // .T. Utilizar interes por mora y no valor de recargo para lo no pagos o pagos extemporaneos
 			 {"nIntPenCaA","Numeric"  ,05,2},; // Intereses por mora para la pensi¢n extemporaneo
 			 {"nIntDeuCaA","Numeric"  ,05,2},; // Interes por Mora para el no pago
@@ -86,8 +87,8 @@ FUNCTION CreaCarAno(lShared,nModCry,PathCaA,FileCaA,fNtxCaA,lGrabar,aStrDbf)
 			 {"lPrnConCaA","Logical"  ,01,0},; // .T. Informes Discriminados por Conceptps.
 			 {"lPagExtCaA","Logical"  ,01,0},; // Visualizar Fecha Extemporanea
 			 {"cMensajCaA","Character",100,0},; // Mensaje para la facturaci¢n
-			 {"cTxtUnoCaA","Character",250,0},; // Texto Uno para la Facturaci¢n
-			 {"cTxtDosCaA","Character",250,0},; // Texto Dos para la Facturaci¢n
+			 {"cTxtUnoCaA","Character",300,0},; // Texto Uno para la Facturaci¢n
+			 {"cTxtDosCaA","Character",300,0},; // Texto Dos para la Facturaci¢n
 			 {"cCodeQrCaA","Character",250,0},; // C¢digo QR para el recibo.
 			 {"lPrePrnCaA","Logical"  ,01,0},; // .T. Imprimir Forma Preimpresa
 			 {"nNomFacCaA","Numeric"  ,01,0},; // C¢digo del Nombre de la Factura 0=>Alumno 1=>Alumno/Padre 2=>Alumno/Madre 3=>Alumno/Acudiente 4=>Padre 5=>Madre 6=>Acudiente
@@ -1344,6 +1345,8 @@ AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: MAR 07/2006 MAR A
 OBJETIVOS:
 
 1- Calcula el £ltimo mes conciliado con la contabilidad.
+
+2- Revisar si sirve para implemtar. OJO
 
 *------------------------------------------------------------------------*
 *                              PROGRAMA                                  *

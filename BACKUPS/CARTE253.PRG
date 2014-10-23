@@ -405,14 +405,14 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *>>>>FIN LECTURA DE LOS CONCEPTOS
 
 *>>>>GRABACION DE LOS CONCEPTOS A IMPRIMIR
-       IF CAR->(lRegLock(lSiRed,.F.))
-	  REPL CAR->cConPrnCar WITH cConcep
-	  CAR->(DBCOMMIT())
+       IF CAA->(lRegLock(lShared,.F.))
+	  REPL CAA->cConPrnCaA WITH cConcep
+	  CAA->(DBCOMMIT())
        ELSE
 	  cError('NO SE GRABA LOS CONCEPTOS A IMPRIMIR')
        ENDIF
        IF lShared
-	  CAR->(DBUNLOCK())
+	  CAA->(DBUNLOCK())
        ENDIF
 *>>>>FIN GRABACION DE LOS CONCEPTOS A IMPRIMIR
 

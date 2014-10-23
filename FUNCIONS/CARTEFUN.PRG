@@ -659,6 +659,10 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
 
        CASE CAA->(RECCOUNT()) == 0
 	    cError('NO EXISTE CONFIGURACION DEL A¥O DEL SISTEMA')
+
+       CASE EMPTY(CAR->cCodFacCar)
+	    cError('NO SE HA CONFIRGURADO EL CODIGO DEL SERVICIO FACTURADO')
+
        OTHERWISE
 	    lHayErr :=.F.
        ENDCASE
@@ -666,7 +670,7 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
        lPrnArc := CAR->lPrnArcCar
        cModem  := CAR->cModemCar
        cEmpCob := CAR->cEmpCobCar
-       cSerFac := ALLTRIM(CAR->cSerFacCar)
+       cSerFac := ALLTRIM(CAR->cSerFacCar)+':'+CAR->cCodFacCar
 *>>>>FIN VALIDACION DE CONTENIDOS DE ARCHIVOS
 
 *>>>>ACTIVACION DEL DISPOSITIVO DE IMPRESION

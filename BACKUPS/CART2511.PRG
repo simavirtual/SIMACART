@@ -176,6 +176,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        LOCAL nDesFin := 0                   // Total Abonos Descuentos de fin de mes
        LOCAL nTotFin := 0                   // Gran Total de la Facturaci¢n de fin de mes
        LOCAL nTotCau := 0                   // Total Causaci¢n
+       LOCAL lAllInf := .T.                 // .T. Todo el Informe .F. Sole Resumen
        LOCAL Getlist := {}                  // Variable del sistema
      *ÀVariables espec¡ficas
 
@@ -382,7 +383,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 
 *>>>>LECTURA DE LOS CONCEPTOS
        cSavPan := SAVESCREEN(0,0,24,79)
-       cConcep := CAR->cConPrnCar
+       cConcep := CAA->cConPrnCaA
        @ nFilInf+1,nColInf SAY 'CONCEPTOS' GET cConcep PICT "@!";
 			   VALID lValLeeCon(nFilInf+1,nColInf+26,;
 					    nFilInf+1,nColInf+10,;
@@ -587,7 +588,16 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  FilePrn = SUBS(CAR->cSerFacCar,1,1)+'f'+cAnoUsr+cNroMes
+	  IF EMPTY(cCodEst)
+	     IF nRegIni == nRegFin
+		FilePrn = SUBS(CAR->cSerFacCar,1,1)+'f'+GRU->cCodigoGru
+	     ELSE
+		FilePrn = SUBS(CAR->cSerFacCar,1,1)+'f'+cAnoUsr+cNroMes
+	     ENDIF
+	  ELSE
+	     FilePrn = SUBS(CAR->cSerFacCar,1,1)+'f'+cCodEst
+
+	  ENDIF
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     IF !lFileDelete(FileTem)
@@ -1864,7 +1874,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 	     lSavTotCau(nMesIniTpa,nTotCau,lShared,.F.,cNomUsr)
 	  ELSE
 	     SET DEVICE TO SCREEN
-	     cError('CARTERA DESCUADRADA')
+*	     cError('CARTERA DESCUADRADA')
 	     SET DEVICE TO PRINT
 	  ENDIF
 	  lSavTotPag(nMesIniTpa,nTotPag+nAboMes,lShared,.F.,cNomUsr)

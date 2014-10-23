@@ -122,6 +122,9 @@ FUNCTION Carte_101(aP1,aP2,aP3)
        LOCAL aDocNit := {}                  // Documento de los Contrantes
        LOCAL nTipPer := 0                   // Tipo de Persona
        LOCAL aRecFac := {}                  // Recibo Facturado
+       LOCAL aConAlu := {}                  // Conceptos por Estudiante
+       LOCAL nDiaMor := 0                   // Dias en Mora
+       LOCAL nMesSdo := 0                   // Mes del saldo
 
        LOCAL Getlist := {}                  // Variable del sistema
 
@@ -274,6 +277,9 @@ FUNCTION Carte_101(aP1,aP2,aP3)
 
        CASE CAR->(RECCOUNT()) == 0
 	    cError('NO EXISTE CONFIGURACION DEL SISTEMA')
+
+       CASE EMPTY(CAR->cCodFacCar)
+	    cError('NO SE HA CONFIRGURADO EL CODIGO DEL SERVICIO FACTURADO')
 
        CASE PRN->(RECCOUNT()) == 0
 	    cError('NO EXISTEN IMPRESIORAS GRABADAS')
@@ -568,6 +574,9 @@ FUNCTION Carte_101(aP1,aP2,aP3)
 
 **********ANALISIS DEL CONTRATANTE
 	    aRecFac := {}
+	    AADD(aRecFac,{'cCodEmp',SCO->cCodEmpCon})
+	    AADD(aRecFac,{'cCodFac',CAR->cCodFacCar})
+
 	    AADD(aRecFac,{'cTxtUno',CAA->cTxtUnoCaA})
 	    AADD(aRecFac,{'cTxtDos',CAA->cTxtDosCaA})
 	    AADD(aRecFac,{'cCodeQr',CAA->cCodeQrCaA})
@@ -725,6 +734,22 @@ FUNCTION Carte_101(aP1,aP2,aP3)
 
 	    ENDIF
 **********FIN GRABACION DEL CONTROL CONCEPTOS INDIVIDUALES
+
+**********ANTIGUEDAD DEL SALDO PENDIENTE
+	    aConAlu := {}
+	    nDiaMor := 0
+	    nMesSdo := 0
+	    IF CLI->nSdoActCli+CLI->nSdoMorCli > 0
+
+	       IF lLocCodPag(CLI->cCodigoEst,;
+			     nMesUltPag(CLI->cCodigoEst),.F.)
+
+		  lVlrConSdo(CLI->nSdoActCli,0,aConAlu,@nDiaMor,@nMesSdo)
+
+	       ENDIF
+
+	    ENDIF
+**********FIN ANTIGUEDAD DEL SALDO
 
 **********ANALISIS PARA LA IMPRESION DEL RECIBO
 	    nRegPag := 0
@@ -931,7 +956,8 @@ FUNCTION Carte_101(aP1,aP2,aP3)
 	    DO CASE
 	    CASE CAA->nRecNroCaA == 1
 
-		 nVlrTot := nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,;
+		 nVlrTot := nRecibo01(aRecFac,;
+				      lShared,cEmpPal,cNitEmp,cNomEmp,;
 				      cJorTxt,xPrm(aP3,'cCodIso'),@nNroFac,;
 				      &cMaeAct->cCodigoEst,cNombreTes,;
 				      &cMaeAct->cCodigoGru,CLI->(RECNO()),;
@@ -1039,13 +1065,14 @@ FUNCTION Carte_101(aP1,aP2,aP3)
 
 	    CASE CAA->nRecNroCaA == 8 .OR. CAA->nRecNroCaA == 9
 
-		 nVlrTot := nRecibo08(aRecFac,lShared,cEmpPal,cNitEmp,cNomEmp,;
+		 nVlrTot := nRecibo08(aRecFac,nDiaMor,;
+				      lShared,cEmpPal,cNitEmp,cNomEmp,;
 				      cNomUsr,cAnoUsr,cMaeAct,cJorTxt,;
 				      xPrm(aP3,'cCodIso'),@nNroFac,;
 				      &cMaeAct->cCodigoEst,cNombreTes,;
 				      &cMaeAct->cCodigoGru,CLI->(RECNO()),;
 				      BAN->cNombreBan,BAN->cNroCtaBan,;
-				      BAN->cLugarBan,cConcep,nIntPen,;
+				      BAN->cLugarBan,@cConcep,nIntPen,;
 				      IF(CAA->lPagExtCaA,CAA->dOpoPenCaA,;
 							 CAA->dFecRecCaA),;
 				      CAA->dExtPenCaA,CAA->lPagExtCaA,;
@@ -1334,14 +1361,20 @@ FUNCTION SaveRegRfa(aRecFac)
 
        LOCAL lShared := xPrm(aRecFac,'lShared')
 
+       LOCAL cCodEmp := xPrm(aRecFac,'cCodEmp')
+       LOCAL cCodFac := xPrm(aRecFac,'cCodFac')
+
+
        LOCAL cCodEst := xPrm(aRecFac,'cCodEst')
        LOCAL nMesIni := xPrm(aRecFac,'nMesIni')
        LOCAL nMesFin := xPrm(aRecFac,'nMesFin')
        LOCAL cEmpPal := xPrm(aRecFac,'cEmpPal')
        LOCAL cNroNit := xPrm(aRecFac,'cNroNit')
+       LOCAL cNomEmp := xPrm(aRecFac,'cNomEmp')
        LOCAL cNroFac := xPrm(aRecFac,'cNroFac')
        LOCAL cNomBan := xPrm(aRecFac,'cNomBan')
        LOCAL cNroCta := xPrm(aRecFac,'cNroCta')
+       LOCAL cCodEan := xPrm(aRecFac,'cCodEan')
        LOCAL cNombre := xPrm(aRecFac,'cNombre')
        LOCAL cCodRef := xPrm(aRecFac,'cCodRef')
        LOCAL cCodGru := xPrm(aRecFac,'cCodGru')
@@ -1424,14 +1457,22 @@ FUNCTION SaveRegRfa(aRecFac)
 
 	  REPL RFA->nIdeCodRfa WITH RFA->(RECNO())
 
+	  REPL RFA->cCodEmpCon WITH cCodEmp
+	  REPL RFA->cCodFacCar WITH cCodFac
+
 	  REPL RFA->cCodigoEst WITH cCodEst
 	  REPL RFA->nMesIniPag WITH nMesIni
 	  REPL RFA->nMesFinPag WITH nMesFin
-	  REPL RFA->cNomEmpCon WITH cEmpPal
-	  REPL RFA->cNroNitCon WITH cNroNit
+
+	  REPL RFA->cEmpPalRec WITH cEmpPal
+	  REPL RFA->cNomEmpRec WITH cNomEmp
+	  REPL RFA->cNroNitRec WITH cNroNit
+
 	  REPL RFA->cNroFacCaA WITH cNroFac
 	  REPL RFA->cNomBanRec WITH cNomBan
 	  REPL RFA->cNroCtaBan WITH cNroCta
+	  REPL RFA->cCodEanRec WITH cCodEan
+
 	  REPL RFA->cNombreRec WITH cNombre
 	  REPL RFA->cCodRefRec WITH cCodRef
 	  REPL RFA->cCodigoGru WITH cCodGru
@@ -1502,5 +1543,3 @@ FUNCTION SaveRegRfa(aRecFac)
        ENDIF
        RETURN NIL
 *>>>>FIN GRABACION DEL REGISTRO
-
-

@@ -161,6 +161,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        LOCAL cLinUrl := ''                  // Link de Url
        LOCAL PathWww := ''                  // Path del Sitio
        LOCAL cCodBan := ''                  // C¢digo del Banco
+       LOCAL lAllInf := .T.                 // .T. Todo el Informe .F. Sole Resumen
 
        LOCAL Getlist := {}                  // Variable del sistema
      *ÀVariables espec¡ficas
@@ -405,16 +406,21 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *>>>>FIN LECTURA DE LOS CONCEPTOS
 
 *>>>>GRABACION DE LOS CONCEPTOS A IMPRIMIR
-       IF CAR->(lRegLock(lSiRed,.F.))
-	  REPL CAR->cConPrnCar WITH cConcep
-	  CAR->(DBCOMMIT())
+       IF CAA->(lRegLock(lShared,.F.))
+	  REPL CAA->cConPrnCaA WITH cConcep
+	  CAA->(DBCOMMIT())
        ELSE
 	  cError('NO SE GRABA LOS CONCEPTOS A IMPRIMIR')
        ENDIF
        IF lShared
-	  CAR->(DBUNLOCK())
+	  CAA->(DBUNLOCK())
        ENDIF
 *>>>>FIN GRABACION DE LOS CONCEPTOS A IMPRIMIR
+
+*>>>>ANALISIS DE DECISION
+       lAllInf := !lPregunta('DESEA IMPRIMIR SOLO '+;
+			    'EL RESUMEN DEL INFORME? No Si')
+*>>>>FIN ANALISIS DE DECISION
 
 *>>>>CAPTURA DE LOS GRUPOS POR INTERVALO
        IF !lIntervGru(nFilInf+1,nColInf,@nRegIni,@nRegFin,@lAllGru)
@@ -578,6 +584,9 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        ENDIF
        aCabSec := NIL
        bPagina := {||lPagina(nLinReg)}
+       IF .NOT. lAllInf
+	  cCabCol := ''
+       ENDIF
        bCabeza := {||CabezaPrn(cCodIni,aCabeza,cCabCol,;
 			       nColCab,cCodFin,aCabSec)}
        bDerAut := {||DerechosPrn(cNomSis,cNomEmp,nLenPrn)}
@@ -1090,7 +1099,9 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 			       '=>'+CLI->cCodigoEst+'-'+STR(CLI->(RECNO()),2)+;
 			       IF(aConAlu[LEN(aConAlu)-1] = aConAlu[LEN(aConAlu)],'',;
 				  'REVISAR')
-		    lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+		    IF lAllInf
+		       lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+		    ENDIF
 		 ENDIF
 *--------------FIN IMPRESION DEL CONTENIDO DEL INFORME POR ESTUDIANTE
 
@@ -1127,7 +1138,10 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	    cTxtPrn := cRegPrint(aTitulo,aNroCol)+;
 		       IF(aVlrCon[LEN(aVlrCon)-1] = aVlrCon[LEN(aVlrCon)],'',;
 			  'REVISAR')
-	    lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+
+	    IF lAllInf
+	       lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+	    ENDIF
 **********FIN IMPRESION DEL CONTENIDO DEL INFORME
 
 **********AVANCE DEL SIGUIENTE GRUPO
@@ -1149,10 +1163,18 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	    cNivAct := SUBS(GRU->cCodigoGru,1,2)
 	    IF cNivAnt # cNivAct
 
-	       @ PROW()+1,00 SAY ''
+
+	       IF lAllInf
+		  @ PROW()+1,00 SAY ''
+	       ENDIF
+
 	       FOR i := 1 TO LEN(aTotNiv)
-		   @ PROW(),nColCab+nColTxt(aNroCol,i+1);
-				    SAY REPL('-',aNroCol[i+1])
+
+		   IF lAllInf
+		      @ PROW(),nColCab+nColTxt(aNroCol,i+1);
+				       SAY REPL('-',aNroCol[i+1])
+		   ENDIF
+
 	       ENDFOR
 
 	       aTitulo := {}
@@ -1173,8 +1195,11 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	       AADD(aTitulo,TRANS(aTotNiv[LEN(aTotNiv)-0],"####,###,###"))
 
 	       cTxtPrn := cRegPrint(aTitulo,aNroCol)
-	       lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
-	       @ PROW()+1,00 SAY ''
+
+	       IF lAllInf
+		  lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+		  @ PROW()+1,00 SAY ''
+	       ENDIF
 
 	       aTotNiv := {}
 	       FOR i := 1 TO LEN(cConcep)/2
@@ -1206,9 +1231,14 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *>>>>FIN IMPRESION ENCABEZADO DEL INFORME PARA TOTALES DE CONTROL
 
 *>>>>IMPRESION DE LOS TOTALES
-       @ PROW()+1,00 SAY ''
+       IF lAllInf
+	  @ PROW()+1,00 SAY ''
+       ENDIF
+
        FOR i := 1 TO LEN(aTotCon)
-	   @ PROW(),nColCab+nColTxt(aNroCol,i+1) SAY REPL('=',aNroCol[i+1])
+	   IF lAllInf
+	      @ PROW(),nColCab+nColTxt(aNroCol,i+1) SAY REPL('=',aNroCol[i+1])
+	   ENDIF
        ENDFOR
 
        aTitulo := {}
@@ -1227,7 +1257,9 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
        AADD(aTitulo,TRANS(aTotCon[LEN(aTotCon)-0],"####,###,###"))
 
        cTxtPrn := cRegPrint(aTitulo,aNroCol)
-       lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+       IF lAllInf
+	  lPrnReg(01,nColCab,cTxtPrn,bPagina,bDerAut,bCabeza)
+       ENDIF
 *>>>>FIN IMPRESION DE LOS TOTALES
 
 *>>>>FILTRACION DEL ARCHIVO DE DESCUENTOS
@@ -1407,13 +1439,16 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 **********FIN CALCULO DE LOS ABONOS Y PAGOS PARCIALES
 
 **********AVANCE DEL SIGUIENTE REGISTRO
+	    SET DEVICE TO SCREEN
 	    Avance(GRU->(RECNO()),nRegFin)
+	    SET DEVICE TO PRINT
 
 	    SELECT GRU
 	    GRU->(DBSKIP())
 **********FIN AVANCE DEL SIGUIENTE REGISTRO
 
        ENDDO
+       SET DEVICE TO SCREEN
        Termometro(100)
        SET DEVICE TO PRINT
 *>>>>FIN ABONOS POR GRUPOS
@@ -1425,6 +1460,8 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	 *Impresi¢n del Encabezado
        ENDIF
 *>>>>FIN IMPRESION DEL ENCABEZADO
+
+/* DUPLICADO EN FILA
 
 *>>>>IMPRESION DE LOS ENCABEZADOS DE LOS GRANDES TOTALES
        aCamXml := {}
@@ -1655,7 +1692,12 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 	       bPagina,bDerAut,bCabeza)
 *>>>>FIN IMPRESION DEL GRAN TOTAL
 
+*/ // DUPLICADO EN FILA
+
 *>>>>IMPRESION DEL TOTALES POR MESES
+       lPrnReg(02,nColCab,'ESTUDIANTES='+STR(nPagTot,4),;
+	       bPagina,bDerAut,bCabeza)
+
        aRegPrn := {}
        aCamXml := {}
        AADD(aCamXml,'GRANDES/TOTALES')

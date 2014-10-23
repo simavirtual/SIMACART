@@ -89,6 +89,8 @@ FUNCTION CreaDbfCar(lShared,nModCry,PathCar,fSimCar,fNtxCar,aStrDbf)
        AADD(aDbfStr,{'cCodSerCar','Character',036,0}) // C¢digo interno asignado por la empresa para clasificar el servicio que se recauda
        AADD(aDbfStr,{'cSerFacCar','Character',15,0})  // Servicio Facturado. Campo No.4 Registro de encabezado de lote. Formato Asobancaria 2001
 
+       AADD(aDbfStr,{'cCodFacCar','Character',02,0})  // C¢digo Servicio Facturado. Ej: 01->PENSION,02->RESTAURANTE,03->TRANSPORTE
+
        AADD(aDbfStr,{'lPrnArcCar','Logical'  ,001,0}) // .T. Imprimir en la impresora
        AADD(aDbfStr,{'nCodigoPrn','Numeric'  ,004,0}) // C¢digo de la Impresora
        AADD(aDbfStr,{'cOpcPrnCar','Character',004,0}) // Opciones de Impresi¢n
@@ -495,6 +497,13 @@ FUNCTION oDefBrwCar(lShared,cAnoUsr,nFilSup,nColSup,nFilInf,nColInf)
        oColumn	     := TBCOLUMNNEW('CODIGO ASIGNADO;SERVICIO PAGOS EN LINEA',{||SCA->cCodSerCar})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','SCA'},;
 			 {'FIELD','cCodSerCar'},{'PICTURE','@X'}}
+       oBrowse:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+
+       oColumn	     := TBCOLUMNNEW('CODIGO;SERVICIO FACTURADO', {||SCA->cCodFacCar})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','SCA'},;
+			 {'FIELD','cCodFacCar'},{'PICTURE','@!'}}
        oBrowse:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 

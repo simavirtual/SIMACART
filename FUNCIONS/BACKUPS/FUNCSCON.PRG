@@ -62,7 +62,10 @@ FUNCTION CreaDbfCon(lShared,nModCry,PathCon,FileCon,fNtxCon,aStrDbf)
 			 {"nMesIniCon","Numeric"  ,02,0},; // Mes Inicial del Concepto
 			 {"nMesFinCon","Numeric"  ,02,0},; // Mes Final del Concepto
 			 {"lDesEfeDes","Logical"  ,01,0},; // .T. Descuento del Efectivo .F. No Descuento de Efectio implica ingreso
-			 {"cNomExtCon","Character",16,0}}  // Nombre Extra
+			 {"cNomExtCon","Character",16,0},; // Nombre Extra
+			 {"nIntHonCon","Numeric"  ,05,2},; // Intereses Honorarios por cobranza
+			 {"nVlrHonCon","Numeric"  ,12,2},; // Valor Honorarios por cobranza
+			 {"nDiaMorCon","Numeric"  ,04,0}}  // Dias de Mora para cobrar Honorarios por Cobranza
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>RETORNO DE LA ESTRUCTURA
@@ -644,6 +647,24 @@ FUNCTION oDefBrwCon(lShared,nFilSup,nColSup,nFilInf,nColInf)
        oColumn	     := TBCOLUMNNEW('NOMBRE EXTRA', {||CON->cNomExtCon})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CON'},{'FIELD','cNomExtCon'},;
 			 {'PICTURE','@!'}}
+       oBrowse:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('%HONORARIOS COBRANZA', {||CON->nIntHonCon})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CON'}, {'FIELD','nIntHonCon'},;
+			 {'PICTURE','99.99'}}
+       oBrowse:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('$HONORARIOS COBRANZA', {||CON->nVlrHonCon})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CON'}, {'FIELD','nVlrHonCon'},;
+			 {'PICTURE','999999999.99'}}
+       oBrowse:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('DIAS EN MORA', {||CON->nDiaMorCon})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CON'}, {'FIELD','nDiaMorCon'},;
+			 {'PICTURE','9999'}}
        oBrowse:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
@@ -2278,3 +2299,115 @@ FUNCTION OtrCon011(aParam1,aParam2,aParam3)
        SET DEVICE TO SCREEN
        RETURN NIL
 *>>>>FIN IMPRESION DERECHOS
+
+/*************************************************************************
+* TITULO..: VALOR HONORARIOS DE COBRANZA                                 *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: AGO 26/2014 MAR A
+       Colombia, Bucaramanga        INICIO: 10:30 AM   AGO 26/2014 MAR
+
+OBJETIVOS:
+
+1- Calcula el valor de los honorarios por cobranza
+
+2- Retorna el valor de los Honorarios
+
+SINTAXIS:
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION nVlrHon(nVlrDeu)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     nVlrDeu			            // Valor de la Deuda */
+*>>>>FIN DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION DE VARIABLES
+       LOCAL nVlrHon := 0                   // Honorarios de Cobranza
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>CALCULO HONORARIOS DE COBRANZA
+       IF CON->nIntHonCon + CON->nVlrHonCon > 0
+
+	  IF CON->nIntHonCon > 0
+	     nVlrHon := ROUND((nVlrDeu*CON->nIntHonCon)/100,0)
+	  ELSE
+	     nVlrHon := CON->nVlrHonCon
+	  ENDIF
+
+       ENDIF
+       RETURN nVlrHon
+*>>>>FIN CALCULO HONORARIOS DE COBRANZA
+
+/*************************************************************************
+* TITULO..: VALIDAR CONCEPTOS A FACTURAR                                         *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: AGO 29/2014 VIE A
+       Colombia, Bucaramanga        INICIO: 09:30 AM   AGO 29/2014 VIE
+
+OBJETIVOS:
+
+1- Analiza los c¢digos de los conceptos a facturar.
+
+2- Elimina el c¢digo del concepto de Gesti¢n de Cobraza si no se debe cobrar
+
+2- Retorna los conceptos a Cobrar
+
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION cValConFac(cConcep,nVlrDeu,nDiaMor)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     cConcep                              // Conceptos por cobrar
+       nVlrDeu			            // Valor de la Deuda
+       nDiaMor                              // Dias en Mora */
+*>>>>FIN DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION DE VARIABLES
+       LOCAL    i,j  := 0                   // Contador
+       LOCAL cCodCon := ''                  // C¢digo del Concepto
+       LOCAL cConFac := ''                  // Conceptos a facturar
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>ANALISIS DE DECISION
+       FOR i := 1 TO LEN(cConcep)/2
+
+	   cCodCon := SUBS(cConcep,i*2-1,2)
+
+	   IF cCodCon <> SPACE(2)
+
+	      lLocCodigo('cCodigoCon','CON',cCodCon)
+	      IF CON->nIntHonCon + CON->nVlrHonCon > 0
+
+		 IF nVlrDeu > 0
+		    IF nDiaMor > CON->nDiaMorCon
+		       cConFac += cCodCon            // Concepto normal
+		    ELSE
+		       j++
+		       // Descarta Gesti¢n de Cobranza
+		    ENDIF
+		 ELSE
+		    j++
+		    // Descarta Gesti¢n de Cobranza
+		 ENDIF
+	      ELSE
+		 cConFac += cCodCon            // Concepto normal
+	      ENDIF
+
+	   ELSE
+	      cConFac += cCodCon            // Concepto en Blanco
+	   ENDIF
+
+       ENDFOR
+       IF j > 0
+	  cConFac += SPACE(j*2)
+       ENDIF
+       RETURN cConFac
+*>>>>FIN ANALISIS DE DECISION

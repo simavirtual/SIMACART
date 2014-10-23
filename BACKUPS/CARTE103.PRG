@@ -118,7 +118,9 @@ FUNCTION Carte_103(aP1,aP2,aP3)
        LOCAL aDocNit := {}                  // Documento de los Contrantes
        LOCAL nTipPer := 0                   // Tipo de Persona
        LOCAL aRecFac := {}                  // Recibo Facturado
-
+       LOCAL aConAlu := {}                  // Conceptos por Estudiante
+       LOCAL nDiaMor := 0                   // Dias en Mora
+       LOCAL nMesSdo := 0                   // Mes del saldo
        LOCAL Getlist := {}                  // Variable del sistema
 
        LOCAL cCodigoTes := ''               // Codigo del estudiante
@@ -226,6 +228,9 @@ FUNCTION Carte_103(aP1,aP2,aP3)
        DO CASE
        CASE CAR->(RECCOUNT()) == 0
 	    cError('NO EXISTE CONFIGURACION GENERAL')
+
+       CASE EMPTY(CAR->cCodFacCar)
+	    cError('NO SE HA CONFIRGURADO EL CODIGO DEL SERVICIO FACTURADO')
 
        CASE PRN->(RECCOUNT()) == 0
 	    cError('NO EXISTEN IMPRESIORAS GRABADAS')
@@ -544,7 +549,21 @@ FUNCTION Carte_103(aP1,aP2,aP3)
 	    ENDIF
 **********FIN PREGUNTA DE DECISION
 
+**********ANTIGUEDAD DEL SALDO PENDIENTE
+	    aConAlu := {}
+	    nDiaMor := 0
+	    nMesSdo := 0
+	    IF CLI->nSdoActCli+CLI->nSdoMorCli > 0
 
+	       IF lLocCodPag(CLI->cCodigoEst,;
+			     nMesUltPag(CLI->cCodigoEst),.F.)
+
+		  lVlrConSdo(CLI->nSdoActCli,0,aConAlu,@nDiaMor,@nMesSdo)
+
+	       ENDIF
+
+	    ENDIF
+**********FIN ANTIGUEDAD DEL SALDO PENDIENTE
 
 **********ANALISIS PARA LA IMPRESION DEL RECIBO
 	    nRegPag := 0
@@ -625,6 +644,10 @@ FUNCTION Carte_103(aP1,aP2,aP3)
 
 **********ANALISIS DEL CONTRATANTE
 	    aRecFac := {}
+
+	    AADD(aRecFac,{'cCodEmp',SCO->cCodEmpCon})
+	    AADD(aRecFac,{'cCodFac',CAR->cCodFacCar})
+
 	    AADD(aRecFac,{'cTxtUno',CAA->cTxtUnoCaA})
 	    AADD(aRecFac,{'cTxtDos',CAA->cTxtDosCaA})
 	    AADD(aRecFac,{'cCodeQr',CAA->cCodeQrCaA})
@@ -799,7 +822,8 @@ FUNCTION Carte_103(aP1,aP2,aP3)
 	    DO CASE
 	    CASE CAA->nRecNroCaA == 1
 
-		 nVlrTot := nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,;
+		 nVlrTot := nRecibo01(aRecFac,;
+				      lShared,cEmpPal,cNitEmp,cNomEmp,;
 				      cJorTxt,xPrm(aP3,'cCodIso'),@nNroFac,;
 				      &cNalias->cCodigoEst,cNombreTes,;
 				      &cNalias->cCodigoGru,CLI->(RECNO()),;
@@ -912,14 +936,14 @@ FUNCTION Carte_103(aP1,aP2,aP3)
 
 	    CASE CAA->nRecNroCaA == 8 .OR. CAA->nRecNroCaA == 9
 
-		 nVlrTot := nRecibo08(aRecFac,;
+		 nVlrTot := nRecibo08(aRecFac,nDiaMor,;
 				      lShared,cEmpPal,cNitEmp,cNomEmp,;
 				      cNomUsr,cAnoUsr,cNalias,cJorTxt,;
 				      xPrm(aP3,'cCodIso'),@nNroFac,;
 				      &cNalias->cCodigoEst,cNombreTes,;
 				      &cNalias->cCodigoGru,CLI->(RECNO()),;
 				      BAN->cNombreBan,BAN->cNroCtaBan,;
-				      BAN->cLugarBan,cConcep,;
+				      BAN->cLugarBan,@cConcep,;
 				      nIntPen,;
 				      IF(CAA->lPagExtCaA,CAA->dOpoPenCaA,;
 							 CAA->dFecRecCaA),;

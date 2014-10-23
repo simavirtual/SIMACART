@@ -764,8 +764,8 @@ FUNCTION nRecibo01(aRecFac,lShared,cEmpPal,cNitEmp,cNomEmp,cJorTxt,cCodIso,;
        AADD(aRecFac,{'cVlrExt',TRANSFORM(nVlrTot+nVlrInt+nSdoFav,"***,***,***")})
        AADD(aRecFac,{'cBarOpo',cTxtOpo})
        AADD(aRecFac,{'cBarExt',cTxtExt})
-       AADD(aRecFac,{'cTxtUno','SOLO SE RECIBEN PAGOS EN EFECTIVO O CHEQUES DE GERENCIA'})
-       AADD(aRecFac,{'cTxtDos','"LA CONGREGACION DE LOS HERMANOS DE LAS ESCUELAS ..."'})
+       AADD(aRecFac,{'cTxtUno',CAA->cTxtUnoCaA})
+       AADD(aRecFac,{'cTxtDos',CAA->cTxtDosCaA})
 
        AADD(aRecFac,{'cNomUsr','system'})
        AADD(aRecFac,{'dFecUsr',DATE()})
@@ -6050,7 +6050,8 @@ OBJETIVOS:
 *                              PROGRAMA                                  *
 *------------------------------------------------------------------------*/
 
-FUNCTION nRecibo08(aRecFac,lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
+FUNCTION nRecibo08(aRecFac,nDiaMor,;
+		   lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 		   cMaeAct,cJorTxt,cCodIso,nNroFac,cCodEst,cNomEst,;
 		   cCodGru,nNroLis,cNomBan,cCtaBan,cLugBan,cConcep,;
 		   nIntMor,dPagOpo,dPagExt,lPagExt,cMensaj,nVlrMes,;
@@ -6061,6 +6062,7 @@ FUNCTION nRecibo08(aRecFac,lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 
 *>>>>DESCRIPCION DE PARAMETROS
 /*     aRecFac                              // Recibo Facturado
+       nDiaMor                              // Dias en Mora
        lShared                              // .T. Archivos Compartidos
        cEmpPal                              // Nombre de la Empresa principal
        cNitEmp                              // Nit de la Empresa
@@ -6604,23 +6606,23 @@ ENDIF
 	    lHayBec := .F.
 	    nSdoFav := IF(nSdoFav == NIL,0,nSdoFav)
 IF nNroLis # 0
-	    nVlrMes := nVlrCon08(nMesIni,nMesIni,cCodGru,cConcep,;
+	    nVlrMes := nVlrCon08(nMesIni,nMesIni,cCodGru,@cConcep,;
 				 CLI->nSdoActCli+CLI->nSdoMorCli,NIL,;
 				 lHayDes,nNroLen,@nVlrCo1,;
 				 @nVlrCo2,@nVlrCo3,@nVlrCo4,;
 				 @nVlrCo5,@nVlrCo6,@nVlrCo7,;
 				 @nVlrCo8,@lHayBec,@nVlrBec,nSdoFav,nNroLis,;
-				 aRecFac)
+				 aRecFac,nDiaMor)
 	   *Impresi¢n de conceptos
 
 ELSE
-	    nVlrMes := nVlrCon08(nMesIni,nMesIni,cCodGru,cConcep,;
+	    nVlrMes := nVlrCon08(nMesIni,nMesIni,cCodGru,@cConcep,;
 				 0,NIL,;
 				 lHayDes,nNroLen,@nVlrCo1,;
 				 @nVlrCo2,@nVlrCo3,@nVlrCo4,;
 				 @nVlrCo5,@nVlrCo6,@nVlrCo7,;
 				 @nVlrCo8,@lHayBec,@nVlrBec,nSdoFav,nNroLis,;
-				 aRecFac)
+				 aRecFac,nDiaMor)
 	   *Impresi¢n de conceptos
 
 	    lHayBec := .F.
@@ -6676,13 +6678,13 @@ ENDIF
 **********IMPRESION DE LOS CONCEPTOS
 	    nVlrPen := 0
 	    lHayBec := .F.
-	    nVlrMes := nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,;
+	    nVlrMes := nVlrCon08(nMesIni,nMesFin,cCodGru,@cConcep,;
 				 CLI->nSdoActCli+CLI->nSdoMorCli,;
 				 @nVlrPen,lHayDes,nNroLen,;
                                  @nVlrCo1,@nVlrCo2,@nVlrCo3,@nVlrCo4,;
 				 @nVlrCo5,@nVlrCo6,@nVlrCo7,@nVlrCo8,;
 				 @lHayBec,NIL,nSdoFav,nNroLis,;
-				 aRecFac)
+				 aRecFac,nDiaMor)
 	   *Impresi¢n de conceptos
 
 	    IF VALTYPE(nVlrMes) == 'C'
@@ -6969,9 +6971,11 @@ ENDIF
        AADD(aRecFac,{'nMesFin',nMesFin})
        AADD(aRecFac,{'cEmpPal',cEmpPal})
        AADD(aRecFac,{'cNroNit',cNitEmp})
+       AADD(aRecFac,{'cNomEmp',cNomEmp})
        AADD(aRecFac,{'cNroFac',cNroFac})
        AADD(aRecFac,{'cNomBan',cNomBan})
        AADD(aRecFac,{'cNroCta',cCtaBan})
+       AADD(aRecFac,{'cCodEan',cCodEan})
        AADD(aRecFac,{'cNombre',cNomEst})
        AADD(aRecFac,{'cCodRef',cCodFac})
        AADD(aRecFac,{'cCodGru',cCodGru})
@@ -7065,13 +7069,13 @@ SINTAXIS:
 FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
 		   lHayDes,nNroLen,nVlrCo1,nVlrCo2,nVlrCo3,nVlrCo4,;
 		   nVlrCo5,nVlrCo6,nVlrCo7,nVlrCo8,lHayBec,nVlrBec,;
-		   nSdoFav,nNroLis,aRecFac)
+		   nSdoFav,nNroLis,aRecFac,nDiaMor)
 
 *>>>>DESCRIPCION DE PARAMETROS
 /*     nMesIni                              // Mes inicial de pago
        nMesFin                              // Mes final de pago
        cCodGru                              // C¢digo del grupo
-       cConcep                              // Conceptos por cobrar
+       cConcep                              // @Conceptos por cobrar
        nSdoAct                              // Saldo Actual + Mora
        nVlrPen                              // @Valor de la pensi¢n (Adelantado)
        lHayDes                              // .T. Hay Descuento
@@ -7088,7 +7092,8 @@ FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
        nVlrBec                              // @ Valor de la Beca
        nSdoFav                              // Saldo a Favor
        nNroLis                              // N£mero de lista
-       aRecFac                              // Recibos Facturados */
+       aRecFac                              // Recibos Facturados
+       nDiaMor                              // Dias en Mora        */
 *>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
@@ -7120,6 +7125,8 @@ FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
 *>>>>FIN DETERMINACION DEL RECIBO POR ADELANTADO
 
 *>>>>CALCULO DE LOS CONCEPTOS
+       cConcep := cValConFac(cConcep,CLI->nSdoActCli,nDiaMor)
+
        lHayBec := .F.
        nNroLen := IF(nNroLen == NIL,57,nNroLen)
        nNroCon := (LEN(cConcep)/2)+IF(lHayDes,2,3)
@@ -7208,6 +7215,7 @@ FUNCTION nVlrCon08(nMesIni,nMesFin,cCodGru,cConcep,nSdoAct,nVlrPen,;
 	       IF nValor == 0
 
 		   nValor := nVlrHon(CLI->nSdoActCli)
+
 		   nVlrCon := nValor
 		   IF nValor == 0
 		      RETURN 'Error'

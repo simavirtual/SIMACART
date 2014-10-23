@@ -158,6 +158,9 @@ FUNCTION Carte_263(aParam1,aParam2,aParam3)
 
        AADD(aUseDbf,{.T.,cPatSis+'\'+;
 			 FileDes,'DES',cPatSis+'\'+fNtxDes,lShared,nModCry})
+
+       AADD(aUseDbf,{.T.,cPatSis+'\'+;
+			 FileCon,'CON',NIL,lShared,nModCry})
 *>>>>FIN AREAS DE TRABAJO
 
 *>>>>SELECION DE LAS AREAS DE TRABAJO
@@ -249,8 +252,8 @@ FUNCTION Carte_263(aParam1,aParam2,aParam3)
        IF SCA->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  FilePrn := 'ValCtas'
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,SCA->cOpcPrnCar,.F.,.T.,bInsIso)
+	  FilePrn := 'l'+cAnoUsr+cMaeAct
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,SCA->cOpcPrnCar,.F.,.T.,bInsIso,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	      CloseAll(aUseDbf)
 	      RETURN NIL

@@ -127,6 +127,10 @@ FUNCTION Carte_102(aP1,aP2,aP3)
        LOCAL aDocNit := {}                  // Documento de los Contrantes
        LOCAL nTipPer := 0                   // Tipo de Persona
        LOCAL aRecFac := {}                  // Recibo Facturado
+       LOCAL aConAlu := {}                  // Conceptos por Estudiante
+       LOCAL nDiaMor := 0                   // Dias en Mora
+       LOCAL nMesSdo := 0                   // Mes del saldo
+
        LOCAL Getlist := {}                  // Variable del sistema
 
        LOCAL cNombreTes := ''               // Nombre del Estudiante
@@ -286,6 +290,9 @@ FUNCTION Carte_102(aP1,aP2,aP3)
 
        CASE CAR->(RECCOUNT()) == 0
 	    cError('NO EXISTE CONFIGURACION GENERAL')
+
+       CASE EMPTY(CAR->cCodFacCar)
+	    cError('NO SE HA CONFIRGURADO EL CODIGO DEL SERVICIO FACTURADO')
 
        CASE PRN->(RECCOUNT()) == 0
 	    cError('NO EXISTEN IMPRESIORAS GRABADAS')
@@ -750,6 +757,10 @@ FUNCTION Carte_102(aP1,aP2,aP3)
 
 *--------------ANALISIS DEL CONTRATANTE
 		 aRecFac := {}
+
+		 AADD(aRecFac,{'cCodEmp',SCO->cCodEmpCon})
+		 AADD(aRecFac,{'cCodFac',CAR->cCodFacCar})
+
 		 AADD(aRecFac,{'cTxtUno',CAA->cTxtUnoCaA})
 		 AADD(aRecFac,{'cTxtDos',CAA->cTxtDosCaA})
 		 AADD(aRecFac,{'cCodeQr',CAA->cCodeQrCaA})
@@ -834,26 +845,42 @@ FUNCTION Carte_102(aP1,aP2,aP3)
 		 NEXT
 *--------------FIN ANALISIS DEL CONTRATANTE
 
-*-------------GRABACION DEL CONTROL CONCEPTOS INDIVIDUALES
-		lHayCoE := lHayConCoE(CLI->cCodigoEst,;
-				      ALLTRIM(CAA->cConPenCaA)+;
-				      ALLTRIM(&cMaeAct->cConcepEst))
+*--------------GRABACION DEL CONTROL CONCEPTOS INDIVIDUALES
+		 lHayCoE := lHayConCoE(CLI->cCodigoEst,;
+				       ALLTRIM(CAA->cConPenCaA)+;
+				       ALLTRIM(&cMaeAct->cConcepEst))
 
-		IF lHayCoe
-		   SaveConCoE(lShared,cNomUsr,CLI->cCodigoEst,;
-			      nMesIniTpa,CAA->nMesFinCaA,;
-			      ALLTRIM(CAA->cConPenCaA),;
-			      CLI->cMesPagCli)
-		 *픀onceptos Generales
+		 IF lHayCoe
+		    SaveConCoE(lShared,cNomUsr,CLI->cCodigoEst,;
+			       nMesIniTpa,CAA->nMesFinCaA,;
+			       ALLTRIM(CAA->cConPenCaA),;
+			       CLI->cMesPagCli)
+		  *픀onceptos Generales
 
-		   SaveConCoE(lShared,cNomUsr,CLI->cCodigoEst,;
-			      nMesIniTpa,CAA->nMesFinCaA,;
-			      ALLTRIM(&cMaeAct->cConcepEst),;
-			      '')
-		 *픀onceptos Individuales
+		    SaveConCoE(lShared,cNomUsr,CLI->cCodigoEst,;
+			       nMesIniTpa,CAA->nMesFinCaA,;
+			       ALLTRIM(&cMaeAct->cConcepEst),;
+			       '')
+		  *픀onceptos Individuales
 
-		ENDIF
-*-------------FIN GRABACION DEL CONTROL CONCEPTOS INDIVIDUALES
+		 ENDIF
+*--------------FIN GRABACION DEL CONTROL CONCEPTOS INDIVIDUALES
+
+*--------------ANTIGUEDAD DEL SALDO PENDIENTE
+		 aConAlu := {}
+		 nDiaMor := 0
+		 nMesSdo := 0
+		 IF CLI->nSdoActCli+CLI->nSdoMorCli > 0
+
+		    IF lLocCodPag(CLI->cCodigoEst,;
+				  nMesUltPag(CLI->cCodigoEst),.F.)
+
+		       lVlrConSdo(CLI->nSdoActCli,0,aConAlu,@nDiaMor,@nMesSdo)
+
+		    ENDIF
+
+		 ENDIF
+*--------------FIN ANTIGUEDAD DEL SALDO PENDIENTE
 
 *--------------ANALISIS PARA LA IMPRESION DEL RECIBO
 		 nRegPag := 0
@@ -997,7 +1024,8 @@ FUNCTION Carte_102(aP1,aP2,aP3)
 		 DO CASE
 		 CASE CAA->nRecNroCaA == 1
 
-		      nVlrTot := nRecibo01(lShared,cEmpPal,cNitEmp,cNomEmp,;
+		      nVlrTot := nRecibo01(aRecFac,;
+					   lShared,cEmpPal,cNitEmp,cNomEmp,;
 					   cJorTxt,xPrm(aP3,'cCodIso'),;
 					   @nNroFac,CLI->cCodigoEst,;
 					   cNombreTes,&cNalias->cCodigoGru,;
@@ -1116,7 +1144,7 @@ FUNCTION Carte_102(aP1,aP2,aP3)
 		     *Recibo c줰igo de Barras la Kiosera
 
 		 CASE CAA->nRecNroCaA == 8 .OR. CAA->nRecNroCaA == 9
-		      nVlrTot := nRecibo08(aRecFac,;
+		      nVlrTot := nRecibo08(aRecFac,nDiaMor,;
 					   lShared,cEmpPal,cNitEmp,cNomEmp,;
 					   cNomUsr,cAnoUsr,cNalias,cJorTxt,;
 					   xPrm(aP3,'cCodIso'),@nNroFac,;
@@ -1124,7 +1152,7 @@ FUNCTION Carte_102(aP1,aP2,aP3)
 					   &cNalias->cCodigoGru,;
 					   CLI->(RECNO()),BAN->cNombreBan,;
 					   BAN->cNroCtaBan,BAN->cLugarBan,;
-					   cConcep,nIntPen,;
+					   @cConcep,nIntPen,;
 					   IF(CAA->lPagExtCaA,CAA->dOpoPenCaA,;
 							      CAA->dFecRecCaA),;
 					   CAA->dExtPenCaA,;

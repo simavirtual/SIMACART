@@ -101,7 +101,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 //     LOCAL aCabXml := {}                  // Encabezado del Xml
        LOCAL aCamXml := {}                  // Campo Xml
        LOCAL aCamPag := {}                  // Campo Xml
-       LOCAL aPagXml := {}                  // Codigos de los pagos
+*       LOCAL aPagXml := {}                  // Codigos de los pagos
        LOCAL aRetMor := {}                  // Retirado con Mora
        LOCAL aDeuAnt := {}                  // Codigos deuda Anterior
        LOCAL aRegEst := {}                  // Valor del Estudiante
@@ -176,6 +176,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        LOCAL nDesFin := 0                   // Total Abonos Descuentos de fin de mes
        LOCAL nTotFin := 0                   // Gran Total de la Facturaci¢n de fin de mes
        LOCAL nTotCau := 0                   // Total Causaci¢n
+       LOCAL lAllInf := .T.                 // .T. Todo el Informe .F. Sole Resumen
        LOCAL Getlist := {}                  // Variable del sistema
      *ÀVariables espec¡ficas
 
@@ -224,6 +225,8 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 *>>>>FIN DECLARACION PARAMETROS GENERALES
 
 *>>>>LECTURA PARAMETROS GENERALES
+       aPagXml := {}                  // Codigos de los pagos
+
        aParams := aParams(aParam1,aParam2,aParam3)
        IF !lParam0104(aParams,;
 		      @lShared,@nModCry,@cNomSis,;
@@ -382,7 +385,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 
 *>>>>LECTURA DE LOS CONCEPTOS
        cSavPan := SAVESCREEN(0,0,24,79)
-       cConcep := CAR->cConPrnCar
+       cConcep := CAA->cConPrnCaA
        @ nFilInf+1,nColInf SAY 'CONCEPTOS' GET cConcep PICT "@!";
 			   VALID lValLeeCon(nFilInf+1,nColInf+26,;
 					    nFilInf+1,nColInf+10,;
@@ -406,6 +409,14 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 				cMaeAlu,@cNalias)
        ENDIF
 *>>>>FIN LECTURA DEL CODIGO DEL ESTUDIANTE
+
+*>>>>ANALISIS DE DECISION
+       lAllInf := .T.
+       IF EMPTY(cCodEst)
+	  lAllInf := !lPregunta('DESEA IMPRIMIR SOLO '+;
+			       'EL RESUMEN DEL INFORME? No Si')
+       ENDIF
+*>>>>FIN ANALISIS DE DECISION
 
 *>>>>CAPTURA DE LOS GRUPOS POR INTERVALO
        IF EMPTY(cCodEst)
@@ -566,6 +577,9 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        ENDIF
        aCabSec := NIL
        bPagina := {||lPagina(nLinReg)}
+       IF .NOT. lAllInf
+	  cCabCol := ''
+       ENDIF
        bCabeza := {||CabezaPrn(cCodIni,aCabeza,cCabCol,;
 			       nColCab,cCodFin,aCabSec)}
        bDerAut := {||DerechosPrn(cNomSis,cNomEmp,nLenPrn)}
@@ -587,7 +601,16 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  FilePrn = SUBS(CAR->cSerFacCar,1,1)+'f'+cAnoUsr+cNroMes
+	  IF EMPTY(cCodEst)
+	     IF nRegIni == nRegFin
+		FilePrn = SUBS(CAR->cSerFacCar,1,1)+'f'+GRU->cCodigoGru
+	     ELSE
+		FilePrn = SUBS(CAR->cSerFacCar,1,1)+'f'+cAnoUsr+cNroMes
+	     ENDIF
+	  ELSE
+	     FilePrn = SUBS(CAR->cSerFacCar,1,1)+'f'+cCodEst
+
+	  ENDIF
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     IF !lFileDelete(FileTem)
@@ -1469,7 +1492,9 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 	    AADD(aTitulo,TRANS(aVlrGru[LEN(aVlrGru)],"####,###,###"))
 
 	    cTxtPrn := cRegPrint(aTitulo,aNroCol)
-	    lPrnReg(01,00,cTxtPrn,bPagina,bDerAut,bCabeza)
+	    IF lAllInf
+	       lPrnReg(01,00,cTxtPrn,bPagina,bDerAut,bCabeza)
+	    ENDIF
 
 	    AADD(aTitulo,GRU->cCodigoGru+cNroMes+cAnoSis+'.XML') // Campo Url
 	    AADD(aPagXml,aTitulo)
@@ -1498,9 +1523,16 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 	       aTitulo := {}
 	       AADD(aTitulo,'')
 
-	       @ PROW()+1,00 SAY ''
+	       IF lAllInf
+		  @ PROW()+1,00 SAY ''
+	       ENDIF
+
 	       FOR i := 1 TO LEN(aVlrNiv)
-		   @ PROW(),nColTxt(aNroCol,i+1) SAY REPL('-',aNroCol[i+1])
+
+		   IF lAllInf
+		      @ PROW(),nColTxt(aNroCol,i+1) SAY REPL('-',aNroCol[i+1])
+		   ENDIF
+
 		   AADD(aTitulo,REPL('-',aNroCol[i+1]))
 	       ENDFOR
 	       AADD(aTitulo,'') // Campo Url
@@ -1522,12 +1554,16 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 	       AADD(aTitulo,TRANS(aVlrNiv[LEN(aVlrNiv)],"####,###,###"))
 
 	       cTxtPrn := cRegPrint(aTitulo,aNroCol)
-	       lPrnReg(01,00,cTxtPrn,bPagina,bDerAut,bCabeza)
+	       IF lAllInf
+		  lPrnReg(01,00,cTxtPrn,bPagina,bDerAut,bCabeza)
+	       ENDIF
 
 	       AADD(aTitulo,'') // Campo Url
 	       AADD(aPagXml,aTitulo)
 
-	       @ PROW()+1,00 SAY ''
+	       IF lAllInf
+		  @ PROW()+1,00 SAY ''
+	       ENDIF
 
 	       aVlrNiv := {0,0,0,0,0}   // Saldo Actual
 	       FOR i := 1 TO LEN(cConcep)/2
@@ -1559,9 +1595,16 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        aTitulo := {}
        AADD(aTitulo,'')
 
-       @ PROW()+1,00 SAY ''
+       IF lAllInf
+	  @ PROW()+1,00 SAY ''
+       ENDIF
+
        FOR i := 1 TO LEN(aVlrTot)
-	   @ PROW(),nColTxt(aNroCol,i+1) SAY REPL('=',aNroCol[i+1])
+
+	   IF lAllInf
+	      @ PROW(),nColTxt(aNroCol,i+1) SAY REPL('=',aNroCol[i+1])
+	   ENDIF
+
 	   AADD(aTitulo,REPL('=',aNroCol[i+1]))
        ENDFOR
        AADD(aTitulo,'') // Campo Url
@@ -1582,7 +1625,9 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
        AADD(aTitulo,TRANS(aVlrTot[LEN(aVlrTot)],"####,###,###"))
 
        cTxtPrn := cRegPrint(aTitulo,aNroCol)
-       lPrnReg(01,00,cTxtPrn,bPagina,bDerAut,bCabeza)
+       IF lAllInf  // TOTALES
+	  lPrnReg(01,00,cTxtPrn,bPagina,bDerAut,bCabeza)
+       ENDIF
 
        AADD(aTitulo,'RSF'+cMes(nMesIniTpa,3)+cAnoSis+'.XML') // Campo Url
        AADD(aPagXml,aTitulo)
@@ -1831,20 +1876,24 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 
        IF EMPTY(dFecPrn)
 
-	  lPrnReg(01,00,'SALDO ACTUAL       '+;
+	  lPrnReg(01,00,'SALDO ACTUAL'+IF(aVlrTot[1] == nTotal,' ','.')+;
+			'      '+;
 			TRANS(nTotal,"####,###,###")+;
 			IF(nFinMes+nAboFin+nDesFin+nDeuRet+nMorRet # 0,;
 			' '+TRANS(nTotFin+nDeuRet+nMorRet,"####,###,###")+;
 			' A '+cMes(nMesIniTpa,3),''),;
 			bPagina,bDerAut,bCabeza)
 
-	  AADD(aRegPrn,{'SALDO ACTUAL',TRANS(nTotal,"####,###,###"),;
+	  AADD(aRegPrn,{'SALDO ACTUAL'+TRANS(nTotal,"####,###,###"),;
 			IF(nFinMes+nAboFin+nDesFin+nDeuRet+nMorRet # 0,;
 			' '+TRANS(nTotFin+nDeuRet+nMorRet,"####,###,###")+;
 			' A '+cMes(nMesIniTpa,3),''),;
 			'MOR'+cMes(nMesIniTpa,3)+cAnoSis+'.XML'})
        ELSE
-	  lPrnReg(01,00,'SALDO ACTUAL       '+;
+
+	  lPrnReg(01,00,'SALDO ACTUAL'+;
+			IF(aVlrTot[1] == (nTotal+nDeuRet+nMorRet),' ','.')+;
+			'       '+;
 			TRANS(nTotal+nDeuRet+nMorRet,"####,###,###"),;
 			bPagina,bDerAut,bCabeza)
 
@@ -1864,7 +1913,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 	     lSavTotCau(nMesIniTpa,nTotCau,lShared,.F.,cNomUsr)
 	  ELSE
 	     SET DEVICE TO SCREEN
-	     cError('CARTERA DESCUADRADA')
+*	     cError('CARTERA DESCUADRADA')
 	     SET DEVICE TO PRINT
 	  ENDIF
 	  lSavTotPag(nMesIniTpa,nTotPag+nAboMes,lShared,.F.,cNomUsr)

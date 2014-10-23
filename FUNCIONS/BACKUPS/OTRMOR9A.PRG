@@ -348,7 +348,10 @@ FUNCTION OtrMor09A(aP1,aP2,aP3,;
 **********FIN CALCULO DEL TOTAL DE REPORTADOS
 
 **********DETALLES DEL REGISTRO
+	    cObsTxt := ALLTRIM(cObsTxt)+' '+MOR->cConcepMor
+	    cObsTxt := ALLTRIM(cObsTxt)+SPACE(40)
 	    cObsTxt := cSUBS(cObsTxt,40)
+
 	    aTitulo := {}
 	    AADD(aTitulo,STR(MOR->(RECNO()),4))
 	    AADD(aTitulo,MOR->cCodigoEst)

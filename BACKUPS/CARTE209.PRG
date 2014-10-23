@@ -87,8 +87,12 @@ FUNCTION Carte_209(aP1,aP2,aP3)
        LOCAL cSavLin := ''                  // Salvar Linea
        LOCAL lHayErr    := .F.              // .T. Hay Error
 
+       LOCAL PathRfa := ''                  // Path Recibos facturados
+       LOCAL fRecFac := 'RECI'              // Ej: RECIENE.DAT
+
        LOCAL aArcNtx := {}                  // Archivo de Indices
        LOCAL aArchvo := {}                  // Archivos para Uso
+       LOCAL cNalias := ''                  // Alias del Archivo
      *ÀVariables archivos
 
        LOCAL lPrnArc := .F.                 // .T. Imprimir a Archivo
@@ -242,10 +246,12 @@ FUNCTION Carte_209(aP1,aP2,aP3)
        aMenus := {}
        AADD(aMenus,'1<CREAR    >')
        AADD(aMenus,'2<CONSULTAR>')
+       AADD(aMenus,'3<RECIBOS  >')
 
        aAyuda := {}
        AADD(aAyuda,'Permite crear los registros de la facturaci¢n')
-       AADD(aAyuda,'Consurtar los registros de la facturaci¢n')
+       AADD(aAyuda,'Consultar los registros de la facturaci¢n')
+       AADD(aAyuda,'Consultar los recibos facturados')
 *>>>>FIN DECLARACION Y EJECUCION DEL MENU
 
 *>>>>VALIDACION DEL LIMITE DE LA ULTIMA COLUMNA
@@ -318,9 +324,96 @@ FUNCTION Carte_209(aP1,aP2,aP3)
 
 ***************AREAS DE TRABAJO
 		 aUseDbf := {}
+		 AADD(aUseDbf,{.T.,PathSis+'\'+;
+				   FSimCar,'SCA',NIL,lShared,nModCry})
+
+		 AADD(aUseDbf,{.T.,cPatSis+'\'+;
+				   fCarAno+cAnoUsr+ExtFile,'CAA',NIL,lShared,nModCry})
+
 		 AADD(aUseDbf,{.T.,PathOnl+'\'+;
 				   FileOnl,'ONL',NIL,lShared,nModCry})
 ***************FIN AREAS DE TRABAJO
+
+
+***************SELECCION DE LAS AREAS DE TRABAJO
+		IF !lUseDbfs(aUseDbf)
+		ENDIF
+***************FIN SELECCION DE LAS AREAS DE TRABAJO
+
+	  CASE nNroOpc == 3
+
+***************AREAS DE TRABAJO
+		 PathRfa := cPatSis+'\RECIBOS\'+cMes(nMesIni,3)
+		 fRecFac := 'RECI'+cMes(nMesIni,3)+ExtFile
+
+		 aArchvo := {}
+		 AADD(aArchvo,{PathSis+'\'+FilePrn,NIL,'PRN'})
+		 AADD(aArchvo,{PathSis+'\'+FileInf,NIL,'INF'})
+		 AADD(aArchvo,{PathSis+'\'+FileIso,NIL,'ISO'})
+		 AADD(aArchvo,{PathSis+'\'+FSimCar,NIL,'SCA'})
+		 AADD(aArchvo,{PathRfa+'\'+fRecFac,NIL,'RFA'})
+
+		 IF 'JAR' $ cMaeAlu
+		    cNalias := 'JAR'
+		    AADD(aArchvo,{PathUno+'\'+cPatSis+'\'+cNalias+'\'+;
+				  FileAlu+cNalias+cAnoSis+ExtFile,;
+				  PathUno+'\'+cPatSis+'\'+cNalias+'\'+;
+				  fNtxAlu+cNalias+cAnoSis+cExtNtx,;
+				  cNalias})
+		 ENDIF
+
+		 IF 'PRI' $ cMaeAlu
+		    cNalias := 'PRI'
+		    AADD(aArchvo,{PathUno+'\'+cPatSis+'\'+cNalias+'\'+;
+				  FileAlu+cNalias+cAnoSis+ExtFile,;
+				  PathUno+'\'+cPatSis+'\'+cNalias+'\'+;
+				  fNtxAlu+cNalias+cAnoSis+cExtNtx,;
+				  cNalias})
+		 ENDIF
+
+		 IF 'BTO' $ cMaeAlu
+		    cNalias := 'BTO'
+		    AADD(aArchvo,{PathUno+'\'+cPatSis+'\'+cNalias+'\'+;
+				  FileAlu+cNalias+cAnoSis+ExtFile,;
+				  PathUno+'\'+cPatSis+'\'+cNalias+'\'+;
+				  fNtxAlu+cNalias+cAnoSis+cExtNtx,;
+				  cNalias})
+		 ENDIF
+***************FIN AREAS DE TRABAJO
+
+***************DETALLES DEL INFORME
+		 aP3 := {}
+		 AADD(aP3,{'cPieTre',cPiePag})
+		 AADD(aP3,{'cUsrIso',cUsrIso})
+		 AADD(aP3,{'nCodXsl',nCodXsl})
+***************FIN DETALLES DEL INFORME
+
+***************MANTENIMIENTO DEL ARCHIVO
+		  lModReg := .F.
+		  lDelReg := .F.
+		  lInsReg := .F.
+		  lHaySql := .F.
+		  bInsReg := NIL
+
+		  MantenRfa(lShared,nModCry,cNomSis,cCodEmp,;
+			    cNitEmp,cEmpPal,cNomEmp,cNomSec,;
+			    cNomUsr,cAnoUsr,aArchvo,lPrnArc,;
+			    cOpcPrn,nCodPrn,lModReg,lDelReg,;
+			    lInsReg,lHaySql,cMaeAlu,cMaeAct)
+***************FIN MANTENIMIENTO DEL ARCHIVO
+
+***************AREAS DE TRABAJO
+		 aUseDbf := {}
+		 AADD(aUseDbf,{.T.,PathSis+'\'+;
+				   FSimCar,'SCA',NIL,lShared,nModCry})
+
+		 AADD(aUseDbf,{.T.,cPatSis+'\'+;
+				   fCarAno+cAnoUsr+ExtFile,'CAA',NIL,lShared,nModCry})
+
+		 AADD(aUseDbf,{.T.,PathOnl+'\'+;
+				   FileOnl,'ONL',NIL,lShared,nModCry})
+***************FIN AREAS DE TRABAJO
+
 
 ***************SELECCION DE LAS AREAS DE TRABAJO
 		IF !lUseDbfs(aUseDbf)

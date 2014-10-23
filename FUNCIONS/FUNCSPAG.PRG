@@ -2137,7 +2137,7 @@ FUNCTION oConBrwPag(nFilSup,nColSup,nFilInf,nColInf,lModReg)
      *ÀDefinici¢n Columna
 
        oColumn	     := TBCOLUMNNEW('NOMBRE;DEL USUARIO',{||PAG->cNomUsrPag})
-       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','PAG'},{'FIELD','cNomUsrPag'},;
+       oColumn:Cargo := {{'MODI',.F.},{'ALIAS','PAG'},{'FIELD','cNomUsrPag'},;
 			 {'PICTURE','@!'}}
        oBrowse:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
@@ -2147,6 +2147,15 @@ FUNCTION oConBrwPag(nFilSup,nColSup,nFilInf,nColInf,lModReg)
        oColumn:Cargo := {{'MODI',.F.}}
        oBrowse:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
+
+
+/*
+       oColumn	     := TBCOLUMNNEW('FECHA DE;PROCESO',{||PAG->dFecUsrPag})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','PAG'},{'FIELD','dFecUsrPag'},;
+			 {'PICTURE','@D'}}
+       oBrowse:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+*/
 
        oColumn	     := TBCOLUMNNEW('HORA DE;PROCESO',;
 				    {||cHoraSys(PAG->cHorUsrPag)})
