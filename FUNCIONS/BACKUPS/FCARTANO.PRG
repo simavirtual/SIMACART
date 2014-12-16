@@ -58,6 +58,8 @@ FUNCTION CreaCarAno(lShared,nModCry,PathCaA,FileCaA,fNtxCaA,lGrabar,aStrDbf)
 			 {"cIntCuaCaA","Character",70,0},; // Path de Integraci¢n No. 4
 			 {"cIntCafCaA","Character",70,0},; // Path de Integraci¢n para la Cafeteria
 			 {"cIntRutCaA","Character",70,0},; // Path de Integraci¢n para la Rutas
+			 {"cIntScoCaA","Character",70,0},; // Path de Integraci¢n para el SimaCont Principal
+			 {"cIntMtrCaA","Character",70,0},; // Path de Integraci¢n para el SimaMatr Principal
 			 {"cMaeHabCaA","Character",09,0},; //* Maestros Habilitados para el A¤o
 			 {"cJorHabCaA","Character",04,0},; //* Jornadas Habilitadas
 			 {"lHayCliCaA","Logical"  ,01,0},; // .T. Hay Clientes
@@ -622,6 +624,18 @@ FUNCTION oBrwCarAno(lShared,cAnoUsr,nFilSup,nColSup,nFilInf,nColInf)
        oColumn	:= TBCOLUMNNEW('PATH DE RUTAS',{||CAA->cIntRutCaA})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CAA'},;
 			 {'FIELD','cIntRutCaA'},{'PICTURE','@X'}}
+       oBrwCaA:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	:= TBCOLUMNNEW('PATH REAL;SIMACONT',{||CAA->cIntScoCaA})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CAA'},;
+			 {'FIELD','cIntScoCaA'},{'PICTURE','@X'}}
+       oBrwCaA:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	:= TBCOLUMNNEW('PATH REAL;SIMAMATR',{||CAA->cIntMtrCaA})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CAA'},;
+			 {'FIELD','cIntMtrCaA'},{'PICTURE','@X'}}
        oBrwCaA:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 

@@ -418,8 +418,10 @@ FUNCTION RevisarDbf(aP1,cSavPan,cModem,cEmpCob,cSerFac,nMesVal)
 	    !FILE(cPatSis+'\'+FileMvt)                 .AND.;
 	    !FILE(cPatSis+'\'+FileCtt)                 .AND.;
 	    !FILE(cPatSis+'\'+FileCnc)
+
 	    RESTSCREEN(0,0,24,79,cSavPan)
 	    CrearDbfs(lShared,nModCry,cPatSis,cAnoUsr,cMaeAlu)
+
        OTHERWISE
 
 ************RECUPERACION DE ESTRUCTURAS DEL SISTEMA
@@ -1157,12 +1159,14 @@ FUNCTION aMenusCart(nNroOpc,cDerech,aAyudas,cModem,cEmpCob,lvalida)
 	    aMenus  := {"1<TODOS LOS CONCEPTOS>",;
 			"2<RUTAS              >",;
 			"3<CAFETERIA          >",;
-			"4<OTROS CONCEPTOS    >"}
+			"4<OTROS CONCEPTOS    >",;
+			"5<CONSIGNACIONES     >"}
 
 	    aAyuda := {'Men£ con los procesos de todos los Conceptos',;
 		       'Men£ con los procesos de Rutas',;
 		       'Men£ con los procesos de Cafeteria',;
-		       'Menu con los procesos de Otros Conceptos'}
+		       'Menu con los procesos de Otros Conceptos',;
+		       'Permite imprimir recibos para hacer consignaciones'}
 
        CASE nNroOpc == 7  // Utilidades
 
@@ -1693,6 +1697,10 @@ FUNCTION SubMenus(aP1,lShared,nModCry,cNomSis,cEmpPal,cNitEmp,;
 		 CASE nNroOpc == 4
 		      Carte_604(aP1,aP2,aP3)
 		     *Impresi¢n de todos los conceptos individuales por Estudiantes
+
+		 CASE nNroOpc == 5
+		      Carte_605(aP1,aP2,aP3)
+		    *ÀFacturaci¢n - Consignaciones
 
 		 ENDCASE
 

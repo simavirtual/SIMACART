@@ -248,7 +248,7 @@ OBJETIVOS:
      *ÀArchivo de Niveles
 
        LOCAL FileAdm := 'ADMI'               // Ej: ADMISI95.DAT
-       LOCAL fNtxAdm := ''
+       LOCAL fMtrAno := 'MATR'               // Ej: MATR1996.DAT
      *ÀArchivo de Admisiones
 
        LOCAL FCaFAno := 'CAFE'              // Ej: CAFE2002.DAT

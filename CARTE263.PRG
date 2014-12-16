@@ -144,7 +144,6 @@ FUNCTION Carte_263(aParam1,aParam2,aParam3)
 *>>>>LECTURA DE PATHS
        PathCarAno(lShared,cPatSis,cAnoUsr,@PathUno,;
 		  @cIntDos,@cIntTre,@cIntCua,nModCry,.F.)
-       cMaeAct := cNivelEst(nFilInf+1,nColInf,cMaeAlu)
 *>>>>FIN LECTURA DE PATHS
 
 *>>>>AREAS DE TRABAJO
@@ -153,8 +152,8 @@ FUNCTION Carte_263(aParam1,aParam2,aParam3)
        AADD(aUseDbf,{.T.,PathSis+'\'+FilePrn,'PRN',NIL,lShared,nModCry})
        AADD(aUseDbf,{.T.,PathSis+'\'+FileIso,'ISO',NIL,lShared,nModCry})
 
-       AADD(aUseDbf,{.T.,PathUno+'\'+cPatSis+'\'+cMaeAct+'\'+;
-			 FileGru+cMaeAct+cAnoSis+ExtFile,'GRU',NIL,lShared,nModCry})
+       AADD(aUseDbf,{.T.,PathUno+'\'+cPatSis+'\'+;
+			 FileGru+'POS'+cAnoSis+ExtFile,'GRU',NIL,lShared,nModCry})
 
        AADD(aUseDbf,{.T.,cPatSis+'\'+;
 			 FileDes,'DES',cPatSis+'\'+fNtxDes,lShared,nModCry})
@@ -174,10 +173,15 @@ FUNCTION Carte_263(aParam1,aParam2,aParam3)
 
 *>>>>VALIDACION DE CONTENIDOS DE ARCHIVOS
        lHayErr := .T.
-       SELECT &cMaeAct
        DO CASE
-       CASE RECCOUNT() == 0
-	    cError('NO EXISTE ESTUDIANTES GRABADOS')
+       CASE 'JAR' $ cMaeAlu .AND. JAR->(RECCOUNT()) == 0
+	    cError('No Existen Estudiantes de Jardin para '+cAnoUsr)
+
+       CASE 'PRI' $ cMaeAlu .AND. PRI->(RECCOUNT()) == 0
+	    cError('No Existen Estudiantes de Primaria para '+cAnoUsr)
+
+       CASE 'BTO' $ cMaeAlu .AND. BTO->(RECCOUNT()) == 0
+	    cError('No Existen Estudiantes de Bachillerato para '+cAnoUsr)
 
        CASE SCA->(RECCOUNT()) == 0
 	    cError('NO EXISTE CONFIGURACION GENERAL')
@@ -252,7 +256,7 @@ FUNCTION Carte_263(aParam1,aParam2,aParam3)
        IF SCA->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  FilePrn := 'l'+cAnoUsr+cMaeAct
+	  FilePrn := 'lCta'+cAnoUsr
 	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,SCA->cOpcPrnCar,.F.,.T.,bInsIso,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	      CloseAll(aUseDbf)
@@ -320,7 +324,7 @@ FUNCTION Carte_263(aParam1,aParam2,aParam3)
 
 *>>>>VALIDACION DE LOS ESTADOS DE CUENTA
        SET DEVICE TO SCREEN
-       aErrCta := aValCuenta(lShared,nModCry,cNomSis,cAnoUsr,cMaeAct,;
+       aErrCta := aValCuenta(lShared,nModCry,cNomSis,cAnoUsr,cMaeAlu,;
 			     nGruIni,nGruFin,cPatSis)
        SET DEVICE TO PRINT
 *>>>>FIN VALIDACION DE LOS ESTADOS DE CUENTA

@@ -718,6 +718,10 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 **********IMPRESION DE LOS GRUPOS
 	    SELECT CLI
 	    GO TOP
+/*
+// ojo
+GO 1
+*/
 	    DO WHILE .NOT. CLI->(EOF())
 
 *==============ANALISIS SI EL ESTUDIANTE PERTENECE AL GRUPO
@@ -1469,6 +1473,14 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 
 		 SELECT CLI
 		 CLI->(DBSKIP())
+
+/*
+// ojo
+IF CLI->(RECNO()) == 7
+   EXIT
+ENDIF
+*/
+
 *==============FIN AVANCE DEL SIGUIENTE REGISTRO
 
 	    ENDDO
@@ -1876,7 +1888,7 @@ FUNCTION FactMes01(aParam1,aParam2,aParam3)
 
        IF EMPTY(dFecPrn)
 
-	  lPrnReg(01,00,'SALDO ACTUAL'+IF(aVlrTot[1] == nTotal,' ','.')+;
+	  lPrnReg(01,00,IF(aVlrTot[1] == nTotal,'SALDO ACTUAL','saldo actual')+;
 			'      '+;
 			TRANS(nTotal,"####,###,###")+;
 			IF(nFinMes+nAboFin+nDesFin+nDeuRet+nMorRet # 0,;

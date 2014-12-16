@@ -46,6 +46,7 @@ FUNCTION FOtrExt43(aParam1,aParam2,aParam3,;
 
        LOCAL nMesIni := 0                   // Mes del pago
        LOCAL cCodRef := ''                  // C¢digo de la Referencia
+       LOCAL cCodFac := ''                  //@C¢digo Servicio Facturado. Ej: 01->MATRICULA 02->PENSION,03->RESTAURANTE,04->TRANSPORTE */
        LOCAL cCodTra := ''                  // C¢digo de la transaci¢n
        LOCAL cSigTra := ''                  // Signo de la transaci¢n
        LOCAL nValor  := 0                   // Valor de la Transaci¢n
@@ -249,7 +250,7 @@ FUNCTION FOtrExt43(aParam1,aParam2,aParam3,;
        DO WHILE .NOT. TRA->(EOF())
 
 **********LECTURA DE LOS RESPECTIVO CAMPOS
-	    cCodRef := cCodRef(TRA->Registro)
+	    cCodRef := cCodRef(TRA->Registro,@cCodFac)
 
 	    cCodTra := SUBS(TRA->Registro,BAN->nTipMovBan,BAN->nLenTipBan)
 
@@ -314,6 +315,7 @@ FUNCTION FOtrExt43(aParam1,aParam2,aParam3,;
 	    IF TRA->(lRegLock(lShared,.F.))
 	       REPL TRA->cCodRefTra WITH cCodRef
 	       REPL TRA->cCodigoEst WITH SUBS(cCodRef,1,6)
+	       REPL TRA->cCodFacCar WITH cCodFac
 	       REPL TRA->cCodigoTra WITH cCodTra
 	       REPL TRA->nCodigoCmv WITH nCodigoCmv(VAL(cNroMes),;
 						    cCodRef,BAN->nLenRefBan)

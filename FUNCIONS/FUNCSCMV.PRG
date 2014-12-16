@@ -1083,8 +1083,14 @@ FUNCTION nCodigoCmv(nMesAct,cCodRef,nLenRef)
 	       CMV->(DBGOTOP())
 	       LOCATE FOR ALLTRIM(SUBS(CMV->cCodRefTra,1,;
 			  BAN->nLenRefBan)) == ALLTRIM(cCodRef)
+
 	       IF FOUND()
-		 nCodigoTcm := CMV->nCodigoCmv
+
+		  IF CMV->nCodCmvCmv > 0
+		     nCodigoTcm := CMV->nCodCmvCmv
+		  ELSE
+		     nCodigoTcm := CMV->nCodigoCmv
+		 ENDIF
 	       ENDIF
 
        ENDCASE

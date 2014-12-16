@@ -1143,8 +1143,6 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 				  dFecPrn)
 **********FIN CALCULO DEL SALDO ACTUAL
 
-
-
 **********ANALISIS SI ES EL MES ACTUAL
 	    nMesIni := nMesIniTpa
 
@@ -1207,9 +1205,24 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 	    IF !lMesAct .AND. lHayAlu .AND. lHayPag
 
 *--------------CALCULO DE LOS INTERESES
-		 nVlrInt := nVlrIntNoP(CAA->lIntPenCaA,;
-				       PAG->nMesIniPag,;
-				       CAA->nMesAmnCaA)
+
+		 DO CASE
+		 CASE PAG->cEstadoPag = 'D'
+
+		      nVlrInt := nVlrIntNoP(CAA->lIntPenCaA,;
+					    PAG->nMesIniPag,;
+					    CAA->nMesAmnCaA)
+
+		 CASE PAG->cEstadoPag == 'A'
+
+		      nVlrInt := nIntMesPag(CAA->lIntPenCaA,;
+					    PAG->nSdoAntPag,;
+					    PAG->nVlrMesPag,;
+					    PAG->nMesIniPag,;
+					    CAA->nMesAmnCaA)
+		 OTHERWISE
+		      nVlrInt := 0
+		 ENDCASE
 *--------------FIN CALCULO DE LOS INTERESES
 
 *--------------ANALISIS DE LA FORMA DE PAGO

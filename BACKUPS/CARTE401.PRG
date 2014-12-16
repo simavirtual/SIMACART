@@ -111,6 +111,7 @@ FUNCTION Carte_401(aParam1,aParam2,aParam3)
        AADD(aMenus,'4<MOROSOS + MES ACTUAL>')
        AADD(aMenus,'5<CLASIFICACION       >')
        AADD(aMenus,'6<MOROSOS A¥O ANTERIOR>')
+       AADD(aMenus,'7<MOROSOS SOLO MES    >')
 
        AADD(aAyuda,'Imprime por cursos los estudiantes morosos')
        AADD(aAyuda,'Permite imprimir una Carta para los Estudiantes')
@@ -119,6 +120,7 @@ FUNCTION Carte_401(aParam1,aParam2,aParam3)
        AADD(aAyuda,'incluyendo el mes actual')
        AADD(aAyuda,'Permite Clasificar los Morosos por c¢digos')
        AADD(aAyuda,'Imprime los Morosos de A¤os Anteriores')
+       AADD(aAyuda,'Imprime los Morosos de solo el mes Actual')
 *>>>>FIN DECLARCION Y EJECUCION DEL MENU
 
 *>>>>VALIDACION DEL LIMITE DE LA ULTIMA COLUMNA
@@ -165,6 +167,10 @@ FUNCTION Carte_401(aParam1,aParam2,aParam3)
 	  CASE nNroOpc == 6
 	       Carte_416(aParam1,aParam2,aParam3)
 	      *Morosos de a¤os anteriores.
+
+	  CASE nNroOpc == 7
+	       Carte_417(aParam1,aParam2,aParam3)
+	      *Morosos de solo el mes Actual
 	  ENDCASE
 
        ENDDO

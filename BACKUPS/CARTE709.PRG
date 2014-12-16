@@ -128,11 +128,13 @@ LOCAL lIntCua := .F.
 		  '5<VALOR POR GRUPOS     >',;
 		  '6<SITUACION DEL CLIENTE>'}
 
+/*
        aMenus := {'1<DIGIGO DE CHEQUEO    >',;
 		  '2<CONTROL DE RECIBOS   >',;
 		  '3<CONSULTAR IMPRESION  >',;
 		  '4<LOG DE ERRORES       >',;
 		  '5<VALOR POR GRUPOS     >'}
+*/
 
 
        aAyuda := {'Permite Calcular los digitos de Chequeo',;
@@ -142,13 +144,13 @@ LOCAL lIntCua := .F.
 		  'Permite Consultar el valor por grupos',;
 		  'Permite Consultar y Modificar la Situaci¢n del Cliente'}
 
-
+/*
        aAyuda := {'Permite Calcular los digitos de Chequeo',;
 		  'Permite Consultar el Control de los Recibos Impresos',;
 		  'Permite Consultar los resultados de la impresi¢n',;
 		  'Permite Consultar el Log Errores presentados en el Sistema',;
 		  'Permite Consultar el valor por grupos'}
-
+*/
 *>>>>FIN DECLARCION Y EJECUCION DEL MENU
 
 *>>>>VALIDACION DEL LIMITE DE LA ULTIMA COLUMNA

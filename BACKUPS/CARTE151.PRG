@@ -73,7 +73,7 @@ FUNCTION Carte_151(aParam1,aParam2,aParam3)
        LOCAL dExtAnt := CTOD("00/00/00")    // Extemporaneo Anterior
        LOCAL dExtAct := CTOD("00/00/00")    // Extemporaneo Actual
 
-       LOCAL       i := 0                   // Contador
+       LOCAL     i,x := 0                   // Contador
        LOCAL nNroFil := 0                   // N£mero Fila
        LOCAL aNroCol := {}                  // Numeros de Columna
        LOCAL cNalias := ''                  // Alias del maestro
@@ -101,6 +101,7 @@ FUNCTION Carte_151(aParam1,aParam2,aParam3)
        LOCAL cMsgErr := ''                  // Mensaje de Error
        LOCAL nDeuAbo := 0                   // Deuda con abono
        LOCAL nMorAbo := 0                   // Mora con abono
+       LOCAL aMsgErr := {}                  // Mensajes de Error
        LOCAL Getlist := {}                  // Variable del sistema
 
        LOCAL cCodigoTes := ''               // Codigo del estudiante
@@ -190,6 +191,8 @@ FUNCTION Carte_151(aParam1,aParam2,aParam3)
 			 fCarAno+cAnoUsr+ExtFile,'CAA',NIL,lShared,nModCry})
        AADD(aUseDbf,{.T.,cPatSis+'\'+;
 			 FileDes,'DES',cPatSis+'\'+fNtxDes,lShared,nModCry})
+       AADD(aUseDbf,{.T.,cPatSis+'\'+;
+			 FileCon,'CON',NIL,lShared,nModCry})
 *>>>>FIN AREAS DE TRABAJO
 
 *>>>>SELECION DE LAS AREAS DE TRABAJO
@@ -300,6 +303,13 @@ FUNCTION Carte_151(aParam1,aParam2,aParam3)
 	    ENDIF
 **********FIN SELECION DE LAS AREAS DE TRABAJO
 
+**********VALIDACION DEL MES DEL ABONO
+	    IF nNroMesTde # nMesUltPag(cCodigoTes)
+	       cError(cMes(nNroMesTde)+' NO ES EL ULTIMO RECIBO FACTURADO')
+	       LOOP
+	    ENDIF
+**********FIN VALIDACION DEL MES DEL ABONO
+
 **********LOCALIZACION DEL CODIGO
 	    IF !lLocCodCli(cCodigoTes,.F.)
 	       cError(cNombreTes+' NO EXISTE EN LOS '+;
@@ -307,6 +317,20 @@ FUNCTION Carte_151(aParam1,aParam2,aParam3)
 	       LOOP
 	    ENDIF
 **********FIN LOCALIZACION DEL CODIGO
+
+**********VALIDACION DEL ESTADO DE CUENTA
+	    aMsgErr := aValCtaEst(cCodigoTes,.F.)
+
+	    IF LEN(aMsgErr) > 0
+
+	       cError('FAVOR REVISAR EL ESTADO DE CUENTA DEL ESTUDIANTE')
+
+	       FOR x := 1 TO LEN(aMsgErr)
+		   cError(aMsgErr[x])
+	       ENDFOR
+	       LOOP
+	    ENDIF
+**********FIN VALIDACION DEL ESTADO DE CUENTA
 
 **********ANALISIS SI EL ESTUDIANTE PERTENECE AL GRUPO
 	    IF CLI->lRetgruCli
@@ -1112,6 +1136,19 @@ FUNCTION Carte_151(aParam1,aParam2,aParam3)
 
 	     ENDIF
 ***********CONTROL DE LA FILA DE VISUALIZACION
+
+**********VALIDACION DEL ESTADO DE CUENTA DESPUES DEL ABONO
+	    aMsgErr := aValCtaEst(cCodigoTes,.F.)
+
+	    IF LEN(aMsgErr) > 0
+
+	       cError('EL ABONO QUEDO MAL APLICADO. FAVOR REVISAR')
+
+	       FOR x := 1 TO LEN(aMsgErr)
+		   cError(aMsgErr[x])
+	       ENDFOR
+	    ENDIF
+**********FIN VALIDACION DEL ESTADO DE CUENTA
 
 	  CloseDbf('CLI',FileCli,nModCry)
 	  CloseDbf('PAG',FilePag,nModCry)

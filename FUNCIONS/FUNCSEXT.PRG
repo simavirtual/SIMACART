@@ -53,6 +53,7 @@ FUNCTION CreaDbfExt(lShared,nModCry,PathExt,FileExt,fNtxExt,aStrDbf)
 
        LOCAL aDbfExt := {{"Registro"  ,"Character",1300,0},;  // Registro
 			 {"cCodRefTra","Character",12,0},;   // C¢digo de la Referencia
+			 {"cCodFacCar","Character",02,0},;   // C¢digo Servicio Facturado. Ej: 01->PENSION,02->RESTAURANTE,03->TRANSPORTE
 			 {"cCodigoEst","Character",06,0},;   // C¢digo del Estudiante
 			 {"cCodigoTra","Character",03,0},;   // Codigo de la Transaci¢n
 			 {"nCodigoCmv","Numeric"  ,04,0},;   // C¢digo del Concepto del Movimiento
@@ -712,6 +713,12 @@ FUNCTION oDefBrwExt(lShared,nFilSup,nColSup,nFilInf,nColInf,;
        oColumn := TBCOLUMNNEW('REFERENCIA2',;
 		  {||SUBS(TRA->Registro,BAN->nCodRf2Ban,BAN->nLenRefBan)})
        oColumn:Cargo := {{'MODI',.F.}}
+       oBrwExt:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('CODIGO;SERVICIO FACTURADO', {||TRA->cCodFacCar})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','TRA'},;
+			 {'FIELD','cCodFacCar'},{'PICTURE','@!'}}
        oBrwExt:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 

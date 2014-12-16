@@ -42,7 +42,7 @@ FUNCTION Carte_107(aParam1,aParam2,aParam3)
        LOCAL cIntTre := ''                  // Path de integraci¢n tres
        LOCAL cIntCua := ''                  // Path de integraci¢n cuatro
 
-       LOCAL       i := 0                   // Contador
+       LOCAL     i,x := 0                   // Contador
        LOCAL nNroFil := 0                   // N£mero de la Fila
        LOCAL nLenOpc := 0                   // Longitud de las opciones
        LOCAL aMenus  := {}                  // Vector de declaracion de men£
@@ -51,6 +51,8 @@ FUNCTION Carte_107(aParam1,aParam2,aParam3)
        LOCAL cNomDes := ''                  // Nombre del Descuento
        LOCAL nMesIni := 0                   // Mes Inicial
        LOCAL nRegPag := 0                   // Registro de Pagos
+       LOCAL aMsgErr := {}                  // Mensajes de Error
+       LOCAL nIntNoP := 0                   // Valor de los intereses no pago
        LOCAL Getlist := {}                  // Variable del sistema
 
        LOCAL cCodigoTes := ''               // Codigo del estudiante
@@ -166,6 +168,8 @@ FUNCTION Carte_107(aParam1,aParam2,aParam3)
 			 fCarAno+cAnoUsr+ExtFile,'CAA',NIL,lShared,nModCry})
        AADD(aUseDbf,{.T.,cPatSis+'\'+;
 			 FileDes,'DES',cPatSis+'\'+fNtxDes,lShared,nModCry})
+       AADD(aUseDbf,{.T.,cPatSis+'\'+;
+			 FileCon,'CON',NIL,lShared,nModCry})
 *>>>>FIN AREAS DE TRABAJO
 
 *>>>>SELECION DE LAS AREAS DE TRABAJO
@@ -479,10 +483,16 @@ FUNCTION Carte_107(aParam1,aParam2,aParam3)
 	    CASE PAG->cEstadoPag == 'D'
 
 *----------------ACTUALIZACION DEL SALDO
+		   nIntNoP := nIntMesNoP(CAA->lIntPenCaA,;
+					 PAG->nSdoAntPag,;
+					 PAG->nVlrMesPag,;
+					 PAG->nMesIniPag,;
+					 CAA->nMesAmnCaA)
+
 		   nSdoActTcl := PAG->nSdoAntPag+PAG->nVlrMesPag
-		   nSdoMorTcl := PAG->nMorAntPag+nVlrIntPag(PAG->lIntPenPag,;
-							    PAG->nMesIniPag,;
-							    PAG->nMesAmnPag)
+		   nSdoMorTcl := PAG->nMorAntPag+nIntNoP
+
+
 		   nSdoAnoTcl := PAG->nSdoAnoPag
 		   nMorAnoTcl := PAG->nMorAnoPag+nVlrInt(PAG->nSdoAnoPag)
 *----------------FIN ACTUALIZACION DEL SALDO
@@ -518,13 +528,17 @@ FUNCTION Carte_107(aParam1,aParam2,aParam3)
 	    ENDIF
 **********FIN GRABACION DEL SALDO EN CLIENTES
 
-**********VALIDACION DEL ESTADO DE CUENTA
-/*
-	    IF LEN(aValCtaEst(cCodigoTes,.F.)) # 0
-	       cError('ESTADO DE CUENTA CON PROBLEMAS',;
-		      'POR FAVOR REVISAR')
+**********VALIDACION DEL ESTADO DE CUENTA DESPUES DEL ABONO
+	    aMsgErr := aValCtaEst(cCodigoTes,.F.)
+
+	    IF LEN(aMsgErr) > 0
+
+	       cError('FAVOR REVISAR EXISTEN INCONSISTENCIAS EN EL ESTADO DE CUENTA')
+
+	       FOR x := 1 TO LEN(aMsgErr)
+		   cError(aMsgErr[x])
+	       ENDFOR
 	    ENDIF
-*/
 **********FIN VALIDACION DEL ESTADO DE CUENTA
 
 	  CloseDbf('CLI',FileCli,nModCry)

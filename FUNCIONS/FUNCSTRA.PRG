@@ -54,6 +54,7 @@ FUNCTION CreaDbfTra(lShared,nModCry,PathTra,FileTra,fNtxTra,aStrDbf)
        LOCAL aDbfTra := {{"Registro"  ,"Character",1300,0},;
 			 {"cCodigoTra","Character",03,0},;
 			 {"cCodRefTra","Character",12,0},;   // C¢digo de la Referencia
+			 {"cCodFacCar","Character",02,0},;   // C¢digo Servicio Facturado. Ej: 01->PENSION,02->RESTAURANTE,03->TRANSPORTE
 			 {"cCodigoEst","Character",06,0},;
 			 {"nMesIniTra","Numeric"  ,02,0},;
 			 {"nMesFinTra","Numeric"  ,02,0},;
@@ -675,8 +676,10 @@ FUNCTION MantenTra(aParam1,aParam2,aParam3,;
        CASE PRN->(RECCOUNT()) == 0
 	    cError('NO EXISTEN IMPRESIORAS GRABADAS')
 
+/*
        CASE TRA->(RECCOUNT()) == 0
 	    cError('NO EXISTEN TRANSACIONES REGISTRADOS')
+*/
 
        CASE TMV->(RECCOUNT()) == 0
 	    cError('NO EXISTEN LOS NOMBRES DE LOS CONCEPTOS DEL MOVIMIENTO')
@@ -805,6 +808,8 @@ FUNCTION oDefBrwTra(nFilSup,nColSup,nFilInf,nColInf,cMaeAlu,;
        oBrwTra:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
+
+
        oColumn	     := TBCOLUMNNEW('TRAN', {||TRA->cCodigoTra})
        oColumn:Cargo := {{'MODI',.F.}}
        oBrwTra:ADDCOLUMN(oColumn)
@@ -851,6 +856,12 @@ FUNCTION oDefBrwTra(nFilSup,nColSup,nFilInf,nColInf,cMaeAlu,;
 			{||cConcepCmv(TRA->nCodigoCmv,'TRA')})
        oColumn:Cargo := {{'MODI',.F.}}
        oColumn:Width := 40
+       oBrwTra:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('CODIGO;SERVICIO FACTURADO', {||TRA->cCodFacCar})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','TRA'},;
+			 {'FIELD','cCodFacCar'},{'PICTURE','@!'}}
        oBrwTra:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
@@ -1402,10 +1413,11 @@ OBJETIVOS:
 *                              PROGRAMA                                  *
 *------------------------------------------------------------------------*/
 
-FUNCTION cCodRef(cRegTra)
+FUNCTION cCodRef(cRegTra,cCodFac)
 
 *>>>>DESCRIPCION DE PARAMETROS
-/*     cRegTra                              // Registro de la Transaci¢n */
+/*     cRegTra                              // Registro de la Transaci¢n
+       cCodFac                              //@C¢digo Servicio Facturado. Ej: 01->MATRICULA,02->PENSION 03->RESTAURANTE,04->TRANSPORTE */
 *>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
@@ -1415,10 +1427,31 @@ FUNCTION cCodRef(cRegTra)
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>REFERENCIA1
+       cCodFac := SPACE(02)
        IF BAN->nCodEstBan # 0
 	  cCodRf1 := SUBS(cRegTra,BAN->nCodEstBan,BAN->nLenRefBan)
        ENDIF
-       cCodRef := cCodRf1
+
+       DO CASE
+       CASE BAN->nLenRefBan == 10
+	    cCodRef := cCodRf1
+	    cCodFac := SPACE(02)
+
+       CASE BAN->nLenRefBan == 12  // C¢digo Servicio Facturado
+
+	    cCodFac := SUBS(cCodRf1,1,2)
+	    IF VAL(cCodFac) == 0
+	       cCodRef := SUBS(cCodRf1,3,10)
+	       cCodRef := cCodRef+cCodFac
+	    ELSE
+	       cCodRef := cCodRf1
+	       cCodFac := SUBS(cCodRf1,11,2)
+	    ENDIF
+
+       OTHERWISE
+	    cCodRef := cCodRf1
+	    cCodFac := SPACE(02)
+       ENDCASE
 *>>>>FIN REFERENCIA1
 
 *>>>>REFERENCIA2
@@ -1428,6 +1461,25 @@ FUNCTION cCodRef(cRegTra)
 
        IF BAN->nCodRf2Ban # 0 .AND. VAL(cCodRf1) == 0
 	  cCodRef := cCodRf2
+
+	  DO CASE
+	  CASE BAN->nLenRefBan == 10
+	       cCodRef := cCodRf2
+
+	  CASE BAN->nLenRefBan == 12  // C¢digo Servicio Facturado
+
+	       cCodFac := SUBS(cCodRf2,1,2)
+	       IF VAL(cCodFac) == 0
+		  cCodRef := SUBS(cCodRf2,3,10)
+		  cCodRef := cCodRef+cCodFac
+	       ELSE
+		  cCodRef := cCodRf2
+	       ENDIF
+
+	  OTHERWISE
+	       cCodRef := cCodRf2
+	  ENDCASE
+
        ENDIF
 *>>>>FIN REFERENCIA2
 

@@ -171,20 +171,26 @@ FUNCTION Carte_108(aParam1,aParam2,aParam3)
 	     EXIT
 	  ENDIF
 
-	  IF nNroOpc == 1 .AND.;
-	    (nNroRec == 8 .OR. nNroRec == 9)
+	  DO CASE
+	  CASE nNroOpc == 1 .AND. (nNroRec == 8 .OR. nNroRec == 9)
 
 	       RESTSCREEN(0,0,24,79,cSavPan)
 	       Carte_181(aParam1,aParam2,aParam3)
 	      *ÀConsignaciones
 
-	  ELSE
+	  CASE nNroOpc == 1 .AND. (nNroRec # 8 .AND. nNroRec # 9)
 
 	       RESTSCREEN(0,0,24,79,cSavPan)
 	       Carte_182(aParam1,aParam2,aParam3)
 	      *ÀFacturaci¢n
 
-	  ENDIF
+	  OTHERWISE
+
+	       RESTSCREEN(0,0,24,79,cSavPan)
+	       Carte_182(aParam1,aParam2,aParam3)
+	      *ÀFacturaci¢n
+
+	  ENDCASE
 	  RESTSCREEN(0,0,24,79,cSavPan)
 
        ENDDO

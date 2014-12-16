@@ -398,6 +398,13 @@ FUNCTION Carte_104(aP1,aP2,aP3)
 	    ENDIF
 **********FIN SELECION DE LAS AREAS DE TRABAJO
 
+**********VALIDACION DEL MES DEL ABONO
+	    IF nNroMesTde # nMesUltPag(cCodigoTes)
+	       cError(cMes(nNroMesTde)+' NO ES EL ULTIMO RECIBO FACTURADO')
+	       LOOP
+	    ENDIF
+**********FIN VALIDACION DEL MES DEL ABONO
+
 **********LOCALIZACION DEL CODIGO
 	    IF !lLocCodCli(cCodigoTes,.F.)
 	       cError(cNombreTes+' NO EXISTE EN LOS '+;

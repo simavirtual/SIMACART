@@ -9712,3 +9712,645 @@ ENDIF
        ENDIF
        RETURN nVlrTot
 *>>>>FIN GRABACION DEL CONTROL DEL RECIBO
+
+/*************************************************************************
+* TITULO..: RECIBO DE PAGO No. 99                                        *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: NOV 20/2014 VIE A
+       Colombia, Bucaramanga        INICIO: 01:30 PM   NOV 20/2024 VIE
+
+OBJETIVOS:
+
+1- Recibo dise¤ado con base al recibo No.08 de los colegios de la Salle
+
+2- Imprime el recibo de pago con c¢digo de barras utilizando
+   el lenguaje PRESCRIBE de las impresoras Kiosera.
+
+3- Imprime el recibo SIN formato preimpreso
+
+4- Permite imprimir los recibos sencillos o los recibos por adelantado
+   de acuerdo como se pasen los parametros de la funci¢n.
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION nRecibo99(aP1,aP2,aP3,aRecFac,;
+		   nDiaMor,nNroFac,nNroLis,cConcep,nIntMor,lPagExt,nVlrMes,;
+		   lPrnGru,nVlrCo1,nVlrCo2,nVlrCo3,nVlrCo4,nVlrCo5,nVlrCo6,;
+		   nVlrCo7,nVlrCo8,lHayBec,nVlrBec,nDescue,nPagPar,nRecarg,;
+		   nDesGen,nRecGen,cConGen,nFavDes,nSdoFav)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     aP1                                  // Parametros Generales
+       aP2                                  // Parametros Generales
+       aP3                                  // Parametros Generales
+       aRecFac                              // Recibo Facturado */
+*>>>>FIN DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION PARAMETROS
+       LOCAL lShared := xPrm(aP1,'lShared') // .T. Sistema Compartido
+       LOCAL nModCry := xPrm(aP1,'nModCry') // Modo de Protecci¢n
+       LOCAL cCodSui := xPrm(aP1,'cCodSui') // C¢digo del Sistema
+       LOCAL cNomSis := xPrm(aP1,'cNomSis') // Nombre del Sistema
+     *ÀDetalles del Sistema
+
+       LOCAL cEmpPal := xPrm(aP1,'cEmpPal') // Nombre de la Empresa principal
+       LOCAL cNitEmp := xPrm(aP1,'cNitEmp') // Nit de la Empresa
+       LOCAL cNomEmp := xPrm(aP1,'cNomEmp') // Nombre de la Empresa
+       LOCAL cNomSec := xPrm(aP1,'cNomSec') // Nombre de la Empresa Secundario
+       LOCAL cCodEmp := xPrm(aP1,'cCodEmp') // C¢digo de la Empresa
+     *ÀDetalles de la Empresa
+
+       LOCAL cNomUsr := xPrm(aP1,'cNomUsr') // Nombre del Usuario
+       LOCAL cAnoUsr := xPrm(aP1,'cAnoUsr') // A¤o del usuario
+       LOCAL cAnoSis := xPrm(aP1,'cAnoSis') // A¤o del sistema
+       LOCAL cPatSis := xPrm(aP1,'cPatSis') // Path del sistema
+     *ÀDetalles del Usuario
+
+       LOCAL PathW01 := xPrm(aP1,'PathW01') // Sitio del Sistema No.01
+       LOCAL PathW02 := xPrm(aP1,'PathW02') // Sitio del Sistema No.02
+       LOCAL PathW03 := xPrm(aP1,'PathW03') // Sitio del Sistema No.03
+       LOCAL PathW04 := xPrm(aP1,'PathW04') // Sitio del Sistema No.04
+       LOCAL PathW05 := xPrm(aP1,'PathW05') // Sitio del Sistema No.05
+       LOCAL PathW06 := xPrm(aP1,'PathW06') // Sitio del Sistema No.06
+       LOCAL PathW07 := xPrm(aP1,'PathW07') // Sitio del Sistema No.07
+       LOCAL PathW08 := xPrm(aP1,'PathW08') // Sitio del Sistema No.08
+       LOCAL PathW09 := xPrm(aP1,'PathW09') // Sitio del Sistema No.09
+       LOCAL PathW10 := xPrm(aP1,'PathW10') // Sitio del Sistema No.10
+     *ÀSitios del Sistema
+
+       LOCAL PathUno := xPrm(aP1,'PathUno') // Path de Integraci¢n Uno
+       LOCAL PathDos := xPrm(aP1,'PathDos') // Path de Integraci¢n Dos
+       LOCAL PathTre := xPrm(aP1,'PathTre') // Path de Integraci¢n Tres
+       LOCAL PathCua := xPrm(aP1,'PathCua') // Path de Integraci¢n Cuatro
+     *ÀPath de Integraci¢n
+
+       LOCAL nFilPal := xPrm(aP1,'nFilPal') // Fila Inferior Men£ principal
+       LOCAL nFilInf := xPrm(aP1,'nFilInf') // Fila Inferior del SubMen£
+       LOCAL nColInf := xPrm(aP1,'nColInf') // Columna Inferior del SubMen£
+     *ÀDetalles Tecnicos
+
+       LOCAL cMaeAlu := xPrm(aP1,'cMaeAlu') // Maestros habilitados
+       LOCAL cMaeAct := xPrm(aP1,'cMaeAct') // Maestro Activo
+       LOCAL cJorTxt := xPrm(aP1,'cJorTxt') // Jornada escogida
+     *ÀDetalles Acad‚micos
+*>>>>FIN DECLARACION PARAMETROS
+
+*>>>>DECLARACION PARAMETROS DEL RECIBO
+       LOCAL cCodEan := xPrm(aP3,'cCodEan') // C¢digo EAN13 para el recaudo
+       LOCAL cCodFac := xPrm(aP3,'cCodFac') // C¢digo Servicio Facturado. Ej: 01->MATRICULA 02->PENSION, 03->RESTAURANTE,04->TRANSPORTE
+
+       LOCAL cCodIso := xPrm(aP3,'cCodIso') // C¢digo Iso
+
+       LOCAL cCodEst := xPrm(aP3,'cCodEst') // C¢digo del Estudiante
+       LOCAL cCodGru := xPrm(aP3,'cCodGru') // C¢digo del Grupo
+       LOCAL cNomEst := xPrm(aP3,'cNomEst') // Nombre del Estudiante
+       LOCAL nMesIni := xPrm(aP3,'nMesIni') // Mes Inicial
+       LOCAL nMesFin := xPrm(aP3,'nMesFin') // Mes Finale
+
+       LOCAL cNomBan := xPrm(aP3,'cNomBan') // Nombre del Banco
+       LOCAL cCtaBan := xPrm(aP3,'cCtaBan') // Cuenta del Banco
+
+       LOCAL dFecOpo := xPrm(aP3,'dFecOpo') // Fecha Oportuna
+       LOCAL dFecExt := xPrm(aP3,'dFecExt') // Fecha Extemporanea
+
+       LOCAL nVlrOpo := xPrm(aP3,'nVlrOpo') // Valor pago oportuno
+       LOCAL nVlrExt := xPrm(aP3,'nVlrExt') // Valor pago extemporaneo
+
+       LOCAL cTxtUno := xPrm(aP3,'cTxtUno')
+       LOCAL cTxtDos := xPrm(aP3,'cTxtDos')
+*>>>>DECLARACION PARAMETROS DEL RECIBO
+
+       LOCAL cCodMzp := ''                  // C¢digos de las coordenadas de impresi¢n
+       LOCAL nTotPrn := 3                   // Total de Impresiones
+       LOCAL cMsgTxt := ''                  // Texto variable
+
+       LOCAL nNroLen := 0                   // Longitud del recibo
+       LOCAL bDigChe := ''                  // Funcion Digito de Chequeo
+       LOCAL lPorAde := .F.                 // .T. = Recibo por Adelantado
+       LOCAL cNroRef := ''                  // N£mero de la Referencia
+       LOCAL cCurso  := ''                  // Curso del Estudiante
+       LOCAL nNroCop := 0                   // N£mero de Copias
+       LOCAL nVlrTot := 0                   // Valor Total del recibo
+       LOCAL nVlrInt := 0                   // Valor de los intereses
+       LOCAL nVlrPag := 0                   // Valor del mes a pagar
+
+       LOCAL lDesGen := .F.                 // .T. Hay Descuento General
+       LOCAL lHayDes := .F.                 // .T. Hay Descuentos
+       LOCAL nVlrDes := 0                   // Valor del Descuento
+       LOCAL nTipDes := 0                   // Tipo de descuento
+
+       LOCAL nVlrPen := 0                   // Valor de la pension
+       LOCAL nPorBec := 0                   // Porcentaje de la beca
+
+
+*>>>>DECLARACION DE VARIABLES
+*       LOCAL nNroFac := 0                   // N£mero de la Factura
+       LOCAL cNroFac := ''                  // N£mero de la Factura
+
+       LOCAL cMesIni := ''                  // Mes inicial de pago
+       LOCAL cMesFin := ''                  // Mes final de pago
+
+       LOCAL cCodRef := ''                  // Codigo de la referencia
+       LOCAL cMeses  := ''                  // Meses a pagar
+
+       LOCAL cVlrBar := ''                  // Valor para c¢digo de Barras
+       LOCAL cBarOpo := ''                  // C¢digo Barra Oportuno
+       LOCAL cBarExt := ''                  // C¢digo Barra Extemporanea
+       LOCAL cTxtOpo := ''                  // Texto Oportuno
+       LOCAL cTxtExt := ''                  // Texto Extemporaneo
+
+       LOCAL aPrmRec := {}                  // Parametros del Recibo
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>VALIDACION DEL LIMITE DE LA FACTURACION
+       SETPRC(0,0)
+       nNroLen := 74
+
+       IF SCO->lHayNroCon
+	  IF SCO->nNroFacCon >= 99999999
+	     SET DEVICE TO SCREEN
+	     cError('SE EXCEDIO EL LIMITE DE LA FACTURACION')
+	     SET DEVICE TO PRINT
+	     SET FIXED ON
+	     RETURN 'C'
+	  ENDIF
+       ENDIF
+*>>>>FIN VALIDACION DEL LIMITE DE LA FACTURACION
+
+*>>>>ASIGNACION DEL NUMERO DE LA FACTURA
+       IF SCO->lHayNroCon
+	  nNroFac := SCO->nNroFacCon+1
+	  cNroFac := STR(nNroFac,8)
+	  lCorrecion(@cNroFac,.T.)
+       ELSE
+	  nNroFac := 0
+	  cNroFac := STR(nNroFac,8)
+	  lCorrecion(@cNroFac,.T.)
+       ENDIF
+*>>>>FIN ASIGNACION DEL NUMERO DE LA FACTURA
+
+*>>>>CALCULO DEL DIGITO DE CHEQUEO
+       cMesIni := STR(nMesIni,2)
+       cMesFin := IF(nMesFin == NIL,cMesIni,STR(nMesFin,2))
+       lCorrecion(@cMesIni)
+       lCorrecion(@cMesFin)
+
+       IF !EMPTY(BAN->nDigVerBan)
+
+	  bDigChe := &("{|n|cDigChe"+PADL(BAN->nDigVerBan,2,'0')+"(n)}")
+	  cCodFac := cCodEst+cMesIni+cMesFin+;
+		     EVAL(bDigChe,cCodEst+cMesIni+cMesFin)
+
+	  cCodFac := cCodEst+cMesIni+cMesFin
+       ELSE
+	  cCodFac := cCodEst+cMesIni+cMesFin
+       ENDIF
+*>>>>FIN CALCULO DEL DIGITO DE CHEQUEO
+
+*>>>>NUMERO DE LA REFERENCIA UCC128
+       cCodEmp := STR(SCO->nCodEmpCon,2)
+       lCorrecion(@cCodEmp,.T.)
+
+       cCodFac := cCodEst+cMesIni+cMesFin
+
+       cNroRef := cCodFac+cAnoUsr+cCodEmp+cNroFac
+       cNroRef := cCodFac
+*>>>>FIN NUMERO DE LA REFERENCIA UCC128
+
+*>>>>DETERMINACION DEL RECIBO POR ADELANTADO
+       IF nMesFin == NIL
+	  lPorAde := .F.
+       ELSE
+	  lPorAde := .T.
+       ENDIF
+*>>>>FIN DETERMINACION DEL RECIBO POR ADELANTADO
+
+*>>>>CALCULO DEL CURSO Y MES(ES)
+       cCurso := cConverNiv(SUBS(cCodGru,1,2))+SUBS(cCodGru,3,2)+;
+		 SUBS(cJorTxt,1,1)+'-'+STR(nNroLis,2)
+
+       cMeses := cMes(nMesIni,3)+'-'+;
+		 IF(lPorAde,cMes(nMesFin,3),cMes(nMesIni,3))
+*>>>>FIN CALCULO DEL CURSO Y MES(ES)
+
+*>>>>ANALISIS DEL NUMERO DE COPIAS
+       IF nNroLis # 0
+	  nNroCop := VAL(cCopias(nMesIni))
+       ELSE
+	  nNroCop := 0
+       ENDIF
+*>>>>FIN ANALISIS DEL NUMERO DE COPIAS
+
+       cNomEst := cNomFac(cMaeAct,cCodEst,cNomEst)
+       cNomEst := SUBS(cNomEst+SPACE(67),1,67)
+
+*>>>>ANALISIS SI EL ESTUDIANTE TIENE DESCUENTOS GENERALES
+       nVlrDes := 0
+       nTipDes := 0
+
+       lDesGen := .F.
+       nDesGen := 0
+       nRecGen := 0
+       cConGen := ''
+
+IF nNroLis # 0
+
+       IF SUBS(CLI->cHayNovCli,nMesIni,1) = '1'
+
+	  cConGen := CAA->cConGenCaA
+	  DO CASE
+	  CASE CAA->nDesGenCaA # 0 .AND. CAA->nRecGenCaA == 0
+
+	       lDesGen := .T.
+	       nDesGen := CAA->nDesGenCaA
+	       nRecGen := 0
+
+	       lHayDes := .T.
+	       nVlrDes := nDesGen
+	       nTipDes := 1
+
+	  CASE CAA->nDesGenCaA == 0 .AND. CAA->nRecGenCaA # 0
+
+	       lDesGen := .T.
+	       nDesGen := 0
+	       nRecGen := CAA->nRecGenCaA
+
+	       lHayDes := .T.
+	       nVlrDes := nRecGen
+	       nTipDes := 2
+	  ENDCASE
+
+       ENDIF
+ENDIF
+*>>>>FIN ANALISIS SI EL ESTUDIANTE TIENE DESCUENTOS GENERALES
+
+*>>>>ANALISIS SI EL ESTUDIANTE TIENE DESCUENTOS
+       nDescue := 0
+       nPagPar := 0
+       nRecarg := 0
+
+IF nNroLis # 0
+       lHayDes := lSekCodDes(cCodEst,nMesIni,.F.)
+       IF lHayDes
+
+	  nVlrDes := DES->nValorDes
+	  nTipDes := DES->nTipDesDes
+
+	  DO CASE
+	  CASE nTipDes == 1 .OR. nTipDes == 4    // Descuento o Pago Parcial
+
+	       IF nTipDes == 1
+		  nDescue := DES->nValorDes
+	       ELSE
+		  nPagPar := DES->nValorDes
+	       ENDIF
+	       nRecarg := 0
+
+	       DO CASE
+	       CASE nDesGen # 0
+		    nVlrDes := nVlrDes + nDesGen
+	       CASE nRecGen # 0
+		    nVlrDes := nVlrDes - nRecGen
+	       ENDCASE
+	     *ÀAplicaci¢n de descuentos o recargos generales
+
+	  CASE nTipDes == 2    // Recargo
+
+	       nDescue := 0
+	       nRecarg := DES->nValorDes
+
+	       DO CASE
+	       CASE nDesGen # 0
+		    nVlrDes := nVlrDes - nDesGen
+	       CASE nRecGen # 0
+		    nVlrDes := nVlrDes + nRecGen
+	       ENDCASE
+	     *ÀAplicaci¢n de descuentos o recargos generales
+
+	  ENDCASE
+       ELSE
+	  lHayDes := lDesGen
+       ENDIF
+ENDIF
+*>>>>FIN ANALISIS SI EL ESTUDIANTE TIENE DESCUENTOS
+
+*>>>>ANALISIS SI EL ESTUDIANTE TIENE BECA
+       nPorBec := 0
+       nVlrBec := 0
+IF nNroLis # 0
+       lHayBec := lTieneBeca(nMesIni,IF(nMesFin == NIL,nMesIni,nMesFin))
+       IF lHayBec
+	  nPorBec := CLI->nPorBecCli
+	  nVlrBec := CLI->nVlrBecCli
+       ENDIF
+ELSE
+   lHayBec := .F.
+ENDIF
+*>>>>FIN ANALISIS SI EL ESTUDIANTE TIENE BECA
+
+*>>>>IMPRESION PARTE DEL RECIBO SENCILLO
+       IF !lPorAde
+
+**********IMPRESION DEL DESCUENTO O DEL RECARGO
+	    IF lHayDes
+
+	       DO CASE
+	       CASE nTipDes == 1 .OR. nTipDes == 4
+		    IF nTipDes == 1
+		       cMsgTxt := 'DESCUENTO'
+		       IF CAA->lNomConDes
+			  cMsgTxt := DES->cNombreCon
+		       ENDIF
+		    ELSE
+		       cMsgTxt := 'P PARCIAL'
+		    ENDIF
+	       CASE nTipDes == 2
+		       cMsgTxt := 'RECARGO  '
+		       IF CAA->lNomConDes
+			  cMsgTxt := DES->cNombreCon
+		       ENDIF
+	       ENDCASE
+
+	       IF CAA->lNomConDes
+	       ENDIF
+
+	       cCodMzp := '0.3,6.3;'+;
+			  '0.3,14.9;'
+	       LineaMzp(cCodMzp,cMsgTxt,nTotPrn-1)
+	     *ÀDescripcion Descuento,Recargo,Pago Parcial
+
+	       cCodMzp := '13.5,6.3;'+;
+			  '13.5,14.9;'
+	       LineaMzp(cCodMzp,TRANS(nVlrDes,'9,999,999'),nTotPrn-1)
+	     *ÀValor del Descuento,Recargo,Pago Parcial
+
+	    ENDIF
+**********FIN IMPRESION DEL DESCUENTO O DEL RECARGO
+
+**********IMPRESION DEL VALOR DE LOS CONCEPTOS
+	    lHayBec := .F.
+	    nSdoFav := IF(nSdoFav == NIL,0,nSdoFav)
+IF nNroLis # 0
+	    nVlrMes := nVlrCon08(nMesIni,nMesIni,cCodGru,@cConcep,;
+				 CLI->nSdoActCli+CLI->nSdoMorCli,NIL,;
+				 lHayDes,nNroLen,@nVlrCo1,;
+				 @nVlrCo2,@nVlrCo3,@nVlrCo4,;
+				 @nVlrCo5,@nVlrCo6,@nVlrCo7,;
+				 @nVlrCo8,@lHayBec,@nVlrBec,nSdoFav,nNroLis,;
+				 aRecFac,nDiaMor)
+	   *Impresi¢n de conceptos
+
+ELSE
+	    nVlrMes := nVlrCon08(nMesIni,nMesIni,cCodGru,@cConcep,;
+				 0,NIL,;
+				 lHayDes,nNroLen,@nVlrCo1,;
+				 @nVlrCo2,@nVlrCo3,@nVlrCo4,;
+				 @nVlrCo5,@nVlrCo6,@nVlrCo7,;
+				 @nVlrCo8,@lHayBec,@nVlrBec,nSdoFav,nNroLis,;
+				 aRecFac,nDiaMor)
+	   *Impresi¢n de conceptos
+
+	    lHayBec := .F.
+	    nVlrBec := 0
+ENDIF
+	    IF VALTYPE(nVlrMes) == 'C'
+	       SET FIXED ON
+	       RETURN 'Error'
+	    ENDIF
+
+IF nNroLis # 0
+	    nVlrTot := nVlrMes+;
+		       IF(CAA->nMesAmnCaA==nMesIni,0,;
+			  CLI->nSdoActCli+CLI->nSdoMorCli)
+ELSE
+   nVlrTot := nVlrMes
+ENDIF
+**********FIN IMPRESION DEL VALOR DE LOS CONCEPTOS
+
+       ENDIF
+*>>>>FIN IMPRESION PARTE DEL RECIBO SENCILLO
+
+*>>>>IMPRESION PARTE DEL RECIBO POR ADELANTADO
+       IF lPorAde
+
+**********IMPRESION DEL DESCUENTO O DEL RECARGO
+	    IF lHayDes
+
+	       DO CASE
+	       CASE nTipDes == 1 .OR. nTipDes == 4
+		    IF nTipDes == 1
+		       cMsgTxt := 'DESCUENTO'
+		    ELSE
+		       cMsgTxt := 'P PARCIAL'
+		    ENDIF
+	       CASE nTipDes == 2
+		    cMsgTxt := 'RECARGO  '
+	       ENDCASE
+
+	       cCodMzp := '0.3,6.3;'+;
+			  '0.3,14.9;'
+	       LineaMzp(cCodMzp,cMsgTxt,nTotPrn-1)
+	     *ÀDescripcion Descuento,Recargo,Pago Parcial
+
+	       cCodMzp := '13.5,6.3;'+;
+			  '13.5,14.9;'
+	       LineaMzp(cCodMzp,TRANS(nVlrDes,'9,999,999'),nTotPrn-1)
+	     *ÀValor del Descuento,Recargo,Pago Parcial
+
+	    ENDIF
+**********FIN IMPRESION DEL DESCUENTO O DEL RECARGO
+
+**********IMPRESION DE LOS CONCEPTOS
+	    nVlrPen := 0
+	    lHayBec := .F.
+	    nVlrMes := nVlrCon08(nMesIni,nMesFin,cCodGru,@cConcep,;
+				 CLI->nSdoActCli+CLI->nSdoMorCli,;
+				 @nVlrPen,lHayDes,nNroLen,;
+                                 @nVlrCo1,@nVlrCo2,@nVlrCo3,@nVlrCo4,;
+				 @nVlrCo5,@nVlrCo6,@nVlrCo7,@nVlrCo8,;
+				 @lHayBec,NIL,nSdoFav,nNroLis,;
+				 aRecFac,nDiaMor)
+	   *Impresi¢n de conceptos
+
+	    IF VALTYPE(nVlrMes) == 'C'
+	       SET FIXED ON
+	       RETURN 'Error'
+	    ENDIF
+**********FIN IMPRESION DE LOS CONCEPTOS
+
+**********REALIZACION DEL DESCUENTO POR BECA
+	    IF CAA->nMtdFacCaA == 2
+	       nVlrTot := nTarIniFin(cCodGru,nMesIni,nMesFin,cConcep)+;
+			    CLI->nSdoActCli+CLI->nSdoMorCli
+	    ELSE
+	       nVlrTot := nVlrMes * (nMesFin - nMesIni + 1) +;
+			  IF(CAA->nMesAmnCaA==nMesIni,0,;
+			     CLI->nSdoActCli+CLI->nSdoMorCli)
+	      *Total del Recibo sin descuentos y sin becas
+	    ENDIF
+
+	    IF lHayBec
+
+	       IF !EMPTY(CLI->nPorBecCli)
+		  nVlrBec := ROUND((nVlrPen * nPorBec)/100,0)
+	       ELSE
+		  nVlrBec := CLI->nVlrBecCli
+	       ENDIF
+	     *ÀC lculo del valor de beca para un mes
+
+	       IF lTieneBeca(nMesIni,nMesIni)
+		  nVlrMes -= nVlrBec
+		  nVlrCo1 := nVlrPen
+	       ENDIF
+	      *Descuento de la beca para el primer mes
+
+	       nVlrBec := nVlrBec * nNroBecas(nMesIni,nMesFin)
+	      *Valor total de las becas
+
+	       nVlrTot -= nVlrBec
+	      *Descuento por becas
+
+	    ENDIF
+**********FIN REALIZACION DEL DESCUENTO POR BECA
+
+       ENDIF
+*>>>>IMPRESION PARTE DEL RECIBO POR ADELANTADO
+
+*>>>>REALIZACION DEL DESCUENTO O RECARGO
+       nVlrPag := nVlrMes
+       IF lHayDes
+	  DO CASE
+	  CASE nTipDes == 1 .OR. nTipDes == 4
+	     nVlrTot := ROUND(nVlrTot - nVlrDes,0)
+	     nVlrPag := ROUND(nVlrMes - nVlrDes,0)
+	     nVlrMes := ROUND(nVlrMes - nVlrDes,0)
+	  CASE nTipDes == 2
+	     nVlrTot := ROUND(nVlrTot + nVlrDes,0)
+	     nVlrPag := ROUND(nVlrMes + nVlrDes,0)
+	     nVlrMes := ROUND(nVlrMes + nVlrDes,0)
+	  ENDCASE
+       ENDIF
+*>>>>FIN REALIZACION DEL DESCUENTO O RECARGO
+
+*>>>>REALIZACION DEL DESCUENTO DEL SALDO A FAVOR
+       IF nNroLis # 0
+	  IF ClI->nSdoFavCli # 0
+	     IF nVlrTot >= CLI->nSdoFavCli
+		nFavDes := CLI->nSdoFavCli
+	     ELSE
+		nFavDes := nVlrTot
+	     ENDIF
+	     nVlrTot := ROUND(nVlrTot - nFavDes,0)
+	     nVlrPag := ROUND(nVlrMes - nFavDes,0)
+	     nVlrMes := ROUND(nVlrMes - nFavDes,0)
+	  ENDIF
+       ENDIF
+*>>>>FIN REALIZACION DEL DESCUENTO DEL SALDO A FAVOR
+
+*>>>>GRABACION DEL INCREMENTO DEL NUMERO DEL RECIBO
+       IF SCO->lHayNroCon
+	  IF SCO->(lRegLock(IF(lShared,lShared,!lShared),.F.))
+	     REPL SCO->nNroFacCon WITH SCO->nNroFacCon+1
+	     SCO->(DBCOMMIT())
+	  ELSE
+	     cError('NO SE GRABA EL REGISTRO')
+	  ENDIF
+	  IF lShared
+	     SCO->(DBUNLOCK())
+	  ENDIF
+       ENDIF
+*>>>>FIN GRABACION DEL INCREMENTO DEL NUMERO DEL RECIBO
+
+*>>>>GRABACION DEL CONTROL DEL RECIBO
+       IF SCO->lHayNroCon
+	  SaveRegRec(lShared,cNomUsr,cAnoUsr,;
+		     nNroFac,;
+		     cCodEst,;
+		     nMesIni,;
+		     IF(nMesFin == NIL,nMesIni,nMesFin),;
+		     nVlrTot+nSdoFav,;
+		     IF(nNroCop>1,2,1),;
+		     CAA->cCodigoBan,;
+		     SCO->cCodEmpCon)
+       ENDIF
+       nMesFin := IF(nMesFin==NIL,nMesIni,nMesFin)
+*>>>>FIN GRABACION DEL CONTROL DEL RECIBO
+
+*>>>>GRABACION DEL RECIBO FACTURADO
+       AADD(aRecFac,{'lShared',lShared})
+
+       AADD(aRecFac,{'cCodEst',cCodEst})
+       AADD(aRecFac,{'nMesIni',nMesIni})
+       AADD(aRecFac,{'nMesFin',nMesFin})
+       AADD(aRecFac,{'cEmpPal',cEmpPal})
+       AADD(aRecFac,{'cNroNit',cNitEmp})
+       AADD(aRecFac,{'cNomEmp',cNomEmp})
+       AADD(aRecFac,{'cNroFac',cNroFac})
+       AADD(aRecFac,{'cNomBan',cNomBan})
+       AADD(aRecFac,{'cNroCta',cCtaBan})
+       AADD(aRecFac,{'cCodEan',cCodEan})
+       AADD(aRecFac,{'cNombre',cNomEst})
+       AADD(aRecFac,{'cCodRef',cCodFac})
+       AADD(aRecFac,{'cCodGru',cCodGru})
+       AADD(aRecFac,{'cFecFac',cFecha(DATE())})
+       AADD(aRecFac,{'cPagOpo',cFecha(dFecOpo)})
+       AADD(aRecFac,{'cPagExt',cFecha(dFecExt)})
+       AADD(aRecFac,{'cPerFac',cMeses})
+
+/*
+       AADD(aRecFac,{'cNomCo1',})
+       AADD(aRecFac,{'cVlrMo1',})
+       AADD(aRecFac,{'cVlrMe1',})
+       AADD(aRecFac,{'cVlrTo1',})
+       AADD(aRecFac,{'cNomCo2',})
+       AADD(aRecFac,{'cVlrMo2',})
+       AADD(aRecFac,{'cVlrMe2',})
+       AADD(aRecFac,{'cVlrTo2',})
+       AADD(aRecFac,{'cNomCo3',})
+       AADD(aRecFac,{'cVlrMo3',})
+       AADD(aRecFac,{'cVlrMe3',})
+       AADD(aRecFac,{'cVlrTo3',})
+       AADD(aRecFac,{'cNomCo4',})
+       AADD(aRecFac,{'cVlrMo4',})
+       AADD(aRecFac,{'cVlrMe4',})
+       AADD(aRecFac,{'cVlrTo4',})
+       AADD(aRecFac,{'cNomCo5',})
+       AADD(aRecFac,{'cVlrMo5',})
+       AADD(aRecFac,{'cVlrMe5',})
+       AADD(aRecFac,{'cVlrTo5',})
+       AADD(aRecFac,{'cNomCo6',})
+       AADD(aRecFac,{'cVlrMo6',})
+       AADD(aRecFac,{'cVlrMe6',})
+       AADD(aRecFac,{'cVlrTo6',})
+       AADD(aRecFac,{'cNomCo7',})
+       AADD(aRecFac,{'cVlrMo7',})
+       AADD(aRecFac,{'cVlrMe7',})
+       AADD(aRecFac,{'cVlrTo7',})
+       AADD(aRecFac,{'cNomCo8',})
+       AADD(aRecFac,{'cVlrMo8',})
+       AADD(aRecFac,{'cVlrMe8',})
+       AADD(aRecFac,{'cVlrTo8',})
+       AADD(aRecFac,{'cNomCo9',})
+       AADD(aRecFac,{'cVlrMo9',})
+       AADD(aRecFac,{'cVlrMe9',})
+       AADD(aRecFac,{'cVlrTo9',})
+*/
+
+       AADD(aRecFac,{'cVlrOpo',TRANSFORM(nVlrTot+nSdoFav,"***,***,***")})
+       AADD(aRecFac,{'cVlrExt',TRANSFORM(nVlrTot+nVlrInt+nSdoFav,"***,***,***")})
+       AADD(aRecFac,{'cBarOpo',cTxtOpo})
+       AADD(aRecFac,{'cBarExt',cTxtExt})
+       AADD(aRecFac,{'cTxtUno','SOLO SE RECIBEN PAGOS EN EFECTIVO O CHEQUES DE GERENCIA'})
+       AADD(aRecFac,{'cTxtDos','"LA CONGREGACION DE LOS HERMANOS DE LAS ESCUELAS ..."'})
+
+       AADD(aRecFac,{'cNomUsr',cNomUsr})
+       AADD(aRecFac,{'dFecUsr',DATE()})
+       AADD(aRecFac,{'cHorUsr',TIME()})
+
+       SaveRegRfa(aRecFac)
+
+       RETURN nVlrTot
+*>>>>FIN GRABACION DEL RECIBO FACTURADO

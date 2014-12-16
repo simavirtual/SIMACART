@@ -45,6 +45,7 @@ FUNCTION OtrTra077(aParam1,aParam2,aParam3,;
 
        LOCAL nMesIni := 0                   // Mes del pago
        LOCAL cCodRef := ''                  // C¢digo de la Referencia
+       LOCAL cCodFac := ''                  //@C¢digo Servicio Facturado. Ej: 01->MATRICULA 02->PENSION,03->RESTAURANTE,04->TRANSPORTE */
        LOCAL cCodTra := ''                  // C¢digo de la transaci¢n
        LOCAL nValor  := 0                   // Valor de la Transaci¢n
        LOCAL dFecha  := CTOD('00/00/00')    // Fecha de Pago
@@ -243,7 +244,7 @@ FUNCTION OtrTra077(aParam1,aParam2,aParam3,;
 
 
 **********LECTURA DE LOS RESPECTIVO CAMPOS
-	    cCodRef := cCodRef(TRA->Registro)
+	    cCodRef := cCodRef(TRA->Registro,@cCodFac)
 
 	    cCodigoTes := SUBS(cCodRef,1,06)
 	    nMesIniTtr := VAL(SUBS(cCodRef,7,2))
@@ -315,6 +316,7 @@ FUNCTION OtrTra077(aParam1,aParam2,aParam3,;
 	    IF TRA->(lRegLock(lShared,.F.))
 	       REPL TRA->cCodRefTra WITH cCodRef
 	       REPL TRA->cCodigoEst WITH cCodigoTes
+	       REPL TRA->cCodFacCar WITH cCodFac
 	       REPL TRA->nMesIniTra WITH nMesIniTtr
 	       REPL TRA->nMesFinTra WITH nMesFinTtr
 	       REPL TRA->cCodigoTra WITH cCodigoTtr

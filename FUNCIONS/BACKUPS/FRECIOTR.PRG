@@ -690,3 +690,239 @@ FUNCTION nRecOtr02(lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
        ENDIF
        RETURN nVlrTot
 *>>>>FIN GRABACION DEL CONTROL DEL RECIBO
+
+/*************************************************************************
+* TITULO..: RECIBO DE PAGO No. 08                                        *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: NOV 19/2014 VIE A
+       Colombia, Bucaramanga        INICIO: 02:15 PM   NOV 19/2024 VIE
+
+OBJETIVOS:
+
+1- Recibo en c¢digos de barras. Colegios de la Salle
+
+2- Imprime el recibo de pago con c¢digo de barras utilizando
+   el lenguaje PRESCRIBE de las impresoras Kiosera.
+
+3- Imprime el recibo SIN formato preimpreso
+
+4- Permite imprimir los recibos sencillos o los recibos por adelantado
+   de acuerdo como se pasen los parametros de la funci¢n.
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION nRecOtr08(aP1,aP2,aP3)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     aP1                                  // Parametros Generales
+       aP2                                  // Parametros Generales
+       aP3                                  // Parametros Generales */
+*>>>>FIN DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION PARAMETROS
+       LOCAL lShared := xPrm(aP1,'lShared') // .T. Sistema Compartido
+       LOCAL nModCry := xPrm(aP1,'nModCry') // Modo de Protecci¢n
+       LOCAL cCodSui := xPrm(aP1,'cCodSui') // C¢digo del Sistema
+       LOCAL cNomSis := xPrm(aP1,'cNomSis') // Nombre del Sistema
+     *ÀDetalles del Sistema
+
+       LOCAL cEmpPal := xPrm(aP1,'cEmpPal') // Nombre de la Empresa principal
+       LOCAL cNitEmp := xPrm(aP1,'cNitEmp') // Nit de la Empresa
+       LOCAL cNomEmp := xPrm(aP1,'cNomEmp') // Nombre de la Empresa
+       LOCAL cNomSec := xPrm(aP1,'cNomSec') // Nombre de la Empresa Secundario
+       LOCAL cCodEmp := xPrm(aP1,'cCodEmp') // C¢digo de la Empresa
+     *ÀDetalles de la Empresa
+
+       LOCAL cNomUsr := xPrm(aP1,'cNomUsr') // Nombre del Usuario
+       LOCAL cAnoUsr := xPrm(aP1,'cAnoUsr') // A¤o del usuario
+       LOCAL cAnoSis := xPrm(aP1,'cAnoSis') // A¤o del sistema
+       LOCAL cPatSis := xPrm(aP1,'cPatSis') // Path del sistema
+     *ÀDetalles del Usuario
+
+       LOCAL PathW01 := xPrm(aP1,'PathW01') // Sitio del Sistema No.01
+       LOCAL PathW02 := xPrm(aP1,'PathW02') // Sitio del Sistema No.02
+       LOCAL PathW03 := xPrm(aP1,'PathW03') // Sitio del Sistema No.03
+       LOCAL PathW04 := xPrm(aP1,'PathW04') // Sitio del Sistema No.04
+       LOCAL PathW05 := xPrm(aP1,'PathW05') // Sitio del Sistema No.05
+       LOCAL PathW06 := xPrm(aP1,'PathW06') // Sitio del Sistema No.06
+       LOCAL PathW07 := xPrm(aP1,'PathW07') // Sitio del Sistema No.07
+       LOCAL PathW08 := xPrm(aP1,'PathW08') // Sitio del Sistema No.08
+       LOCAL PathW09 := xPrm(aP1,'PathW09') // Sitio del Sistema No.09
+       LOCAL PathW10 := xPrm(aP1,'PathW10') // Sitio del Sistema No.10
+     *ÀSitios del Sistema
+
+       LOCAL PathUno := xPrm(aP1,'PathUno') // Path de Integraci¢n Uno
+       LOCAL PathDos := xPrm(aP1,'PathDos') // Path de Integraci¢n Dos
+       LOCAL PathTre := xPrm(aP1,'PathTre') // Path de Integraci¢n Tres
+       LOCAL PathCua := xPrm(aP1,'PathCua') // Path de Integraci¢n Cuatro
+     *ÀPath de Integraci¢n
+
+       LOCAL nFilPal := xPrm(aP1,'nFilPal') // Fila Inferior Men£ principal
+       LOCAL nFilInf := xPrm(aP1,'nFilInf') // Fila Inferior del SubMen£
+       LOCAL nColInf := xPrm(aP1,'nColInf') // Columna Inferior del SubMen£
+     *ÀDetalles Tecnicos
+
+       LOCAL cMaeAlu := xPrm(aP1,'cMaeAlu') // Maestros habilitados
+       LOCAL cMaeAct := xPrm(aP1,'cMaeAct') // Maestro Activo
+       LOCAL cJorTxt := xPrm(aP1,'cJorTxt') // Jornada escogida
+     *ÀDetalles Acad‚micos
+*>>>>FIN DECLARACION PARAMETROS
+
+*>>>>DECLARACION PARAMETROS DEL RECIBO
+       LOCAL cCodEan := xPrm(aP3,'cCodEan') // C¢digo EAN13 para el recaudo
+       LOCAL cCodFac := xPrm(aP3,'cCodFac') // C¢digo Servicio Facturado. Ej: 01->MATRICULA 02->PENSION, 03->RESTAURANTE,04->TRANSPORTE
+
+       LOCAL cCodIso := xPrm(aP3,'cCodIso') // C¢digo Iso
+
+       LOCAL cCodEst := xPrm(aP3,'cCodEst') // C¢digo del Estudiante
+       LOCAL cCodGru := xPrm(aP3,'cCodGru') // C¢digo del Grupo
+       LOCAL cNomEst := xPrm(aP3,'cNomEst') // Nombre del Estudiante
+       LOCAL nMesIni := xPrm(aP3,'nMesIni') // Mes Inicial
+       LOCAL nMesFin := xPrm(aP3,'nMesFin') // Mes Finale
+
+       LOCAL cNomBan := xPrm(aP3,'cNomBan') // Nombre del Banco
+       LOCAL cCtaBan := xPrm(aP3,'cCtaBan') // Cuenta del Banco
+
+       LOCAL aConRec := xPrm(aP3,'aConRec') // Conceptos del recibo
+
+       LOCAL dFecOpo := xPrm(aP3,'dFecOpo') // Fecha Oportuna
+       LOCAL dFecExt := xPrm(aP3,'dFecExt') // Fecha Extemporanea
+
+       LOCAL nVlrOpo := xPrm(aP3,'nVlrOpo') // Valor pago oportuno
+       LOCAL nVlrExt := xPrm(aP3,'nVlrExt') // Valor pago extemporaneo
+
+       LOCAL cTxtUno := xPrm(aP3,'cTxtUno')
+       LOCAL cTxtDos := xPrm(aP3,'cTxtDos')
+*>>>>DECLARACION PARAMETROS DEL RECIBO
+
+*>>>>DECLARACION DE VARIABLES
+       LOCAL nNroFac := 0                   // N£mero de la Factura
+       LOCAL cNroFac := ''                  // N£mero de la Factura
+
+       LOCAL cMesIni := ''                  // Mes inicial de pago
+       LOCAL cMesFin := ''                  // Mes final de pago
+
+       LOCAL cRefRec := ''                  // Referencia del Recibo
+       LOCAL cRefBar := ''                  // Referencia C¢digo Barras
+       LOCAL cMeses  := ''                  // Meses a pagar
+       LOCAL cFecFac := ''                  // Fecha de Facturaci¢n
+
+       LOCAL cVlrBar := ''                  // Valor para c¢digo de Barras
+       LOCAL cBarOpo := ''                  // C¢digo Barra Oportuno
+       LOCAL cBarExt := ''                  // C¢digo Barra Extemporanea
+       LOCAL cTxtOpo := ''                  // Texto Oportuno
+       LOCAL cTxtExt := ''                  // Texto Extemporaneo
+
+       LOCAL aPrmRec := {}                  // Parametros del Recibo
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>VALIDACION DEL LIMITE DE LA FACTURACION
+       SETPRC(0,0)
+
+       IF SCO->lHayNroCon
+	  IF SCO->nNroFacCon >= 999999999
+	     SET DEVICE TO SCREEN
+	     cError('SE EXCEDIO EL LIMITE DE LA FACTURACION')
+	     SET DEVICE TO PRINT
+	     SET FIXED ON
+	     RETURN 'C'
+	  ENDIF
+       ENDIF
+*>>>>FIN VALIDACION DEL LIMITE DE LA FACTURACION
+
+*>>>>ASIGNACION DEL NUMERO DE LA FACTURA
+       IF SCO->lHayNroCon
+	  nNroFac := SCO->nNroFacCon+1
+	  cNroFac := STR(nNroFac,9)
+	  lCorrecion(@cNroFac,.T.)
+	  cNroFac := cNroFac
+	 *Lectura del n£mero de la factura
+       ENDIF
+*>>>>FIN ASIGNACION DEL NUMERO DE LA FACTURA
+
+*>>>>GRABACION DEL INCREMENTO DEL NUMERO DEL RECIBO
+       IF SCO->lHayNroCon
+	  IF SCO->(lRegLock(IF(lShared,lShared,!lShared),.F.))
+	     REPL SCO->nNroFacCon WITH SCO->nNroFacCon+1
+	     SCO->(DBCOMMIT())
+	  ELSE
+	     cError('NO SE GRABA EL REGISTRO')
+	  ENDIF
+	  IF lShared
+	     SCO->(DBUNLOCK())
+	  ENDIF
+       ENDIF
+*>>>>FIN GRABACION DEL INCREMENTO DEL NUMERO DEL RECIBO
+
+*>>>>DETALLES DEL RECIBO
+       cMesIni := STR(nMesIni,2)
+       cMesFin := STR(nMesFin,2)
+       lCorrecion(@cMesIni)
+       lCorrecion(@cMesFin)
+
+       cNroFac := SCO->cCodEmpCon+'-'+cNroFac
+
+       cRefRec := cCodEst+cMesIni+cMesFin
+       cRefBar := cRefRec
+
+       cFecFac := cFecha(DATE())+' - CONSIGNACION'
+
+       cMeses  := cAnoUsr+':'+;
+		  cCodFac+':'+;
+		  cMes(nMesIni,3)+'-'+;
+		  cMes(nMesFin,3)
+
+       cVlrBar := STR(nVlrOpo,10)
+       lCorrecion(@cVlrBar,.T.)
+       cBarOpo := ''
+       cTxtOpo := cEanUcc128(cCodEan,cRefBar,cVlrBar,;
+			     cFecNum(dFecOpo,2),@cBarOpo)
+     *ÀC¢digo de Barras pago Oportuno
+
+       cVlrBar := STR(nVlrExt,10)
+       lCorrecion(@cVlrBar,.T.)
+       cBarExt := ''
+       cTxtExt := cEanUcc128(cCodEan,cRefBar,cVlrBar,;
+			     cFecNum(dFecExt,2),@cBarExt)
+     *ÀC¢digo de Barras pago Extemporanea
+*>>>>FIN DETALLES DEL RECIBO
+
+*>>>>IMPRESION DEL RECIBO
+       aPrmRec := {}
+       AADD(aPrmRec,{'cNomEmp',cNomEmp})
+       AADD(aPrmRec,{'cEmpPal',cEmpPal})
+       AADD(aPrmRec,{'cNitEmp',cNitEmp})
+       AADD(aPrmRec,{'cCodIso',cCodIso})
+       AADD(aPrmRec,{'cNroFac',cNroFac})
+
+       AADD(aPrmRec,{'cNomBan',cNomBan})
+       AADD(aPrmRec,{'cCtaBan',cCtaBan})
+       AADD(aPrmRec,{'cNomEst',cNomEst})
+       AADD(aPrmRec,{'cRefRec',cRefRec})
+       AADD(aPrmRec,{'cCurso',cNomNiv(SUBS(cCodGru,1,2))})
+       AADD(aPrmRec,{'cFecFac',cFecFac})
+       AADD(aPrmRec,{'cMeses',cMeses})
+       AADD(aPrmRec,{'aConRec',aConRec})
+
+       AADD(aPrmRec,{'cFecOpo',cFecha(dFecOpo)})
+       AADD(aPrmRec,{'cFecExt',cFecha(dFecExt)})
+
+       AADD(aPrmRec,{'cVlrOpo',TRANSFORM(nVlrOpo,"***,***,***")})
+       AADD(aPrmRec,{'cVlrExt',TRANSFORM(nVlrExt,"***,***,***")})
+
+       AADD(aPrmRec,{'cBarOpo',cBarOpo})
+       AADD(aPrmRec,{'cBarExt',cBarExt})
+
+       AADD(aPrmRec,{'cTxtOpo',cTxtOpo})
+       AADD(aPrmRec,{'cTxtExt',cTxtExt})
+
+       AADD(aPrmRec,{'cTxtUno',cTxtUno})
+       AADD(aPrmRec,{'cTxtDos',cTxtDos})
+
+       FrmRec08(aPrmRec)
+
+       RETURN nVlrOpo
+*>>>>FIN IMPRESION DEL RECIBO
