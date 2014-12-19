@@ -2088,7 +2088,8 @@ FUNCTION OtrDes012(aParam1,aParam2,aParam3,;
        IF CAR->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,.T.)
+	  FilePrn := 'AboDesCo'
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,CAR->cOpcPrnCar,.F.,.T.,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     RESTSCREEN(0,0,24,79,cSavPan)
 	     RETURN NIL
