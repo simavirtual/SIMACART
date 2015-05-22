@@ -1347,61 +1347,6 @@ FUNCTION PrnConVlr(nNroCol,bPagina,bDerAut,bCabeza,aVlrCon,nTipPrn)
 *>>>>IMPRESION DEL TOTAL
 
 /*************************************************************************
-* TITULO..: SUMA DE CONCEPTOS                                            *
-**************************************************************************
-
-AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: SEP 26/2003 VIE A
-       Bucaramanga, Colombia        INICIO: 06:25 PM   SEP 26/2003 VIE
-
-OBJETIVOS:
-
-1- Permite acumular los concepto en otro vector
-
-2- Retorna Nil
-
-
-*------------------------------------------------------------------------*
-*                              PROGRAMA                                  *
-*------------------------------------------------------------------------*/
-
-FUNCTION SumArrCon(aTotCon,aVlrCon,lSumar)
-
-*>>>>DESCRIPCION DE PARAMETROS
-/*     aTotCon                              // Total de Conceptos
-       aVlrCon                              // Valor de los Conceptos
-       lSumar                               // .T. Sumar .F. Restar */
-*>>>>FIN DESCRIPCION DE PARAMETROS
-
-*>>>>DECLARACION DE VARIABLES
-       LOCAL i := 0                         // Contador
-       LOCAL cConcep := ''                  // Concepto
-       LOCAL cNombre := ''                  // Nombre del Concepto
-       LOCAL nVlrCre := 0                   // Valor Credito
-       LOCAL nVlrDeb := 0                   // Valor Debito
-*>>>>FIN DECLARACION DE VARIABLES
-
-*>>>>ACUMUACION DE LOS CONCEPTOS
-       lSumar := IF(lSumar==NIL,.T.,lSumar)
-       FOR i := 1 TO LEN(aVlrCon)
-
-	   cConcep := aVlrCon[i,1]
-	   cNombre := aVlrCon[i,2]
-	   nVlrCre := aVlrCon[i,3]
-	   nVlrDeb := aVlrCon[i,4]
-
-	   IF lSumar
-	      VlrCon(cConcep,cNombre,nVlrCre,aTotCon,.T.)
-	      VlrCon(cConcep,cNombre,nVlrDeb,aTotCon,.F.)
-	   ELSE
-	      VlrCon(cConcep,cNombre,-nVlrCre,aTotCon,.T.)
-	      VlrCon(cConcep,cNombre,-nVlrDeb,aTotCon,.F.)
-	   ENDIF
-
-       ENDFOR
-       RETURN NIL
-*>>>>FIN ACUMUACION DE LOS CONCEPTOS
-
-/*************************************************************************
 * TITULO..: DISCRIMINACION CONCEPTOS DE MATRICULAS DE TARIFAS            *
 **************************************************************************
 
@@ -1448,7 +1393,6 @@ FUNCTION VlrTarMtr(cConcep,cCodGru,aVlrCon,lSiCert)
 	     LOCATE FOR TMT->cCodigoGru == SUBS(cCodGru,1,2)+'00' .AND.;
 			TMT->cCodigoCon == cCodigoTco
 
-
 	     IF FOUND()
 		nVlrCon := TMT->nValorTar
 	     ELSE
@@ -1462,7 +1406,9 @@ FUNCTION VlrTarMtr(cConcep,cCodGru,aVlrCon,lSiCert)
 
 *---------------SUMA DEL CONCEPTO DESCRIMINADO
 		  IF lSiCert
+
 		     IF CMT->lSiCertCon
+
 			VlrCon(IF(EMPTY(CMT->cCodCerCon),;
 				  cCodigoTco,CMT->cCodCerCon),;
 			       IF(EMPTY(CMT->cNomCerCon),;
@@ -1470,6 +1416,7 @@ FUNCTION VlrTarMtr(cConcep,cCodGru,aVlrCon,lSiCert)
 			       nVlrCon,aVlrCon)
 		     ENDIF
 		  ELSE
+
 		     VlrCon(cCodigoTco,CMT->cNombreCon,nVlrCon,aVlrCon)
 		  ENDIF
 *---------------FIN SUMA DEL CONCEPTO DESCRIMINADO
@@ -2411,3 +2358,4 @@ FUNCTION cValConFac(cConcep,nVlrDeu,nDiaMor)
        ENDIF
        RETURN cConFac
 *>>>>FIN ANALISIS DE DECISION
+

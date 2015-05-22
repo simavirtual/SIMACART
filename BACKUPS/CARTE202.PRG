@@ -184,6 +184,12 @@ FUNCTION Carte_202(aParam1,aParam2,aParam3)
        CASE BAN->(RECCOUNT()) == 0
 	    cError('NO EXISTEN BANCOS GRABADOS')
 
+       CASE SUBS(CAA->cValConCaA,nMesIniTpa,1) # SPACE(01)
+
+	    cError('EL RECIBO DE '+cMes(nMesIniTpa,10)+' '+;
+		   'YA SE REPORTO A CONTABILIDAD')
+
+
        OTHERWISE
 	    lHayErr :=.F.
        ENDCASE
@@ -482,9 +488,9 @@ FUNCTION Carte_202(aParam1,aParam2,aParam3)
 				     CLI->nMorAnoCli+;
 				     CLI->nSdoActCli+;
 				     CLI->nSdoMorCli;
-				      PICT "9999,999.99"
-	    @ nNroFil,aNroCol[4] SAY PAG->nVlrPagPag+nVlrInt PICT "$###,###.99"
-	    @ nNroFil,aNroCol[5] SAY PAG->nVlrPagPag	 PICT "$###,###.99"
+				      PICT "99999,999.99"
+	    @ nNroFil,aNroCol[4] SAY PAG->nVlrPagPag+nVlrInt PICT "$####,###.99"
+	    @ nNroFil,aNroCol[5] SAY PAG->nVlrPagPag	 PICT "$####,###.99"
 	    SET COLOR TO I
 	    @ nNroFil,aNroCol[6] SAY cEstadoTpa
 	    SET COLOR TO
@@ -942,7 +948,7 @@ FUNCTION Carte_202(aParam1,aParam2,aParam3)
 	    @ nNroFil,aNroCol[3] SAY CLI->nSdoActCli+;
 				     CLI->nSdoMorCli+;
 				     CLI->nSdoAnoCli+;
-				     CLI->nMorAnoCli  PICT "9999,999.99"
+				     CLI->nMorAnoCli  PICT "99999,999.99"
 	    @ nNroFil,aNroCol[6] SAY cEstadoTpa
 	    SET COLOR TO
 **********FIN IMPRESION DE LOS DETALLES DEL PAGO

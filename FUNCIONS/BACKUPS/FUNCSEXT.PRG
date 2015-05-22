@@ -548,6 +548,15 @@ FUNCTION MantenExt(aParam1,aParam2,aParam3,;
        ENDIF
 *>>>>FIN VALIDACION DE CONTENIDOS DE ARCHIVOS
 
+*>>>>ANALISIS DE DECISION
+       IF SUBS(CAA->cValConCaA,nNroMes,1) # SPACE(01)
+
+	  cError('LA CONCILIACION DE '+cMes(nNroMes,10)+' '+;
+		 'YA SE REPORTO A CONTABILIDAD')
+
+       ENDIF
+*>>>>FIN ANALISIS DE DECISION
+
 *>>>>MANTENIMIENTO DEL ARCHIVO
        SELECT TRA
 
@@ -610,9 +619,11 @@ FUNCTION oDefBrwExt(lShared,nFilSup,nColSup,nFilInf,nColInf,;
 *>>>>DECLARACION DE VARIABLES
        LOCAL oColumn := NIL                 // Columna del objeto
        LOCAL oBrwExt := NIL		    // Browse de Transaciones
+       LOCAL lModReg := .F.                 // .T. Modificar el Registro
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>DEFINICION DEL OBJETO BROWSE
+       lModReg := IF(SUBS(CAA->cValConCaA,nNroMes,1) # SPACE(01),.F.,.T.)
        LineaEstado(ALLTRIM(cNomBan)+' CUENTA No. '+ALLTRIM(cNroCta),'')
 
        oBrwExt := TBROWSEDB(nFilSup+1,nColSup+1,nFilInf-1,nColInf-1)
@@ -620,13 +631,27 @@ FUNCTION oDefBrwExt(lShared,nFilSup,nColSup,nFilInf,nColInf,;
 
        oBrwExt:ColSep    := '³'
        oBrwExt:HeadSep   := 'Ä'
-       oBrwExt:Cargo     := {IF(nNroMes==13,;
-				'MOVIMIENTOS ACUMULADOS DE TODOS '+;
-				'LOS EXTRACTOS',;
-				'<< MOVIMIENTOS DEL EXTRACTO. MES '+;
-				cMes(nNroMes,10)+' >>'),;
-			    '<INS>Incluir <DEL>Borrar <F5>Buscar '+;
-			    '<F9>'+ALLTRIM(cModem),{||IncluirExt(lShared)}}
+
+       IF lModReg
+
+	  oBrwExt:Cargo := {IF(nNroMes==13,;
+			       'MOVIMIENTOS ACUMULADOS DE TODOS '+;
+			       'LOS EXTRACTOS',;
+			       '<< MOVIMIENTOS DEL EXTRACTO. MES '+;
+				   cMes(nNroMes,10)+' >>'),;
+			       '<INS>Incluir <DEL>Borrar <F5>Buscar '+;
+			       '<F9>'+ALLTRIM(cModem),{||IncluirExt(lShared)}}
+       ELSE
+
+	  oBrwExt:Cargo := {IF(nNroMes==13,;
+			       'MOVIMIENTOS ACUMULADOS DE TODOS '+;
+			       'LOS EXTRACTOS',;
+			       '<< MOVIMIENTOS DEL EXTRACTO. MES '+;
+				   cMes(nNroMes,10)+' >>'),;
+			       '<F5>Buscar '+;
+			       '<F9>'+ALLTRIM(cModem),{||IncluirExt(lShared)}}
+
+       ENDIF
 
 /*
        oBrwExt:Cargo     := {'<< MOVIMIENTOS DEL EXTRACTO. MES '+cMes(nNroMes,10)+' >>',;
@@ -640,33 +665,33 @@ FUNCTION oDefBrwExt(lShared,nFilSup,nColSup,nFilInf,nColInf,;
 
        SELECT TRA
        oColumn	     := TBCOLUMNNEW('FECHA;DE PAGO',{||TRA->dFechaTra})
-       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','TRA'},{'FIELD','dFechaTra'},;
+       oColumn:Cargo := {{'MODI',lModReg},{'ALIAS','TRA'},{'FIELD','dFechaTra'},;
 			 {'PICTURE','@D'}}
        oColumn:Width := 11
        oBrwExt:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
        oColumn	     := TBCOLUMNNEW('REFERENCIA', {||TRA->cCodRefTra})
-       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','TRA'},{'FIELD','cCodRefTra'},;
+       oColumn:Cargo := {{'MODI',lModReg},{'ALIAS','TRA'},{'FIELD','cCodRefTra'},;
 			 {'PICTURE','@!'}}
        oBrwExt:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
        oColumn	     := TBCOLUMNNEW('CODIGO', {||TRA->cCodigoEst})
-       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','TRA'},{'FIELD','cCodigoEst'},;
+       oColumn:Cargo := {{'MODI',lModReg},{'ALIAS','TRA'},{'FIELD','cCodigoEst'},;
 			 {'PICTURE','@!'}}
        oBrwExt:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
        oColumn	     := TBCOLUMNNEW('TRAN', {||TRA->cCodigoTra})
-       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','TRA'},{'FIELD','cCodigoTra'},;
+       oColumn:Cargo := {{'MODI',lModReg},{'ALIAS','TRA'},{'FIELD','cCodigoTra'},;
 			 {'PICTURE','@!'}}
        oColumn:Cargo := {{'MODI',.F.}}
        oBrwExt:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
        oColumn	     := TBCOLUMNNEW(' ', {||TRA->lSumarTra})
-       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','TRA'},{'FIELD','lSumarTra'},;
+       oColumn:Cargo := {{'MODI',lModReg},{'ALIAS','TRA'},{'FIELD','lSumarTra'},;
 			 {'PICTURE','@!'}}
        oBrwExt:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
@@ -685,7 +710,7 @@ FUNCTION oDefBrwExt(lShared,nFilSup,nColSup,nFilInf,nColInf,;
      *ÀDefinici¢n Columna
 
        oColumn	     := TBCOLUMNNEW('CODIGO;CONCEPTO', {||TRA->nCodigoCmv})
-       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','TRA'},{'FIELD','nCodigoCmv'},;
+       oColumn:Cargo := {{'MODI',lModReg},{'ALIAS','TRA'},{'FIELD','nCodigoCmv'},;
 			 {'PICTURE','9999'}}
        oBrwExt:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
@@ -699,7 +724,7 @@ FUNCTION oDefBrwExt(lShared,nFilSup,nColSup,nFilInf,nColInf,;
      *ÀDefinici¢n Columna
 
        oColumn	     := TBCOLUMNNEW('NUMERO DEL;COMPROBANTE', {||TRA->cNroComTra})
-       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','TRA'},{'FIELD','cNroComTra'},;
+       oColumn:Cargo := {{'MODI',lModReg},{'ALIAS','TRA'},{'FIELD','cNroComTra'},;
 			 {'PICTURE','@!X'}}
        oBrwExt:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
@@ -717,7 +742,7 @@ FUNCTION oDefBrwExt(lShared,nFilSup,nColSup,nFilInf,nColInf,;
      *ÀDefinici¢n Columna
 
        oColumn	     := TBCOLUMNNEW('CODIGO;SERVICIO FACTURADO', {||TRA->cCodFacCar})
-       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','TRA'},;
+       oColumn:Cargo := {{'MODI',lModReg},{'ALIAS','TRA'},;
 			 {'FIELD','cCodFacCar'},{'PICTURE','@!'}}
        oBrwExt:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
@@ -751,7 +776,7 @@ FUNCTION oDefBrwExt(lShared,nFilSup,nColSup,nFilInf,nColInf,;
 
        oColumn	     := TBCOLUMNNEW('OBSERVACION DE LA CONCILIACION DEL EXTRACTO',;
 				   {||TRA->cObsValTra})
-       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','TRA'},{'FIELD','cObsValTra'},;
+       oColumn:Cargo := {{'MODI',lModReg},{'ALIAS','TRA'},{'FIELD','cObsValTra'},;
 			 {'PICTURE','@S76'}}
        oBrwExt:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
@@ -1391,9 +1416,19 @@ FUNCTION MenuExt01(aParam1,aParam2,aParam3,;
 		 CASE nOpcExt == 4 .AND. nOpcMvt == 3
 
 		      IF VAL(cNroMes) >0 .AND. VAL(cNroMes) <= 12
-			 FOtrExt43(aParam1,aParam2,aParam3,;
-				   cNroMes,oBrowse)
-			*Lectura del Archivo del Extracto
+
+			 IF SUBS(CAA->cValConCaA,VAL(cNroMes),1) # SPACE(01)
+
+			    cError('LA CONCILIACION DE '+;
+				   cMes(VAL(cNroMes),10)+' '+;
+				   'YA SE REPORTO A CONTABILIDAD')
+			 ELSE
+			    FOtrExt43(aParam1,aParam2,aParam3,;
+				      cNroMes,oBrowse)
+			   *Lectura del Archivo del Extracto
+			 ENDIF
+
+
 		      ELSE
 			 LeeExtAcu(lShared,nModCry,cNomSis,;
 				   cAnoUsr,cPatSis,cNroMes,oBrowse)

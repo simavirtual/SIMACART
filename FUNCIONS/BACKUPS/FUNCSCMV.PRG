@@ -409,10 +409,13 @@ FUNCTION MantenCmv(aP1,aP2,aP3,aArchvo,cOpcPrn,nCodPrn)
        SELECT CMV
        oBrowse := oDefBrwCmv(lShared,nFilPal+1,00,22,79)
        SETKEY(K_F5,{||BuscarCmv(oBrowse)})
+       SETKEY(K_F6,{||OrdenaCmv(lShared,nModCry,cAnoUsr,cPatSis,oBrowse)})
+
        SETKEY(K_F9,{||PrnConMov(lShared,nModCry,cNomEmp,;
 				cNomSis,cNomUsr,cAnoUsr,cOpcPrn)})
        CMV->(CtrlBrw(lShared,oBrowse))
        SETKEY(K_F5,NIL)
+       SETKEY(K_F6,NIL)
        SETKEY(K_F9,NIL)
 
        CloseAll(aUseDbf)
@@ -460,7 +463,7 @@ FUNCTION oDefBrwCmv(lShared,nFilSup,nColSup,nFilInf,nColInf)
        oBrowse:ColSep    := '³'
        oBrowse:HeadSep   := 'Ä'
        oBrowse:Cargo := {'<< MANTENIMIENTO CONCEPTOS DE LOS MOVIMIENTOS >>',;
-			 '<INS>Incluir <F5>Buscar  <DEL>Borrar  '+;
+			 '<INS>Incluir <F5>Buscar <F6>Ordenar <DEL>Borrar  '+;
 			 '<F9>Imprimir <ESC>Abandonar',{||IncluirCmv(lShared)}}
      *ÀDefinici¢n de cabeceras y l¡neas de cabeceras
 
@@ -1140,3 +1143,65 @@ FUNCTION cConcepCmv(nCodigo,cNalias)
        ENDIF
        RETURN cConcep
 *>>>>FIN LOCALIZACION DEL CONCEPTO DEL MOVIMIENTO
+
+
+/*************************************************************************
+* TITULO..: ORDENAR POR FECHA                                            *
+**************************************************************************
+
+AUTOR: Nelson Fern ndez G¢mez       FECHA DE CREACION: FEB 12/99 VIE A
+       Colombia, Bucaramanga        INICIO: 10:45 AM   FEB 12/99 VIE
+
+OBJETIVOS:
+
+1- Ordena el archivo por fecha
+
+2- Retorna NIL
+
+SINTAXIS:
+
+
+*------------------------------------------------------------------------*
+*                              PROGRAMA                                  *
+*------------------------------------------------------------------------*/
+
+FUNCTION OrdenaCmv(lShared,nModCry,cAnoUsr,cPatSis,oBrowse)
+
+*>>>>DESCRIPCION DE PARAMETROS
+/*     lShared                              // .T. Sistema Compartido
+       nModCry                              // Modo de Protecci¢n
+       cAnoUsr                              // A¤o del usuario
+       cPatSis                              // Path del Sistema
+       oBrowse			            // Browse del Archivo */
+*>>>>FIN DESCRIPCION DE PARAMETROS
+
+*>>>>DECLARACION DE VARIABLES
+       #INCLUDE "ARC-CART.PRG"       // Archivos del Sistema
+
+       LOCAL cAnoSis := SUBS(cAnoUsr,3,2)   // A¤o del sistema
+*>>>>FIN DECLARACION DE VARIABLES
+
+*>>>>VALIDACION DEL CONTENIDO
+       IF CMV->(RECCOUNT()) == 0
+	  cError('NO EXISTEN PROFESORES GRABADOS')
+	  RETURN NIL
+       ENDIF
+       CloseDbf('CMV',cPatSis+'\'+FileCmv,nModCry)
+*>>>>FIN VALIDACION DEL CONTENIDO
+
+*>>>>ORDENACION DEL ARCHIVO
+       IF !lOrdFile(lShared,cPatSis+'\'+FileCmv,'nCodigoCmv',,nModCry)
+	  cError('NO SE ORDENO EL MAESTRO')
+       ENDIF
+*>>>>FIN ORDENACION DEL ARCHIVO
+
+*>>>>SELECION DE LAS AREAS DE TRABAJO
+       IF !lUseDbf(.T.,cPatSis+'\'+FileCmv,'CMV',NIL,lShared,nModCry)
+	  cError('ABRIENDO EL ARCHIVO DEL EXTRACTO')
+	  RETURN NIL
+       ENDIF
+       SELECT CMV
+       oBrowse:GOTOP()
+       oBrowse:FORCESTABLE()
+       RETURN NIL
+*>>>>FIN SELECION DE LAS AREAS DE TRABAJO

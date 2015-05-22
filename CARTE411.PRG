@@ -1416,7 +1416,11 @@ FUNCTION nMorosos(aParam1,aParam2,aParam3,;
 	       AADD(aTitulo,CLI->cCodigoEst)
 	       AADD(aTitulo,GRU->cCodigoGru+'-'+STR(CLI->(RECNO()),2))
 	       IF lHayErr
-		  AADD(aTitulo,'ERROR. FAVOR REVISAR')
+		  IF nTipPrn == 0
+		     AADD(aTitulo,SPACE(01)+SUBS(cNombreTes,1,40)+'.')
+		  ELSE
+		     AADD(aTitulo,SPACE(01)+SUBS(cNombreTes,1,18)+'.')
+		  ENDIF
 	       ELSE
 		  IF nTipPrn == 0
 		     AADD(aTitulo,SPACE(01)+SUBS(cNombreTes,1,41))

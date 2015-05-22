@@ -54,21 +54,21 @@ FUNCTION CreaDbfCli(lShared,nModCry,PathCli,FileCli,lIntUno,fNtxCli,aStrDbf)
        LOCAL aDbfCli := {{"cCodigoEst","Character",06,0},; // C¢digo del Estudiante
 			 {"lRetGruCli","Logical"  ,01,0},; // .T. Retirado del Grupo
 			 {"nNroLisEst","Numeric"  ,03,0},; // N£mero de lista
-			 {"nSdoActCli","Numeric"  ,10,2},; // Saldo Actual
-			 {"nSdoMorCli","Numeric"  ,10,2},; // Valor de la Mora
+			 {"nSdoActCli","Numeric"  ,12,2},; // Saldo Actual
+			 {"nSdoMorCli","Numeric"  ,12,2},; // Valor de la Mora
 			 {"cConSdoCli","Character",16,0},; // Conceptos del saldo en mora
-			 {"nSdoAnoCli","Numeric"  ,10,2},; // Saldo a¤o Anterior
-			 {"nMorAnoCli","Numeric"  ,10,2},; // Mora a¤o Anterior
+			 {"nSdoAnoCli","Numeric"  ,12,2},; // Saldo a¤o Anterior
+			 {"nMorAnoCli","Numeric"  ,12,2},; // Mora a¤o Anterior
 			 {"nAnoSdoCli","Numeric"  ,04,0},; // A¤o del Saldo
 			 {"cAnoSdoCli","Numeric"  ,04,0},; // A¤o del Saldo
-			 {"nSdAbonCli","Numeric"  ,10,2},; // Saldo Actual sin abonos
-			 {"nMoAbonCli","Numeric"  ,10,2},; // Mora Actual sin abonos
-			 {"nSdoFavCli","Numeric"  ,10,2},; // Saldo a Favor.
+			 {"nSdAbonCli","Numeric"  ,12,2},; // Saldo Actual sin abonos
+			 {"nMoAbonCli","Numeric"  ,12,2},; // Mora Actual sin abonos
+			 {"nSdoFavCli","Numeric"  ,12,2},; // Saldo a Favor.
 			 {"cNroCopCli","Character",24,0},; // N£mero de copias del recibo
 			 {"cMesPagCli","Character",12,0},; // Control de meses pagados
 			 {"cTipNovCli","Character",48,0},; // Tipo de Novedad de Reporte. Cuatro caracteres por mes.
 			 {"nPorBecCli","Numeric"  ,03,0},; // Porcentaje de la beca
-			 {"nVlrBecCli","Numeric"  ,10,2},; // Valor de la Beca
+			 {"nVlrBecCli","Numeric"  ,12,2},; // Valor de la Beca
 			 {"nBecIniCli","Numeric"  ,02,0},; // Mes Inicial de la Beca
 			 {"nBecFinCli","Numeric"  ,02,0},; // Mes Final de la Beca
 			 {"cHayNovCli","Character",12,0},; // Un caracter para cada mes. Ej: 1->Aplicar Novedad 0->No aplicar Novedad. Descuentos Generales

@@ -56,68 +56,68 @@ FUNCTION CreaDbfPag(lShared,nModCry,PathPag,FilePag,lIntUno,fNtxPag,aStrDbf)
 			 {"cCodigoBan","Character",02,0},; // C¢digo del Banco
 			 {"lIntPenPag","Logical"  ,01,0},; // .T. Utilizar interes por mora y no valor de recargo para lo no pagos o pagos extemporaneos
 			 {"nIntMorPag","Numeric"  ,05,2},; // Interes por Mora para pago extemporaneo
-			 {"nVlrMorPag","Numeric"  ,10,2},; // Valor de la mora para pago extemporaneo
+			 {"nVlrMorPag","Numeric"  ,12,2},; // Valor de la mora para pago extemporaneo
 			 {"nIntDeuPag","Numeric"  ,05,2},; // Interes por Mora para el no pago
-			 {"nVlrDeuPag","Numeric"  ,10,2},; // Valor de la mora para el no pago
+			 {"nVlrDeuPag","Numeric"  ,12,2},; // Valor de la mora para el no pago
 			 {"nMesIniPag","Numeric"  ,02,0},; // Mes Inicial del Pago
 			 {"nMesFinPag","Numeric"  ,02,0},; // Mes Final del Pago
 			 {"nMesAmnPag","Numeric"  ,02,0},; // Mes de Amnist¡a
 			 {"cAtrasoPag","Character",24,0},; // Meses de Atraso
-			 {"nSdoAntPag","Numeric"  ,10,2},; // Saldo Anterior
-			 {"nMorAntPag","Numeric"  ,10,2},; // Valor Mora Anterior
+			 {"nSdoAntPag","Numeric"  ,12,2},; // Saldo Anterior
+			 {"nMorAntPag","Numeric"  ,12,2},; // Valor Mora Anterior
 			 {"cConSdoPag","Character",16,0},; // Conceptos en Mora
-			 {"nSdoAnoPag","Numeric"  ,10,2},; // Saldo del a¤o Anterior
-			 {"nMorAnoPag","Numeric"  ,10,2},; // Valor Mora del a¤o Anterior
-			 {"nSdoExtPag","Numeric"  ,10,2},; // Saldo Anterior sin abonos despu‚s de fecha extemporanea.
-			 {"nSdAbonPag","Numeric"  ,10,2},; // Saldo Anterior sin abonos
-			 {"nMoAbonPag","Numeric"  ,10,2},; // Valor Mora Anterior sin abonos
-			 {"nSdAanoPag","Numeric"  ,10,2},; // Saldo Anterior sin abonos deuda a¤o anterior
-			 {"nMoAanoPag","Numeric"  ,10,2},; // Valor Mora Anterior sin abonos a¤o anterior
-			 {"nVlrCo1Pag","Numeric"  ,10,2},; // Valor del Concepto No. 1
-			 {"nVlrCo2Pag","Numeric"  ,10,2},; // Valor del Concepto No. 2
-			 {"nVlrCo3Pag","Numeric"  ,10,2},; // Valor del Concepto No. 3
-			 {"nVlrCo4Pag","Numeric"  ,10,2},; // Valor del Concepto No. 4
-			 {"nVlrCo5Pag","Numeric"  ,10,2},; // Valor del Concepto No. 5
-			 {"nVlrCo6Pag","Numeric"  ,10,2},; // Valor del Concepto No. 6
-			 {"nVlrCo7Pag","Numeric"  ,10,2},; // Valor del Concepto No. 7
-			 {"nVlrCo8Pag","Numeric"  ,10,2},; // Valor del Concepto No. 8
-			 {"nVl1Co1Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 1
-			 {"nVl1Co2Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 2
-			 {"nVl1Co3Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 3
-			 {"nVl1Co4Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 4
-			 {"nVl1Co5Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 5
-			 {"nVl1Co6Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 6
-			 {"nVl1Co7Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 7
-			 {"nVl1Co8Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 8
-			 {"nVl2Co1Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 1
-			 {"nVl2Co2Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 2
-			 {"nVl2Co3Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 3
-			 {"nVl2Co4Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 4
-			 {"nVl2Co5Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 5
-			 {"nVl2Co6Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 6
-			 {"nVl2Co7Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 7
-			 {"nVl2Co8Pag","Numeric"  ,10,2},; // Valor1 del Concepto No. 8
+			 {"nSdoAnoPag","Numeric"  ,12,2},; // Saldo del a¤o Anterior
+			 {"nMorAnoPag","Numeric"  ,12,2},; // Valor Mora del a¤o Anterior
+			 {"nSdoExtPag","Numeric"  ,12,2},; // Saldo Anterior sin abonos despu‚s de fecha extemporanea.
+			 {"nSdAbonPag","Numeric"  ,12,2},; // Saldo Anterior sin abonos
+			 {"nMoAbonPag","Numeric"  ,12,2},; // Valor Mora Anterior sin abonos
+			 {"nSdAanoPag","Numeric"  ,12,2},; // Saldo Anterior sin abonos deuda a¤o anterior
+			 {"nMoAanoPag","Numeric"  ,12,2},; // Valor Mora Anterior sin abonos a¤o anterior
+			 {"nVlrCo1Pag","Numeric"  ,12,2},; // Valor del Concepto No. 1
+			 {"nVlrCo2Pag","Numeric"  ,12,2},; // Valor del Concepto No. 2
+			 {"nVlrCo3Pag","Numeric"  ,12,2},; // Valor del Concepto No. 3
+			 {"nVlrCo4Pag","Numeric"  ,12,2},; // Valor del Concepto No. 4
+			 {"nVlrCo5Pag","Numeric"  ,12,2},; // Valor del Concepto No. 5
+			 {"nVlrCo6Pag","Numeric"  ,12,2},; // Valor del Concepto No. 6
+			 {"nVlrCo7Pag","Numeric"  ,12,2},; // Valor del Concepto No. 7
+			 {"nVlrCo8Pag","Numeric"  ,12,2},; // Valor del Concepto No. 8
+			 {"nVl1Co1Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 1
+			 {"nVl1Co2Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 2
+			 {"nVl1Co3Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 3
+			 {"nVl1Co4Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 4
+			 {"nVl1Co5Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 5
+			 {"nVl1Co6Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 6
+			 {"nVl1Co7Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 7
+			 {"nVl1Co8Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 8
+			 {"nVl2Co1Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 1
+			 {"nVl2Co2Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 2
+			 {"nVl2Co3Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 3
+			 {"nVl2Co4Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 4
+			 {"nVl2Co5Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 5
+			 {"nVl2Co6Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 6
+			 {"nVl2Co7Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 7
+			 {"nVl2Co8Pag","Numeric"  ,12,2},; // Valor1 del Concepto No. 8
 			 {"cIniFinPag","Character",32,0},; // Mes Inicial y final de cada concepto
-			 {"nVlrMesPag","Numeric"  ,10,2},; // Valor del Mes
-			 {"nVlrPagPag","Numeric"  ,10,2},; // Valor a pagar o pagado
-			 {"nSdoFavPag","Numeric"  ,10,2},; // Saldo a Favor.
-			 {"nFavPagPag","Numeric"  ,10,2},; // Saldo a Favor pagado.
-			 {"nFavDesPag","Numeric"  ,10,2},; // Saldo a Favor Descontado
-			 {"nFavAplPag","Numeric"  ,10,2},; // Saldo a Favor aplicado.
+			 {"nVlrMesPag","Numeric"  ,12,2},; // Valor del Mes
+			 {"nVlrPagPag","Numeric"  ,12,2},; // Valor a pagar o pagado
+			 {"nSdoFavPag","Numeric"  ,12,2},; // Saldo a Favor.
+			 {"nFavPagPag","Numeric"  ,12,2},; // Saldo a Favor pagado.
+			 {"nFavDesPag","Numeric"  ,12,2},; // Saldo a Favor Descontado
+			 {"nFavAplPag","Numeric"  ,12,2},; // Saldo a Favor aplicado.
 			 {"cCodigoFpg","Character",02,0},; // Forma de Forma de Pago. Ej: Por Banco,Por Caja,Tarjeta Debito,Tarjeta Cr‚dito.
 			 {"cNroFpgPag","Character",20,0},; // N£mero del Documento de la forma de pago.
 			 {"lConcepPag","Logical"  ,01,0},; // .T. Deudor sin conceptos
 			 {"cConcepPag","Character",16,0},; // Conceptos del Pago
 			 {"lHayBecPag","Logical"  ,01,0},; // .T. Pago con Beca
 			 {"nPorBecPag","Numeric"  ,03,0},; // Porcentaje de la Beca
-			 {"nVlrBecPag","Numeric"  ,10,2},; // Valor de la Beca
-			 {"nVlrDesPag","Numeric"  ,10,2},; // Valor descuento individual
-			 {"nPagParPag","Numeric"  ,10,2},; // Valor del pago parcial.
-			 {"nVlrRecPag","Numeric"  ,10,2},; // Valor recargo individual
-			 {"nDesGenPag","Numeric"  ,10,2},; // Valor descuento general
-			 {"nRecGenPag","Numeric"  ,10,2},; // Valor recargo general
-			 {"nAbonosPag","Numeric"  ,10,2},; // Total de Abonos
-			 {"nAnticiPag","Numeric"  ,10,2},; // Anticipos al mes
+			 {"nVlrBecPag","Numeric"  ,12,2},; // Valor de la Beca
+			 {"nVlrDesPag","Numeric"  ,12,2},; // Valor descuento individual
+			 {"nPagParPag","Numeric"  ,12,2},; // Valor del pago parcial.
+			 {"nVlrRecPag","Numeric"  ,12,2},; // Valor recargo individual
+			 {"nDesGenPag","Numeric"  ,12,2},; // Valor descuento general
+			 {"nRecGenPag","Numeric"  ,12,2},; // Valor recargo general
+			 {"nAbonosPag","Numeric"  ,12,2},; // Total de Abonos
+			 {"nAnticiPag","Numeric"  ,12,2},; // Anticipos al mes
 			 {"cConGenPag","Character",02,0},; // Concepto del descuento o recargo general
 			 {"dFecFacPag","Date"     ,08,0},; // Fecha de Facturaci¢n
 			 {"dPagOpoPag","Date"     ,08,0},; // Fecha pago oportuno

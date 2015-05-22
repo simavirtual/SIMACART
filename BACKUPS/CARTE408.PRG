@@ -701,6 +701,7 @@ FUNCTION Carte_481(aParam1,aParam2,aParam3)
 
 	     DO WHILE .NOT. GRU->(EOF())
 
+
 *===============PREPARACION DE LAS VARIABLES DE ARCHIVOS
 		  FileCli := cPatSis+'\CLIENTES\CL'+;
 			     GRU->cCodigoGru+cAnoSis+ExtFile
@@ -1469,9 +1470,10 @@ FUNCTION Carte_482(aParam1,aParam2,aParam3)
 	    aVlrCon := {}
 	    IF !EMPTY(CAA->cConMatCaA)
 
-	       VlrTarMtr(PMT->cConcepPag,cCodigoTgr,aVlrCon,.T.)
+	       VlrTarMtr(PMT->cConcepPag,cCodigoTgr,aVlrCon,.F.)
 
 	       nVlrMtr := nSuma(aVlrCon,3)
+
 	       nTotPag -= nVlrMtr
 
 	    ENDIF

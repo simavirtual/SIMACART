@@ -636,6 +636,8 @@ FUNCTION Carte_605(aP1,aP2,aP3)
 	    AADD(aP3,{'nMesIni',nMesIni})
 	    AADD(aP3,{'nMesFin',nMesFin})
 
+	    AADD(aP3,{'cRefRec',''})
+
 	    AADD(aP3,{'cNomBan',BAN->cNombreBan})
 	    AADD(aP3,{'cCtaBan',BAN->cNroCtaBan})
 	    AADD(aP3,{'aConRec',aConRec})

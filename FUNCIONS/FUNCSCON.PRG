@@ -1393,7 +1393,6 @@ FUNCTION VlrTarMtr(cConcep,cCodGru,aVlrCon,lSiCert)
 	     LOCATE FOR TMT->cCodigoGru == SUBS(cCodGru,1,2)+'00' .AND.;
 			TMT->cCodigoCon == cCodigoTco
 
-
 	     IF FOUND()
 		nVlrCon := TMT->nValorTar
 	     ELSE
@@ -1407,7 +1406,9 @@ FUNCTION VlrTarMtr(cConcep,cCodGru,aVlrCon,lSiCert)
 
 *---------------SUMA DEL CONCEPTO DESCRIMINADO
 		  IF lSiCert
+
 		     IF CMT->lSiCertCon
+
 			VlrCon(IF(EMPTY(CMT->cCodCerCon),;
 				  cCodigoTco,CMT->cCodCerCon),;
 			       IF(EMPTY(CMT->cNomCerCon),;
@@ -1415,6 +1416,7 @@ FUNCTION VlrTarMtr(cConcep,cCodGru,aVlrCon,lSiCert)
 			       nVlrCon,aVlrCon)
 		     ENDIF
 		  ELSE
+
 		     VlrCon(cCodigoTco,CMT->cNombreCon,nVlrCon,aVlrCon)
 		  ENDIF
 *---------------FIN SUMA DEL CONCEPTO DESCRIMINADO

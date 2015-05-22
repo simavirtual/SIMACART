@@ -783,6 +783,8 @@ FUNCTION nRecOtr08(aP1,aP2,aP3)
        LOCAL nMesIni := xPrm(aP3,'nMesIni') // Mes Inicial
        LOCAL nMesFin := xPrm(aP3,'nMesFin') // Mes Finale
 
+       LOCAL cRefRec := xPrm(aP3,'cRefRec') // Referencia del Recibo
+
        LOCAL cNomBan := xPrm(aP3,'cNomBan') // Nombre del Banco
        LOCAL cCtaBan := xPrm(aP3,'cCtaBan') // Cuenta del Banco
 
@@ -805,7 +807,6 @@ FUNCTION nRecOtr08(aP1,aP2,aP3)
        LOCAL cMesIni := ''                  // Mes inicial de pago
        LOCAL cMesFin := ''                  // Mes final de pago
 
-       LOCAL cRefRec := ''                  // Referencia del Recibo
        LOCAL cRefBar := ''                  // Referencia C¢digo Barras
        LOCAL cMeses  := ''                  // Meses a pagar
        LOCAL cFecFac := ''                  // Fecha de Facturaci¢n
@@ -865,15 +866,21 @@ FUNCTION nRecOtr08(aP1,aP2,aP3)
 
        cNroFac := SCO->cCodEmpCon+'-'+cNroFac
 
-       cRefRec := cCodEst+cMesIni+cMesFin
+       IF EMPTY(cRefRec)
+	 cRefRec := cCodEst+cMesIni+cMesFin
+       ENDIF
        cRefBar := cRefRec
 
        cFecFac := cFecha(DATE())+' - CONSIGNACION'
 
-       cMeses  := cAnoUsr+':'+;
-		  cCodFac+':'+;
-		  cMes(nMesIni,3)+'-'+;
-		  cMes(nMesFin,3)
+       IF EMPTY(cRefRec)
+	  cMeses := cAnoUsr+':'+;
+		    cCodFac+':'+;
+		    cMes(nMesIni,3)+'-'+;
+		    cMes(nMesFin,3)
+       ELSE
+	  cMeses := cAnoUsr
+       ENDIF
 
        cVlrBar := STR(nVlrOpo,10)
        lCorrecion(@cVlrBar,.T.)
@@ -902,7 +909,13 @@ FUNCTION nRecOtr08(aP1,aP2,aP3)
        AADD(aPrmRec,{'cCtaBan',cCtaBan})
        AADD(aPrmRec,{'cNomEst',cNomEst})
        AADD(aPrmRec,{'cRefRec',cRefRec})
-       AADD(aPrmRec,{'cCurso',cNomNiv(SUBS(cCodGru,1,2))})
+
+       IF EMPTY(cRefRec)
+	  AADD(aPrmRec,{'cCurso',cNomNiv(SUBS(cCodGru,1,2))})
+       ELSE
+	  AADD(aPrmRec,{'cCurso',''})
+       ENDIF
+
        AADD(aPrmRec,{'cFecFac',cFecFac})
        AADD(aPrmRec,{'cMeses',cMeses})
        AADD(aPrmRec,{'aConRec',aConRec})

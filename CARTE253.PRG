@@ -758,6 +758,8 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *--------------FIN VALIDACION DE DEUDORES Y PAGOS SIN FECHA
 
 
+
+
 *--------------CALCULO DE LOS DIFERENTES PAGOS
 		 nVlrPag := 0
 		 IF lHayAlu .AND. lHayPag
@@ -923,6 +925,7 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 *				ENDIF
 *                             FIN ANALISIS DEL MES DE PAGO
 
+
 *                             TOTALIZACION DEL PAGO
 				aVlrPagos(PAG->dFecPagPag,;
 					  PAG->nVlrPagPag,@aVlrPag,1,;
@@ -937,7 +940,10 @@ FUNCTION Carte_253(aParam1,aParam2,aParam3)
 					   @aFilExt,;
 					   @FileMoB)
 
+
+
 				IF PAG->cEstadoPag == 'P'
+
 				   aVlrDifExt(cAnoUsr,FileMoB,;
 					      PAG->cCodigoEst,;
 					      cCodigoTgr,;
@@ -2253,6 +2259,7 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
        LOCAL lHayAbo := .F.                 // .T. Hay Abonos
 *       LOCAL lShared := .F.                 // .T. Sistema Compartido
        LOCAL lShared := .T.                 // .T. Sistema Compartido
+       LOCAL lMensaj := .F.                 // .T. Mostrar mensaje error
 
        LOCAL lHayPag := .F.                 // .T. Hay pago
        LOCAL FilePag := ''                  // Archivo de Pagos
@@ -2293,11 +2300,9 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 *********FIN ANALISIS DE DECISION
 
 *********SELECION DE AREAS DE TRABAJO
-	   IF !lUseDbf(.T.,FileMoB,'EXT',NIL,lShared,nModCry) .OR.;
+	   IF !lUseDbf(.T.,FileMoB,'EXT',NIL,lShared,nModCry,lMensaj) .OR.;
 	      !lUseDbf(.T.,PathTem+'\'+;
 			   FileCmv,'CMV',NIL,lShared,nModCry)
-
-	      cError('ABRIENDO ARCHIVOS '+FileMoB)
 	      LOOP
 	   ENDIF
 *********FIN SELECION DE AREAS DE TRABAJO
@@ -2680,6 +2685,7 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
 
        LOCAL lShared := .F.                 // .T. Sistema Compartido
        LOCAL nModCry := 0                   // 0=>No Protecci¢n 1=>Sin Proteci¢n Inicial 2=>Con Proteci¢n Inicial
+       LOCAL lMensaj := .F.                 // .T. Mostrar mensaje error
 
        LOCAL cMesIni := ''                  // Mes Inicial
        LOCAL cMesFin := ''                  // Mes Inicial
@@ -2692,16 +2698,16 @@ FUNCTION aVlrDifExt(cAnoUsr,FileMoB,cCodEst,cCodGru,nMesIni,;
        LOCAL nCodCmv := ''                  // C¢digo Concepto del Movimiento
 *>>>>FIN DECLARACION DE VARIABLES
 
+
 *>>>>SELECION DE AREAS DE TRABAJO
        IF !EMPTY(FileMoB)
 
 	  PathTem := SUBS(FileMoB,1,8)
 
-	  IF !lUseDbf(.T.,FileMoB,'EXT',NIL,lShared,nModCry) .OR.;
-	      !lUseDbf(.T.,PathTem+'\'+;
+	  IF !lUseDbf(.T.,FileMoB,'EXT',NIL,lShared,nModCry,lMensaj) .OR.;
+	     !lUseDbf(.T.,PathTem+'\'+;
 			   FileCmv,'CMV',NIL,lShared,nModCry)
 
-	     cError('ABRIENDO ARCHIVOS '+FileMoB)
 	     RETURN NIL
 	  ENDIF
 

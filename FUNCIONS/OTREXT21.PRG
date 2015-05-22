@@ -93,13 +93,15 @@ FUNCTION FOtrExt21(aParam1,aParam2,aParam3,;
 *>>>>FIN LECTURA PARAMETROS GENERALES
 
 *>>>>DECLARCION Y EJECUCION DEL MENU
-       aMenus  := {'1<RECIBOS DEL MES      >',;
-		   '2<RECIBOS DE ABONOS    >',;
-		   '3<RECIBOS DE MATRICULAS>'}
+       aMenus  := {'1<RECIBOS DEL MES       >',;
+		   '2<RECIBOS DE ABONOS     >',;
+		   '3<RECIBOS DE MATRICULAS >',;
+		   '4<FACTURACION MATRICULAS>'}
 
        aAyuda := {'Permite validar los recibos del Mes del Sistema contra el Banco',;
 		  'Permite validar los recibos de Abonos del Sistema contra el Banco',;
-		  'Permite validad los recibos de Matriculas del Sistema contra el Banco'}
+		  'Permite validad los recibos de Matriculas del Sistema contra el Banco',;
+		  'Genera la facturaci[on de las Matriculas'}
 
        cSavPan := SAVESCREEN(0,0,24,79)
        nNroOpc := nMenu(aMenus,aAyuda,09,25,NIL,NIL,1,.F.)
@@ -125,6 +127,12 @@ FUNCTION FOtrExt21(aParam1,aParam2,aParam3,;
 	    FOtExt213(aParam1,aParam2,aParam3,;
 		      cNroMes,oBrowse)
 	   *Validaci¢n recibos de Matriculas
+
+       CASE nNroOpc == 4
+	    FOtExt214(aParam1,aParam2,aParam3,;
+		      cNroMes,oBrowse)
+	   *Facturaci¢n de las Matriculas.
+
 
        ENDCASE
        RETURN NIL

@@ -118,12 +118,26 @@ FUNCTION Carte_291(aP1,aP2,aP3)
        CASE SCA->nPagOnlCar == 0
 	    cError('NO SE HA DEFINIDO EL FORMATO PARA PAGOS EN LINEA')
 
-       CASE SCA->nPagOnlCar > 5
+       CASE SCA->nPagOnlCar > 6
 	    cError('FORMATO PARA PAGOS EN LINEA No.'+;
 		   STR(SCA->nPagOnlCar,2)+' '+'NO ESTA HABILITADO')
 
        CASE EMPTY(SCA->cSerFacCar)
 	    cError('NO SE HA DEFINIDO LA DESCRIPCION DEL SERVICIO FACTURADO')
+
+       CASE EMPTY(SCA->cCodFacCar)
+	    cError('NO SE HA CONFIRGURADO EL CODIGO DEL SERVICIO FACTURADO')
+
+       CASE EMPTY(SCA->cCodOnlCar)
+
+	    DO CASE
+	    CASE SCA->nPagOnlCar == 6 // PAGOS INTELIGENTES
+		 cError('NO SE HA CONFIRGURADO EL CODIGO '+;
+			'ASIGNADO PARA PAGOS EN LINEA',;
+			'PAGOS INTELIGENTES')
+
+	    ENDCASE
+
 
        OTHERWISE
 	    lHayErr :=.F.
@@ -177,6 +191,12 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 
 	    cError('SE VA A GENERAR EL ARCHIVO CON EL FORMATO '+;
 		   'DE AVISOR TECHNOLOGIES')
+	    cForPag := ''
+
+       CASE SCA->nPagOnlCar == 6  // Pagos Inteligentes - www.pagosinteligentes.com
+
+	    cError('SE VA A GENERAR EL ARCHIVO CON EL FORMATO '+;
+		   'PARA PAGOS INTELIGENTES')
 	    cForPag := ''
 
        ENDCASE
@@ -299,6 +319,10 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 
 	    cRegIni := ''
 
+       CASE SCA->nPagOnlCar == 6  // Pagos Inteligentes - www.pagosinteligentes.com
+
+	    cRegIni := ''
+
 
        ENDCASE
 *>>>>REGISTRO ENCABEZADO DE ARCHIVO
@@ -363,6 +387,10 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 	    cRegIni := ''
 
        CASE SCA->nPagOnlCar == 5       // Avisor
+
+	    cRegIni := ''
+
+       CASE SCA->nPagOnlCar == 6  // Pagos Inteligentes - www.pagosinteligentes.com
 
 	    cRegIni := ''
 
@@ -450,6 +478,10 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 
 	    cRegIni := ''
 
+       CASE SCA->nPagOnlCar == 6  // Pagos Inteligentes - www.pagosinteligentes.com
+
+	    cRegIni := ''
+
        ENDCASE
 *>>>>FIN REGISTRO DE CONTROL DE LOTE
 
@@ -532,6 +564,10 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 	    cRegFin := ''
 
        CASE SCA->nPagOnlCar == 5       // Avisor
+
+	    cRegFin := ''
+
+       CASE SCA->nPagOnlCar == 6  // Pagos Inteligentes - www.pagosinteligentes.com
 
 	    cRegFin := ''
 
@@ -895,6 +931,7 @@ FUNCTION RegOnline(aP1,aP2,aP3,nMesIni,cForPag,aTotErr,;
 *>>>>FIN DECLARACION PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
+       LOCAL       i := 0                   // Contador
        LOCAL nVlrInt := 0                   // Valor de los Intereses
 
        LOCAL cMsgErr := ''                  // Mensaje de Error
@@ -909,10 +946,19 @@ FUNCTION RegOnline(aP1,aP2,aP3,nMesIni,cForPag,aTotErr,;
        LOCAL cRefPal := ''                  // Referencia principal del Usuario
        LOCAL cRefSec := ''                  // Referencia secundaria del Usuario
        LOCAL cIdeCli := ''                  // N£mero de Identificaci¢n del Cliente
+
+       LOCAL aIniOpo := {}                  // Fecha Inicail para pago oportuno
+       LOCAL cIniOpo := ''                  // Fecha Inicial para pago oportuno
+
        LOCAL aFecOpo := {}                  // Fecha para pago oportuno
        LOCAL cFecOpo := ''                  // Fecha para pago oportuno
+
+       LOCAL aIniExt := {}                  // Fecha Inicil para pago extemporaneo.
+       LOCAL cIniExt := ''                  // Fecha Inicial para pago extemporaneo.
+
        LOCAL aFecExt := {}                  // Fecha para pago extemporaneo
        LOCAL cFecExt := ''                  // Fecha para pago extemporaneo
+
        LOCAL cVlrOpo := ''                  // Valor Oportuno
        LOCAL cVlrInt := ''                  // Valor de los Intereses
        LOCAL cVlrExt := ''                  // Valor Extemporaneo
@@ -921,6 +967,8 @@ FUNCTION RegOnline(aP1,aP2,aP3,nMesIni,cForPag,aTotErr,;
        LOCAL cFecPag := ''                  // Fecha de pago
 
        LOCAL cRegTxt := ''                  // Registro en texto
+       LOCAL cRegOpo := ''                  // Registro en texto Opoturno
+       LOCAL cRegExt := ''                  // Registro en texto Extemporaneo.
        LOCAL cRegUsr := ''                  // Registro en texto
 
        LOCAL aVlrCon := {}                  // Valores por conceptos
@@ -932,6 +980,7 @@ FUNCTION RegOnline(aP1,aP2,aP3,nMesIni,cForPag,aTotErr,;
        LOCAL cNalias := ''                  // Alias del maestro
        LOCAL cNomFac := ''                  // Nombre para el Recibo
        LOCAL cDocNit := ''                  // Documento del que paga
+       LOCAL cTipNit := ''                  // Tipo de Documento
 
        LOCAL cCodOnl := ''                  // C¢digo Asignado pago en l¡nea
        LOCAL cCodSer := ''                  // C¢digo del servicio
@@ -1015,9 +1064,8 @@ FUNCTION RegOnline(aP1,aP2,aP3,nMesIni,cForPag,aTotErr,;
 	    cApelliTes := ALLTRIM(&cMaeAct->cApelliEst)
 
 	    cNomFac := cNomFacMae(cMaeAct,CAA->nNomFacCaA)
-	    cDocNit := cNitFacMae(cMaeAct,CAA->nNomFacCaA)
+	    cDocNit := cNitFacMae(cMaeAct,CAA->nNomFacCaA,,,,@cTipNit)
 **********BUSQUEDA DEL CODIGO DEL ESTUDIANTE
-
 
 **********CALCULO DE LOS INTERESES
 	    nVlrInt := nVlrIntPag(CAA->lIntPenCaA,;
@@ -1041,7 +1089,13 @@ FUNCTION RegOnline(aP1,aP2,aP3,nMesIni,cForPag,aTotErr,;
 	    cCodFac := PAG->cCodigoEst+cMesIni+cMesFin
 
 	    aFecHoy := aFecha(DATE())
+
 	    aFecOpo := aFecha(PAG->dPagOpoPag)
+
+	    cIniOpo := aFecOpo[1]+'/01/'+aFecOpo[3]
+	    aIniOpo := aFecha(CTOD(cIniOpo))
+
+	    aIniExt := aFecha(PAG->dPagOpoPag+1)
 	    aFecExt := aFecha(PAG->dPagExtPag)
 
 
@@ -1355,53 +1409,129 @@ FUNCTION RegOnline(aP1,aP2,aP3,nMesIni,cForPag,aTotErr,;
 		 cRegUsr += '  '          // 12=>530:531:002.(N) Rol del usuario
 		 cRegUsr += ' '           // 13=>532:532:001.(N) Tipo de Persona
 
+	    CASE SCA->nPagOnlCar == 6  // Pagos Inteligentes - www.pagosinteligentes.com
+
+
+		 cCodOnl := ALLTRIM(cCodOnl)
+
+		 cRefPal := cCodFac+SCA->cCodFacCar+cAnoUsr
+
+		 cVlrOpo := STR(PAG->nVlrPagPag,9,0)
+		 lCorrecion(@cVlrOpo)
+
+		 cVlrExt := STR(PAG->nVlrPagPag+nVlrInt,9,0)
+		 lCorrecion(@cVlrExt)
+
+		 cIniOpo := aIniOpo[2]+aIniOpo[1]+aIniOpo[3]
+		 cFecOpo := aFecOpo[2]+aFecOpo[1]+aFecOpo[3]
+	       *ÀAAAAMMDD
+
+		 cIniExt := aIniExt[2]+aIniExt[1]+aIniExt[3]
+		 cFecExt := aFecExt[2]+aFecExt[1]+aFecExt[3]
+	       *ÀAAAAMMDD
+
+		 cRegTxt := 'IDC'                 // 01=>Tipo de documento - IDC:Identificado £nico del cliente.
+		 cRegTxt += ';'
+		 cRegTxt += PAG->cCodigoEst	  // 02=>Numero del documento o identificaci¢n IDC
+		 cRegTxt += ';'
+		 cRegTxt += cRefPal               // 03=>Referencia1
+		 cRegTxt += ';'
+		 cRegTxt += cRefPal               // 04=>Referencia2
+		 cRegTxt += ';'
+		 cRegTxt += cRefPal               // 05=>Referencia3
+		 cRegTxt += ';'
+		 cRegTxt += ALLTRIM(SCA->cSerFacCar)+'.'+;
+			    'RECIBO DE '+;
+			    cMes(PAG->nMesIniPag)+' '+;
+			    cAnoUsr               // 06=>Descripci¢n
+		 cRegTxt += ';'
+
+		 cRegOpo := cRegTxt
+		 cRegExt := cRegTxt
+						  
+		 cRegOpo += cVlrOpo               // 07=>Total
+		 cRegOpo += ';'
+		 cRegOpo += '0'                   // 08=>Impuesto
+		 cRegOpo += ';'
+		 cRegOpo += '0'                   // 09=>Base devoluci¢n
+		 cRegOpo += ';'
+		 cRegOpo += cIniOpo+'235959'      // 10=>Fecha Inicio
+		 cRegOpo += ';'
+		 cRegOpo += cFecOpo+'235959'      // 11=>Fecha Expiraci¢n
+		 cRegOpo += ';'
+		 cRegOpo += cCodOnl               // 12=>C¢digo de Servicio para PSE
+
+		 cRegExt += cVlrExt               // 07=>Total
+		 cRegExt += ';'
+		 cRegExt += '0'                   // 08=>Impuesto
+		 cRegExt += ';'
+		 cRegExt += '0'                   // 09=>Base devoluci¢n
+		 cRegExt += ';'
+		 cRegExt += cIniExt+'235959'      // 10=>Fecha Inicio
+		 cRegExt += ';'
+		 cRegExt += cFecExt+'235959'      // 11=>Fecha Expiraci¢n
+		 cRegExt += ';'
+		 cRegExt += cCodOnl               // 12=>C¢digo de Servicio para PSE
+
 
 	    ENDCASE
 **********DETALLES DE LA FACTURACION
 
 **********GRABACION DEL PAGO
-	    IF ONL->(lRegLock(lShared,.T.))
+	    FOR i := 1 TO IF(SCA->nPagOnlCar==6,2,1)
 
-	       REPL ONL->nPagOnlCar WITH SCA->nPagOnlCar
+		IF SCA->nPagOnlCar == 6 // Pagos Inteligentes - www.pagosinteligentes.com
+		   IF i == 1
+		      cRegTxt := cRegOpo
+		   ELSE
+		      cRegTxt := cRegExt
+		   ENDIF
+		ENDIF
 
-	       REPL ONL->cCodigoEst WITH PAG->cCodigoEst
-	       REPL ONL->cCodigoGru WITH GRU->cCodigoGru
-	       REPL ONL->nMesIniPag WITH PAG->nMesIniPag
-	       REPL ONL->nMesFinPag WITH PAG->nMesFinPag
-	       REPL ONL->cForPagOnl WITH cForPag
-	       REPL ONL->nVlrOpoPag WITH nVlrOpo
-	       REPL ONL->nVlrExtPag WITH PAG->nVlrPagPag+nVlrInt
-	       REPL ONL->dFecFacPag WITH PAG->dFecFacPag
-	       REPL ONL->dPagOpoPag WITH PAG->dPagOpoPag
-	       REPL ONL->dPagExtPag WITH PAG->dPagExtPag
-	       REPL ONL->nNroFacCaA WITH PAG->nNroFacCaA
-	       REPL ONL->nIntMorPag WITH PAG->nIntMorPag
-	       REPL ONL->nVlrMorPag WITH PAG->nVlrMorPag
-	       REPL ONL->cConcepPag WITH PAG->cConcepPag
+		IF ONL->(lRegLock(lShared,.T.))
 
-	       REPL ONL->cNombreEst WITH cNombreTes
-	       REPL ONL->cApelliEst WITH cApelliTes
+		   REPL ONL->nPagOnlCar WITH SCA->nPagOnlCar
+
+		   REPL ONL->cCodigoEst WITH PAG->cCodigoEst
+		   REPL ONL->cCodigoGru WITH GRU->cCodigoGru
+		   REPL ONL->nMesIniPag WITH PAG->nMesIniPag
+		   REPL ONL->nMesFinPag WITH PAG->nMesFinPag
+		   REPL ONL->cForPagOnl WITH cForPag
+		   REPL ONL->nVlrOpoPag WITH nVlrOpo
+		   REPL ONL->nVlrExtPag WITH PAG->nVlrPagPag+nVlrInt
+		   REPL ONL->dFecFacPag WITH PAG->dFecFacPag
+		   REPL ONL->dPagOpoPag WITH PAG->dPagOpoPag
+		   REPL ONL->dPagExtPag WITH PAG->dPagExtPag
+		   REPL ONL->nNroFacCaA WITH PAG->nNroFacCaA
+		   REPL ONL->nIntMorPag WITH PAG->nIntMorPag
+		   REPL ONL->nVlrMorPag WITH PAG->nVlrMorPag
+		   REPL ONL->cConcepPag WITH PAG->cConcepPag
+
+		   REPL ONL->cNombreEst WITH cNombreTes
+		   REPL ONL->cApelliEst WITH cApelliTes
 
 
-	       REPL ONL->cRegistTxt WITH cRegTxt
-	       REPL ONL->cRegUsrTxt WITH cRegUsr
+		   REPL ONL->cRegistTxt WITH cRegTxt
+		   REPL ONL->cRegUsrTxt WITH cRegUsr
 
 
-	       REPL ONL->cNomUsrOnl WITH cNomUsr
-	       REPL ONL->dFecUsrOnl WITH DATE()
-	       REPL ONL->cHorUsrOnl WITH TIME()
+		   REPL ONL->cNomUsrOnl WITH cNomUsr
+		   REPL ONL->dFecUsrOnl WITH DATE()
+		   REPL ONL->cHorUsrOnl WITH TIME()
 
-	       nTotReg++
-	       nTotOpo += ONL->nVlrOpoPag
-	       nTotExt += ONL->nVlrExtPag
+		   nTotReg++
+		   nTotOpo += ONL->nVlrOpoPag
+		   nTotExt += ONL->nVlrExtPag
 
-	       ONL->(DBCOMMIT())
-	    ELSE
-	       cError('NO SE GRABA EL REGISTRO INICIAL DE LA CONFIGURACION')
-	    ENDIF
-	    IF lShared
-	       ONL->(DBUNLOCK())
-	    ENDIF
+		   ONL->(DBCOMMIT())
+		ELSE
+		   cError('NO SE GRABA EL REGISTRO INICIAL DE LA CONFIGURACION')
+		ENDIF
+		IF lShared
+		   ONL->(DBUNLOCK())
+		ENDIF
+
+	    ENDFOR
 **********FIN GRABACION DEL PAGO
 
 	  CLI->(DBSKIP())

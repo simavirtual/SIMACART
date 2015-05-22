@@ -250,6 +250,23 @@ FUNCTION Carte_107(aParam1,aParam2,aParam3)
 	    ENDIF
 **********FIN LOCALIZACION DEL ULTIMO RECIBO
 
+**********VALIDACION DE LA CONCILIACION
+	    IF nTipDes # 3 // DIFERENTE A ABONO
+
+	       IF SUBS(CAA->cValConCaA,nMesIni,1) # SPACE(01)
+
+		  cError('LA CONCILIACION DE '+cMes(nMesIni,10)+' '+;
+			 'YA SE REPORTO A CONTABILIDAD')
+
+		  CloseDbf('CLI',FileCli,nModCry)
+		  CloseDbf('PAG',FilePag,nModCry)
+		  LOOP
+
+	       ENDIF
+
+	    ENDIF
+**********FIN VALIDACION DE LA CONCILIACION
+
 **********FILTRACION DEL ARCHIVO DE DESCUENTOS
 	    SELECT DES
 	    IF nTipDes == 3  // Abono
@@ -410,6 +427,7 @@ FUNCTION Carte_107(aParam1,aParam2,aParam3)
 						       PAG->nVlrMesPag
 
 			     IF PAG->nMesIniPag == DES->nNroMesDes
+
 				REPL PAG->nAbonosPag WITH PAG->nAbonosPag-;
 							  DES->nValorDes
 			     ENDIF

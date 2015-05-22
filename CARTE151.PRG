@@ -554,7 +554,7 @@ FUNCTION Carte_151(aParam1,aParam2,aParam3)
 	    cDescriTde := SUBS('ABONO AL SALDO'+SPACE(40),1,40)
 	    nVlrAbo := 0
 	    @ nNroFil,aNroCol[4] SAY nSdoActTcl+;
-				     nSdoMorTcl   PICT '9,999,999'
+				     nSdoMorTcl   PICT '99,999,999'
 
 	    @ nNroFil,aNroCol[3] GET cDescriTde   PICT '@!s28'
 	    @ nNroFil,aNroCol[5] GET nVlrAbo      PICT '9999999';
@@ -562,7 +562,7 @@ FUNCTION Carte_151(aParam1,aParam2,aParam3)
 	    READ
 	    @ nNroFil,aNroCol[6] SAY nSdoActTcl+;
 				     nSdoMorTcl-;
-				     nVlrAbo      PICT '9,999,999'
+				     nVlrAbo      PICT '99,999,999'
 **********FIN LECTURA DE LOS DETALLES DEL ABONO
 
 **********VALIDACION DE LAS LECTURAS
@@ -1129,7 +1129,7 @@ FUNCTION Carte_151(aParam1,aParam2,aParam3)
 		  @ nNroFil,aNroCol[5] SAY nVlrAbo    PICT '9999999';
 						      COLOR "I"
 		  @ nNroFil,aNroCol[6] SAY CLI->nSdoactCli;
-						      PICT "9,999,999";
+						      PICT "99,999,999";
 						      COLOR "I"
 		  nNroFil++
 *---------------FIN VISUALIZACION DEL ULTIMO CLIENTE

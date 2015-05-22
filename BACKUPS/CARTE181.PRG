@@ -23,12 +23,12 @@ SINTAXIS:
 *                              PROGRAMA                                  *
 *------------------------------------------------------------------------*/
 
-FUNCTION Carte_181(aParam1,aParam2,aParam3)
+FUNCTION Carte_181(aP1,aP2,aP3)
 
 *>>>>DESCRIPCION DE PARAMETROS
-/*     aParam1                              // Parametros Generales
-       aParam2                              // Parametros Generales
-       aParam3                              // Parametros Generales */
+/*     aP1                                  // Parametros Generales
+       aP2                                  // Parametros Generales
+       aP3                                  // Parametros Generales */
 *>>>>FIN DESCRIPCION DE PARAMETROS
 
 *>>>>DECLARACION DE VARIABLES
@@ -61,6 +61,7 @@ FUNCTION Carte_181(aParam1,aParam2,aParam3)
        LOCAL dFecExt := CTOD('00/00/00')    // Fecha de la Consignaci¢n Ext
 
        LOCAL cCodRef := ''                  // C¢digo de la Referencia
+       LOCAL aConRec := {}                  // Conceptos del recibo
 
        MEMVA xClrSys			    // Color del Sistema
        LOCAL GetList := {}                  // Variable del Sistema
@@ -102,7 +103,7 @@ FUNCTION Carte_181(aParam1,aParam2,aParam3)
 *>>>>FIN DECLARACION PARAMETROS GENERALES
 
 *>>>>LECTURA PARAMETROS GENERALES
-       aParams := aParams(aParam1,aParam2,aParam3)
+       aParams := aParams(aP1,aP2,aP3)
        IF !lParam0104(aParams,;
 		      @lShared,@nModCry,@cNomSis,;
 		      @cEmpPal,@cNitEmp,@cNomEmp,@cNomSec,@cCodEmp,;
@@ -218,7 +219,7 @@ FUNCTION Carte_181(aParam1,aParam2,aParam3)
 	  SET DEVICE TO PRINT
        ELSE
 	  FilePrn := 'consigna'
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,SCA->cOpcRecCar,.F.)
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,SCA->cOpcRecCar,.F.,.F.,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	     CloseAll(aUseDbf)
 	     RETURN NIL
@@ -290,15 +291,60 @@ FUNCTION Carte_181(aParam1,aParam2,aParam3)
 	    lCorrecion(@cCodEmp,.T.)
 **********FIN LECTURA DE LA REFERENCIA
 
+**********VALOR DE LOS CONCEPTOS
+	    aConRec := {}
+	    AADD(aConRec,{ALLTRIM(CMV->cNombreCmv),;   // 1. CONCEPTO
+			  '',;                         // 2. MORA
+			  '',;                         // 3. VALOR MES
+			  TRANS(nVlrTot,'9,999,999')}) // 4. TOTAL
+**********FIN VALOR DE LOS CONCEPTOS
+
+**********PARAMETROS DEL RECIBO
+	    aP3 := {}
+
+	    AADD(aP3,{'cCodEan',SCO->cCodEanCon})
+	    AADD(aP3,{'cCodFac',''})
+
+	    AADD(aP3,{'cCodIso',''})
+
+	    AADD(aP3,{'cCodEst',''})
+	    AADD(aP3,{'cCodGru',''})
+	    AADD(aP3,{'cNomEst','CONSIGNACION'})
+	    AADD(aP3,{'nMesIni',0})
+	    AADD(aP3,{'nMesFin',0})
+
+	    AADD(aP3,{'cRefRec',cCodRef})
+
+	    AADD(aP3,{'cNomBan',BAN->cNombreBan})
+	    AADD(aP3,{'cCtaBan',BAN->cNroCtaBan})
+	    AADD(aP3,{'aConRec',aConRec})
+
+	    AADD(aP3,{'dFecOpo',dFecOpo})
+	    AADD(aP3,{'dFecExt',dFecExt})
+
+	    AADD(aP3,{'nVlrOpo',nVlrTot})
+	    AADD(aP3,{'nVlrExt',nVlrTot})
+
+	    AADD(aP3,{'cTxtUno',ALLTRIM(CAA->cTxtUnoCaA)})
+	    AADD(aP3,{'cTxtDos',ALLTRIM(CAA->cTxtDosCaA)})
+**********FIN PARAMETROS DEL RECIBO
+
+
 **********IMPRESION DE LA CONSIGNACION
 	    SET DEVICE TO PRINT
 	    DO CASE
 	    CASE CAA->nRecNroCaA == 8 .OR. CAA->nRecNroCaA == 9
 
+		 nRecOtr08(aP1,aP2,aP3)
+		*Recibo c¢digo de Barras la Kiosera. La Salle Formato
+
+
+/*
 		 nRecOtr02(lShared,cEmpPal,cNitEmp,cNomEmp,cNomUsr,cAnoUsr,;
 			   @nNroFac,BAN->cNombreBan,BAN->cNroCtaBan,;
 			   BAN->cLugarBan,dFecOpo,dFecExt,ALLTRIM(cCodRef),;
 			   ALLTRIM(CMV->cNombreCmv),nVlrTot)
+*/
 
 	    ENDCASE
 	    SET DEVICE TO SCREEN

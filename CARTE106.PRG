@@ -228,7 +228,7 @@ FUNCTION Carte_106(aParam1,aParam2,aParam3)
 	    nMesIniTpa := PAG->nMesIniPag
 	    IF SUBS(CAA->cValConCaA,nMesIniTpa,1) # SPACE(01)
 
-	       cError('EL RECIBO DE '+cMes(nMesIniTpa,10)+' '+;
+	       cError('LA CONCILIACION DE '+cMes(nMesIniTpa,10)+' '+;
 		      'YA SE REPORTO A CONTABILIDAD')
 
 	       CloseDbf('CLI',FileCli,nModCry)
