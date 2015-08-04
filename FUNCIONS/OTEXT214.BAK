@@ -66,6 +66,7 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
        LOCAL       i := 0                   // Contador
        LOCAL lHayErr := .F.                 // .T. Hay Error
        LOCAL lHayPag := .F.                 // .T. Hay Pago
+       LOCAL lHayDes := .T.                 // .T. Hay Descuento
        LOCAL lPrnReg := .F.                 // .T. Imprimir el Registro
        LOCAL lRegPrn := .F.                 // .T. Registros Impresos
        LOCAL nMesIni := 0                   // Mes Inicial del Pago
@@ -81,6 +82,7 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
        LOCAL nPagTot := 0                   // Total pagos sin intereses
        LOCAL aVlrCon := {}                  // Valor Por Conceptos
        LOCAL aVlrTra := {}                  // Valor de las Transaciones
+       LOCAL aDetEst := {}                  // Detalle de los estudiantes
        LOCAL nVlrTra := 0                   // Valor de la Transaci¢n
 
        LOCAL nVlrInt := 0                   // Valor de los Intereses
@@ -112,6 +114,7 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
      *ÀVariables espec¡ficas
 
        LOCAL cCodigoTes := ''               // C¢digo del Estudiante
+       LOCAL cNombreTes := ''               // Nombre del Estudiante
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>DECLARACION PARAMETROS GENERALES
@@ -197,7 +200,7 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
 *>>>>FIN DEFINICION DEL ENCABEZADO
 
 *>>>>ENCABEZADOS DE COLUMNA
-       aNroCol := {30,16,16,16}
+       aNroCol := {80,18,18,18}
        aTitPrn := {}
        AADD(aTitPrn,'DESCRIPCION')
        AADD(aTitPrn,'CREDITOS')
@@ -271,6 +274,7 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
 **********FIN LOCALIZACION DEL CODIGO
 
 **********LOCALIZACION DEL DESCUENTO
+	    lHayDes := .F.
 	    IF lHayPag
 
 	       SELECT DMT
@@ -281,11 +285,31 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
 
 	       IF DMT->(FOUND())
 		  aVlrConDes(@aVlrDes,'DMT','CMT')
+		  lHayDes := .T.
 	       ENDIF
 
 	    ENDIF
 **********FIN LOCALIZACION DEL DESCUENTO
 
+**********BUSQUEDA DEL ESTUDIANTE
+	    IF lHayDes
+	       IF lSekCodMae(cCodigoTes,cMaeAlu,@cMaeAct,.F.)
+		  cNombreTes := RTRIM(&cMaeAct->cNombreEst)+' '+;
+				RTRIM(&cMaeAct->cApelliEst)
+
+		  cNombreTes := ALLTRIM(cNombreTes)+':'+;
+				ALLTRIM(DMT->cConcepDes)
+
+		  AADD(aDetEst,{cCodigoTes+':'+;
+			       &cMaeAct->cCodigoGru+' '+;
+			       cNombreTes,DMT->nValorDes})
+
+	       ELSE
+		  AADD(aDetEst,{cCodigoTes+':NO EXISTE:'+;
+				ALLTRIM(DMT->cConcepDes),DMT->nValorDes})
+	       ENDIF
+	    ENDIF
+**********FIN BUSQUEDA DEL ESTUDIANTE
 
 **********TOTAL CONSIGNADO
 	    nVlrBan := 0
@@ -378,7 +402,7 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
        FOR i := 1 TO LEN(aVlrCon)
 
 	   aRegPrn := {}
-	   AADD(aRegPrn,SUBS(aVlrCon[i,2]+SPACE(30),1,30))
+	   AADD(aRegPrn,SUBS(aVlrCon[i,2]+SPACE(80),1,80))
 	   AADD(aRegPrn,TRANS(aVlrCon[i,3],"####,###,###"))
 	   AADD(aRegPrn,'')
 	   AADD(aRegPrn,'')
@@ -390,7 +414,7 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
        ENDFOR
 
        aRegPrn := {}
-       AADD(aRegPrn,SUBS('TOTAL CONCEPTOS'+SPACE(30),1,30))
+       AADD(aRegPrn,SUBS('TOTAL CONCEPTOS'+SPACE(80),1,80))
        AADD(aRegPrn,TRANS(nSuma(aVlrCon,3),"####,###,###"))
        AADD(aRegPrn,'')
        AADD(aRegPrn,'')
@@ -406,7 +430,7 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
 
 	   aRegPrn := {}
 	   cTxtPrn := '-DESCUENTO.'+aVlrDes[i,2]
-	   AADD(aRegPrn,SUBS(cTxtPrn+SPACE(30),1,30))
+	   AADD(aRegPrn,SUBS(cTxtPrn+SPACE(80),1,80))
 	   AADD(aRegPrn,'')
 	   AADD(aRegPrn,TRANS(aVlrDes[i,3],"####,###,###"))
 	   AADD(aRegPrn,'')
@@ -419,7 +443,7 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
 
        IF nSuma(aVlrDes,3) > 0
 	  aRegPrn := {}
-	  AADD(aRegPrn,SUBS('TOTAL DESCUENTOS'+SPACE(30),1,30))
+	  AADD(aRegPrn,SUBS('TOTAL DESCUENTOS'+SPACE(80),1,80))
 	  AADD(aRegPrn,'')
 	  AADD(aRegPrn,TRANS(nSuma(aVlrDes,3),"####,###,###"))
 	  AADD(aRegPrn,'')
@@ -434,7 +458,7 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
        nTotSdo := nSuma(aVlrCon,3)-nSuma(aVlrDes,3)
 
        aRegPrn := {}
-       AADD(aRegPrn,SUBS('TOTAL FACTURACION'+SPACE(30),1,30))
+       AADD(aRegPrn,SUBS('TOTAL FACTURACION'+SPACE(80),1,80))
        AADD(aRegPrn,TRANS(nTotSdo,"####,###,###"))
        AADD(aRegPrn,'')
        AADD(aRegPrn,TRANS(nTotSdo,"####,###,###"))
@@ -450,7 +474,7 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
 
 	   aRegPrn := {}
 	   cTxtPrn := 'PAGOS '+aVlrTra[i,2]
-	   AADD(aRegPrn,SUBS(cTxtPrn+SPACE(30),1,30))
+	   AADD(aRegPrn,SUBS(cTxtPrn+SPACE(80),1,80))
 	   AADD(aRegPrn,'')
 	   AADD(aRegPrn,TRANS(aVlrTra[i,3],"####,###,###"))
 	   AADD(aRegPrn,'')
@@ -463,7 +487,7 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
        ENDFOR
 
        aRegPrn := {}
-       AADD(aRegPrn,SUBS('TOTAL PAGOS'+SPACE(30),1,30))
+       AADD(aRegPrn,SUBS('TOTAL PAGOS'+SPACE(80),1,80))
        AADD(aRegPrn,'')
        AADD(aRegPrn,TRANS(nSuma(aVlrTra,3),"####,###,###"))
        AADD(aRegPrn,TRANS(nTotSdo,"####,###,###"))
@@ -472,6 +496,33 @@ FUNCTION FOtExt214(aParam1,aParam2,aParam3,;
 	       aTitPrn,aRegPrn,aNroCol,bPagina,bDerAut,;
 	       bCabeza,,,@lPrnEnc)
 *>>>>FIN CONSIGNACIONES
+
+*>>>>ESTUDIANTE CON DESCUENTOS
+       FOR i := 1 TO LEN(aDetEst)
+
+	   aRegPrn := {}
+	   cTxtPrn := 'DESCUENTO '+aDetEst[i,1]
+	   AADD(aRegPrn,SUBS(cTxtPrn+SPACE(80),1,80))
+	   AADD(aRegPrn,'')
+	   AADD(aRegPrn,TRANS(aDetEst[i,2],"####,###,###"))
+	   AADD(aRegPrn,'')
+
+
+	   lPrnOpc(lShared,nOpcPrn,FilePrn,nHanXml,01,nColCab,;
+		   aTitPrn,aRegPrn,aNroCol,bPagina,bDerAut,;
+		   bCabeza,,,@lPrnEnc)
+
+       ENDFOR
+
+       aRegPrn := {}
+       AADD(aRegPrn,SUBS('TOTAL DESCUENTOS'+SPACE(80),1,80))
+       AADD(aRegPrn,'')
+       AADD(aRegPrn,TRANS(nSuma(aDetEst,2),"####,###,###"))
+
+       lPrnOpc(lShared,nOpcPrn,FilePrn,nHanXml,01,nColCab,;
+	       aTitPrn,aRegPrn,aNroCol,bPagina,bDerAut,;
+	       bCabeza,,,@lPrnEnc)
+*>>>>ESTUDIANTE CON DESCUENTOS
 
 *>>>>IMPRESION DERECHOS
        EVAL(bDerAut)
