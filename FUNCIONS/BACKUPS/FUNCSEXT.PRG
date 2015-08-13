@@ -517,6 +517,7 @@ FUNCTION MantenExt(aParam1,aParam2,aParam3,;
 			  FileMoB,'TRA',NIL,lShared,nModCry})
        AADD(aUseDbfs,{.T.,cIntDos+'\'+FilePag,'PMT',NIL,lShared,nModCry})
        AADD(aUseDbfs,{.T.,cIntDos+'\'+FileCon,'CMT',NIL,lShared,nModCry})
+       AADD(aUseDbfs,{.T.,cIntDos+'\'+FileDes,'DMT',NIL,lShared,nModCry})
 *>>>>FIN AREAS DE TRABAJO
 
 *>>>>SELECCION DE LAS AREAS DE TRABAJO

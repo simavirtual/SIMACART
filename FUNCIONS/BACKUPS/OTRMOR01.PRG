@@ -212,7 +212,7 @@ FUNCTION OtrMor011(aParam1,aParam2,aParam3,;
 			 'NOMBRE DE LA MADRE',;
 			 'EVALUACION'}
 	  ELSE
-	     aNroCol := {04,06,06,20,12,18,14,14,40}
+	     aNroCol := {04,06,06,40,12,18,14,14,40}
 	     aTitulo := {'No',;
 			 'CODIGO',;
 			 'GRUPO',;
@@ -241,18 +241,12 @@ FUNCTION OtrMor011(aParam1,aParam2,aParam3,;
        bDerAut := {||DerechosPrn(cNomSis,cNomEmp,n17Stan)}
 *>>>>FIN ANALISIS PARA CENTRAR EL INFORME
 
-*>>>>ANALISIS DE DECISION
-       ActivaPrn(lSiRed,cNomSis,PathSis,fSimCar,'cColaAcCar','Car')
-       IF !lPregunta('DESEA CONTINUAR? Si No')
-	  RETURN NIL
-       ENDIF
-*>>>>FIN ANALISIS DE DECISION
-
 *>>>>ACTIVACION DE LA IMPRESORA
        IF SCA->lPrnArcCar
 	  SET DEVICE TO PRINT
        ELSE
-	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,SCA->cOpcPrnCar,.F.)
+	  FilePrn := SUBS(SCA->cSerFacCar,1,1)+'MORACT'
+	  nOpcPrn := nPrinter_On(cNomUsr,@FilePrn,SCA->cOpcPrnCar,.F.,.T.,,PathDoc)
 	  IF EMPTY(nOpcPrn)
 	      RETURN NIL
 	  ENDIF
@@ -312,7 +306,7 @@ FUNCTION OtrMor011(aParam1,aParam2,aParam3,;
 		  cNombreTes := SUBS(cNombreTes+SPACE(40),1,41)
 		  cNomMadTes := SUBS(cNomMadTes+SPACE(40),1,40)
 	       ELSE
-		  cNombreTes := SUBS(cNombreTes+SPACE(20),1,19)
+		  cNombreTes := SUBS(cNombreTes+SPACE(40),1,40)
 		  cNomMadTes := SUBS(cNomMadTes+SPACE(18),1,18)
 	       ENDIF
 	    ENDIF

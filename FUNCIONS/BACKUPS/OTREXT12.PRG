@@ -209,11 +209,11 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 
 *>>>>ENCABEZADOS DE COLUMNA
        IF lTodos
-	  aNroCol := {40,16,16,16}
+	  aNroCol := {40,18,18,18}
 	  aTitPrn := {'CONCEPTOS','CREDITOS','DEBITOS','SALDO'}
 	  aCamXml := aTitPrn
        ELSE
-	  aNroCol := {12,04,16,16,16,16,40}
+	  aNroCol := {12,04,18,18,16,16,40}
 	  aTitPrn := {'FECHA','TRAN','CREDITOS','DEBITOS',;
 		      'REFERENCIA','COMPROBANTE','OBSERVACION'}
 	  aCamXml := aTitPrn
@@ -666,7 +666,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 				       IF(aPagMes[i,2] == 0,SPACE(12),;
 					  TRANS(aPagMes[i,2],"####,###,###.##")),;
 				       IF(aPagMes[i,1] - aPagMes[i,2] == 0,SPACE(12),;
-					  TRANS(aPagMes[i,1] - aPagMes[i,2],"####,###,###.##"))}
+					  TRANS(aPagMes[i,1] - aPagMes[i,2],"#####,###,###.##"))}
 
 			   lPrnOpc(lShared,nOpcPrn,FilePrn,nHanXml,01,;
 				   nColCab,aTitPrn,aRegPrn,aNroCol,;
@@ -699,7 +699,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 				       IF(aAboMes[i,2] == 0,SPACE(12),;
 					  TRANS(aAboMes[i,2],"####,###,###.##")),;
 				       IF(aAboMes[i,1]-aAboMes[i,2]== 0,SPACE(12),;
-					  TRANS(aAboMes[i,1]-aAboMes[i,2],"####,###,###.##"))}
+					  TRANS(aAboMes[i,1]-aAboMes[i,2],"#####,###,###.##"))}
 
 			   lPrnOpc(lShared,nOpcPrn,FilePrn,nHanXml,01,;
 				   nColCab,aTitPrn,aRegPrn,aNroCol,;
@@ -731,7 +731,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 				       IF(aMatric[i,2] == 0,SPACE(12),;
 					  TRANS(aMatric[i,2],"####,###,###.##")),;
 				       IF(aMatric[i,1]-aMatric[i,2]== 0,SPACE(12),;
-					  TRANS(aMatric[i,1]-aMatric[i,2],"####,###,###.##"))}
+					  TRANS(aMatric[i,1]-aMatric[i,2],"#####,###,###.##"))}
 
 			   lPrnOpc(lShared,nOpcPrn,FilePrn,nHanXml,01,nColCab,;
 				   aTitPrn,aRegPrn,aNroCol,bPagina,bDerAut,;
@@ -780,7 +780,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 				       IF(aPagMes[i,2] == 0,SPACE(12),;
 					  TRANS(aPagMes[i,2],"####,###,###.##")),;
 				       IF(aPagMes[i,1] - aPagMes[i,2] == 0,SPACE(12),;
-					  TRANS(aPagMes[i,1] - aPagMes[i,2],"####,###,###.##"))}
+					  TRANS(aPagMes[i,1] - aPagMes[i,2],"#####,###,###.##"))}
 
 			   lPrnOpc(lShared,nOpcPrn,FilePrn,nHanXml,01,;
 				   nColCab,aTitPrn,aRegPrn,aNroCol,;
@@ -857,7 +857,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 				 IF(nVlrDeb == 0,SPACE(12),;
 						TRANS(nVlrDeb,"####,###,###.##")),;
 				 IF(nVlrCre - nVlrDeb == 0,SPACE(12),;
-				    TRANS(nVlrCre - nVlrDeb,"####,###,###.##"))}
+				    TRANS(nVlrCre - nVlrDeb,"#####,###,###.##"))}
 
 		     lPrnOpc(lShared,nOpcPrn,FilePrn,nHanXml,01,nColCab,;
 			     aTitPrn,aRegPrn,aNroCol,bPagina,bDerAut,bCabeza)
@@ -905,7 +905,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 	  aTitulo := {'TOTALES ...',;
 		      TRANS(nTotCre,"####,###,###.##"),;
 		      TRANS(nTotDeb,"####,###,###.##"),;
-		      TRANS(nTotSdo,"####,###,###.##")}
+		      TRANS(nTotSdo,"#####,###,###.##")}
 
 	  AADD(aTitulo,'') // Campo Url
 	  AADD(aRegXml,aTitulo)
@@ -920,7 +920,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
 
 	  aTitulo := {'TOTALES ...','',;
 		       TRANS(nTotCre,"####,###,###.##"),;
-		       TRANS(nTotDeb,"####,###,###.##"),'','',''}
+		       TRANS(nTotDeb,"#####,###,###.##"),'','',''}
 
 	  AADD(aTitulo,'') // Campo Url
 	  AADD(aRegXml,aTitulo)
@@ -935,7 +935,7 @@ FUNCTION FOtrExt12(aParam1,aParam2,aParam3,;
        @ PROW()  ,nColCab+nColTxt(aNroCol,IF(lTodos,03,04)) SAY TRANS(nTotDeb,"####,###,###.##")
 
        IF lTodos
-	  @ PROW(),nColCab+nColTxt(aNroCol,04) SAY TRANS(nTotSdo,"####,###,###.##")
+	  @ PROW(),nColCab+nColTxt(aNroCol,04) SAY TRANS(nTotSdo,"#####,###,###.##")
        ENDIF
 *>>>>FIN IMPRESION DE LOS TOTALES
 
