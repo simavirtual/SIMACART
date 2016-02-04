@@ -557,7 +557,7 @@ FUNCTION Carte_151(aParam1,aParam2,aParam3)
 				     nSdoMorTcl   PICT '99,999,999'
 
 	    @ nNroFil,aNroCol[3] GET cDescriTde   PICT '@!s28'
-	    @ nNroFil,aNroCol[5] GET nVlrAbo      PICT '9999999';
+	    @ nNroFil,aNroCol[5] GET nVlrAbo      PICT '99999999';
 				     VALID nSdoActTcl+nSdoMorTcl >= nVlrAbo
 	    READ
 	    @ nNroFil,aNroCol[6] SAY nSdoActTcl+;

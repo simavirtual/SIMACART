@@ -1233,7 +1233,7 @@ FUNCTION Carte_101(aP1,aP2,aP3)
 
 	       REPL PAG->cIniFinPag WITH ''
 	       REPL PAG->nVlrMesPag WITH nVlrMesTpa
-	       REPL PAG->nVlrpagPag WITH nVlrTot
+	       REPL PAG->nVlrPagPag WITH nVlrTot
 	       REPL PAG->nSdoFavPag WITH 0
 	       REPL PAG->nFavDesPag WITH nFavDes
 	       REPL PAG->lConcepPag WITH IF(EMPTY(cConcep),.T.,.F.)

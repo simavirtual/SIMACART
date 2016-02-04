@@ -64,14 +64,14 @@ FUNCTION CreaDbfMor(lShared,nModCry,PathMor,FileMor,lIntUno,fNtxMor,aStrDbf)
 			 {"nMesMorMor","Numeric"  ,02,0},; // Mes de la Mora
 			 {"nDiaMorMor","Numeric"  ,04,0},; // D¡as en mora
 			 {"cConcepMor","Character",16,0},; // Conceptos del Pago
-			 {"nVlrCo1Mor","Numeric"  ,10,2},; // Valor del Concepto No. 1
-			 {"nVlrCo2Mor","Numeric"  ,10,2},; // Valor del Concepto No. 2
-			 {"nVlrCo3Mor","Numeric"  ,10,2},; // Valor del Concepto No. 3
-			 {"nVlrCo4Mor","Numeric"  ,10,2},; // Valor del Concepto No. 4
-			 {"nVlrCo5Mor","Numeric"  ,10,2},; // Valor del Concepto No. 5
-			 {"nVlrCo6Mor","Numeric"  ,10,2},; // Valor del Concepto No. 6
-			 {"nVlrCo7Mor","Numeric"  ,10,2},; // Valor del Concepto No. 7
-			 {"nVlrCo8Mor","Numeric"  ,10,2},; // Valor del Concepto No. 8
+			 {"nVlrCo1Mor","Numeric"  ,12,2},; // Valor del Concepto No. 1
+			 {"nVlrCo2Mor","Numeric"  ,12,2},; // Valor del Concepto No. 2
+			 {"nVlrCo3Mor","Numeric"  ,12,2},; // Valor del Concepto No. 3
+			 {"nVlrCo4Mor","Numeric"  ,12,2},; // Valor del Concepto No. 4
+			 {"nVlrCo5Mor","Numeric"  ,12,2},; // Valor del Concepto No. 5
+			 {"nVlrCo6Mor","Numeric"  ,12,2},; // Valor del Concepto No. 6
+			 {"nVlrCo7Mor","Numeric"  ,12,2},; // Valor del Concepto No. 7
+			 {"nVlrCo8Mor","Numeric"  ,12,2},; // Valor del Concepto No. 8
 			 {"dFecRepMor","Date"     ,08,0},; // Fecha de Reporte
 			 {"dFecRetMor","Date"     ,08,0},; // Fecha de Retiro del Reporte
 			 {"lPagRecMor","Logical"  ,01,0},; // .T. Pago el Recibo

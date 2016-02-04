@@ -593,10 +593,13 @@ FUNCTION Carte_104(aP1,aP2,aP3)
 	    cDescriTde := cSpaces('DES','cDescriDes')
 	    cDescriTde := STUFF(cDescriTde,1,14,'ABONO AL SALDO')
 
+
 	    nVlrAbo := 0
+
 	    nVlrAbo := nVlrAbono(12,10,&cNalias->cCodigoEst,;
 				 cNombreTes,&cNalias->cCodigoGru,;
 				 nNroMesTde,nSdoActTcl+nSdoMorTcl,@cDescriTde)
+
 	    IF nVlrAbo == 0
 	       RESTSCREEN(0,0,24,79,cSavPan)
 	       LOOP
@@ -689,7 +692,7 @@ FUNCTION Carte_104(aP1,aP2,aP3)
 			     cJorTxt,cCodIso,@nNroFac,&cNalias->cCodigoEst,;
 			     cNombreTes,&cNalias->cCodigoGru,CLI->(RECNO()),;
 			     BAN->cNombreBan,BAN->cNroCtaBan,BAN->cLugarBan,;
-			     CAA->dOpoPenCaA,CAA->dExtPenCaA,;
+			     CAA->dExtPenCaA,CAA->dExtPenCaA,;
 			     CAA->cMensajCaA,nNroMesTde,nVlrAbo,;
 			     nSdoActTcl+nSdoMorTcl,CAA->lPrePrnCaA,;
 			     lPrnGru) == 'C'
@@ -710,7 +713,7 @@ FUNCTION Carte_104(aP1,aP2,aP3)
 			     &cNalias->cCodigoEst,cNombreTes,;
 			     &cNalias->cCodigoGru,CLI->(RECNO()),;
 			     BAN->cNombreBan,BAN->cNroCtaBan,BAN->cLugarBan,;
-			     CAA->dOpoPenCaA,CAA->dExtPenCaA,;
+			     CAA->dExtPenCaA,CAA->dExtPenCaA,;
 			     CAA->cMensajCaA,nNroMesTde,nVlrAbo,;
 			     nSdoActTcl+nSdoMorTcl,CAA->lPrePrnCaA,;
 			     lPrnGru) == 'C'
@@ -732,7 +735,7 @@ FUNCTION Carte_104(aP1,aP2,aP3)
 			     &cNalias->cCodigoEst,cNombreTes,;
 			     &cNalias->cCodigoGru,CLI->(RECNO()),;
 			     BAN->cNombreBan,BAN->cNroCtaBan,BAN->cLugarBan,;
-			     CAA->dOpoPenCaA,CAA->dExtPenCaA,;
+			     CAA->dExtPenCaA,CAA->dExtPenCaA,;
 			     CAA->cMensajCaA,nNroMesTde,nVlrAbo,;
 			     nSdoActTcl+nSdoMorTcl,lPrnGru,;
 			     CAA->nRecNroCaA) == 'C'
@@ -753,7 +756,7 @@ FUNCTION Carte_104(aP1,aP2,aP3)
 			      &cNalias->cCodigoEst,cNombreTes,;
 			      &cNalias->cCodigoGru,CLI->(RECNO()),;
 			      BAN->cNombreBan,BAN->cNroCtaBan,BAN->cLugarBan,;
-			      CAA->dOpoPenCaA,CAA->dExtPenCaA,;
+			      CAA->dExtPenCaA,CAA->dExtPenCaA,;
 			      CAA->cMensajCaA,nNroMesTde,nVlrAbo,;
 			      nSdoActTcl+nSdoMorTcl,lPrnGru) == 'C'
 
@@ -773,7 +776,7 @@ FUNCTION Carte_104(aP1,aP2,aP3)
 			     &cNalias->cCodigoEst,cNombreTes,;
 			     &cNalias->cCodigoGru,CLI->(RECNO()),;
 			     BAN->cNombreBan,BAN->cNroCtaBan,BAN->cLugarBan,;
-			     CAA->dOpoPenCaA,CAA->dExtPenCaA,;
+			     CAA->dExtPenCaA,CAA->dExtPenCaA,;
 			     CAA->cMensajCaA,nNroMesTde,nVlrAbo,;
 			     nSdoActTcl+nSdoMorTcl,lPrnGru,;
 			     CAA->nRecNroCaA) == 'C'
@@ -794,7 +797,7 @@ FUNCTION Carte_104(aP1,aP2,aP3)
 			     &cNalias->cCodigoEst,cNombreTes,;
 			     &cNalias->cCodigoGru,CLI->(RECNO()),;
 			     BAN->cNombreBan,BAN->cNroCtaBan,BAN->cLugarBan,;
-			     CAA->dOpoPenCaA,CAA->dExtPenCaA,;
+			     CAA->dExtPenCaA,CAA->dExtPenCaA,;
 			     CAA->cMensajCaA,nNroMesTde,nVlrAbo,;
 			     nSdoActTcl+nSdoMorTcl,lPrnGru,;
 			     CAA->nRecNroCaA) == 'C'
@@ -815,7 +818,7 @@ FUNCTION Carte_104(aP1,aP2,aP3)
 			      &cNalias->cCodigoEst,cNombreTes,;
 			      &cNalias->cCodigoGru,CLI->(RECNO()),;
 			      BAN->cNombreBan,BAN->cNroCtaBan,BAN->cLugarBan,;
-			      CAA->dOpoPenCaA,CAA->dExtPenCaA,;
+			      CAA->dExtPenCaA,CAA->dExtPenCaA,;
 			      CAA->cMensajCaA,nNroMesTde,nVlrAbo,;
 			      nSdoActTcl+nSdoMorTcl,CAA->lPrePrnCaA,;
 			      lPrnGru) == 'C'

@@ -6645,6 +6645,39 @@ ENDIF
        ENDIF
 *>>>>FIN IMPRESION PARTE DEL RECIBO SENCILLO
 
+*>>>>SALDO ACTUAL PENDIENTE RETIRADO
+       IF nVlrMes == 0 .AND.;
+	  CLI->nSdoActCli+CLI->nSdoMorCli > 0 .AND.;
+	  EMPTY(cConcep)
+
+	  Post('MZP 0.3,6.7; TEXT "SALDO EN MORA";')
+	  Post('MZP 0.3,15.3; TEXT "SALDO EN MORA";')
+	*ÀCONCEPTO
+
+	  Post('MZP 8.5,6.7; '+;
+	       'TEXT "'+TRANS(CLI->nSdoActCli+CLI->nSdoMorCli,'9,999,999')+'";')
+	  Post('MZP 8.5,15.3; '+;
+	       'TEXT "'+TRANS(CLI->nSdoActCli+CLI->nSdoMorCli,'9,999,999')+'";')
+	*ÀMORA
+
+	  Post('MZP 13.5,6.7;  TEXT "0";')
+	  Post('MZP 13.5,15.3; TEXT "0";')
+	*ÀVALOR MES
+
+	  Post('MZP 18.5,6.7; '+;
+	       'TEXT "'+TRANS(CLI->nSdoActCli+CLI->nSdoMorCli,'9,999,999')+'";')
+	  Post('MZP 18.5,15.3; '+;
+	       'TEXT "'+TRANS(CLI->nSdoActCli+CLI->nSdoMorCli,'9,999,999')+'";')
+	*ÀTOTAL
+
+	 nParameSet(aRecFac,'cNomCo1','SALDO EN MORA')
+	 nParameSet(aRecFac,'cVlrMo1',TRANS(CLI->nSdoActCli+CLI->nSdoMorCli,'9,999,999'))
+	 nParameSet(aRecFac,'cVlrMe1',TRANS(0,'9,999,999'))
+	 nParameSet(aRecFac,'cVlrTo1',TRANS(CLI->nSdoActCli+CLI->nSdoMorCli,'9,999,999'))
+
+       ENDIF
+*>>>>FIN SALDO ACTUAL PENDIENTE RETIRADO
+
 *>>>>IMPRESION PARTE DEL RECIBO POR ADELANTADO
        IF lPorAde
 

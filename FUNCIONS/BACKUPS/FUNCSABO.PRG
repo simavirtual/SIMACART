@@ -66,8 +66,8 @@ FUNCTION nVlrAbono(nNroFil,nNroCol,cCodEst,cNomEst,;
        @ nNroFil,nNroCol   SAY 'NOMBRE: '+cNomEst
        @ nNroFil+1,nNroCol-1 SAY '°CODIGO: '+cCodEst+SPACE(01)+'GRUPO: '+cCodGru
 
-       @ nNroFil+3,nNroCol SAY 'DEUDA: '+TRANS(nSaldo,'9,999,999')
-       @ nNroFil+4,nNroCol SAY 'ABONO: ' GET nVlrAbo PICT '9999999';
+       @ nNroFil+3,nNroCol SAY 'DEUDA: '+TRANS(nSaldo,'99,999,999')
+       @ nNroFil+4,nNroCol SAY 'ABONO: ' GET nVlrAbo PICT '99999999';
 					 VALID !(nSaldo - nVlrAbo) < 0
        READ
        @ nNroFil+5,nNroCol+7 SAY '---------'
@@ -2097,14 +2097,14 @@ FUNCTION DetAbo06(nSdoAct,nVlrAbo)
        Post('MZP 0.3,6.4;   TEXT "ABONO AL SALDO";')
        Post('MZP 0.3,15.4;  TEXT "ABONO AL SALDO";')
 
-       Post('MZP 8.5,6.4;   TEXT "'+TRANS(nSdoAct,'9,999,999')+'";')
-       Post('MZP 8.5,15.4;  TEXT "'+TRANS(nSdoAct,'9,999,999')+'";')
+       Post('MZP 8.5,6.4;   TEXT "'+TRANS(nSdoAct,'99,999,999')+'";')
+       Post('MZP 8.5,15.4;  TEXT "'+TRANS(nSdoAct,'99,999,999')+'";')
 
-       Post('MZP 13.5,6.4;  TEXT "'+TRANS(nVlrAbo,'9,999,999')+'";')
-       Post('MZP 13.5,15.4; TEXT "'+TRANS(nVlrAbo,'9,999,999')+'";')
+       Post('MZP 13.5,6.4;  TEXT "'+TRANS(nVlrAbo,'99,999,999')+'";')
+       Post('MZP 13.5,15.4; TEXT "'+TRANS(nVlrAbo,'99,999,999')+'";')
 
-       Post('MZP 18.5,6.4;  TEXT "'+TRANS(nSdoAct-nVlrAbo,'9,999,999')+'";')
-       Post('MZP 18.5,15.4; TEXT "'+TRANS(nSdoAct-nVlrAbo,'9,999,999')+'";')
+       Post('MZP 18.5,6.4;  TEXT "'+TRANS(nSdoAct-nVlrAbo,'99,999,999')+'";')
+       Post('MZP 18.5,15.4; TEXT "'+TRANS(nSdoAct-nVlrAbo,'99,999,999')+'";')
 
        RETURN NIL
 *>>>>FIN IMPRESION DE LOS DETALLES DEL ABONO
