@@ -2251,6 +2251,7 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
        LOCAL PathTem := ''                  // Path temporal
        LOCAL ExtFile := '.DAT'              // Extensi¢n del Archivo
        LOCAL FileCmv := 'CONCEMOV'+ExtFile
+       LOCAL FileTmv := 'TIPMOV'
 
        LOCAL i := 0                         // Contador
        LOCAL k := 0                         // Indice de B£squeda
@@ -2264,6 +2265,7 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
        LOCAL lHayPag := .F.                 // .T. Hay pago
        LOCAL FilePag := ''                  // Archivo de Pagos
        LOCAL nVlrInt := 0                   // Valor de los intereses
+       LOCAL lSumTra := .F.                 // .T. Credito .F. Debito
 
        LOCAL FileMoB := ''                  // Ej: 01199902.DAT
        LOCAL cCodBan := ''                  // C¢digo del Banco
@@ -2302,7 +2304,10 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 *********SELECION DE AREAS DE TRABAJO
 	   IF !lUseDbf(.T.,FileMoB,'EXT',NIL,lShared,nModCry,lMensaj) .OR.;
 	      !lUseDbf(.T.,PathTem+'\'+;
-			   FileCmv,'CMV',NIL,lShared,nModCry)
+			   FileCmv,'CMV',NIL,lShared,nModCry) .OR.;
+	      !lUseDbf(.T.,PathTem+'\'+FileTmv+cCodBan+ExtFile,;
+			  'TMV',NIL,lShared,nModCry)
+
 	      LOOP
 	   ENDIF
 *********FIN SELECION DE AREAS DE TRABAJO
@@ -2311,7 +2316,6 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 	   SELECT EXT
 	   EXT->(DBGOTOP())
 	   DO WHILE .NOT. EXT->(EOF())
-
 
 *=============ANALISIS DE DECISION
 		nCodCmv := EXT->nCodigoCmv
@@ -2341,6 +2345,14 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 
 		lHayAbo := SUBS(EXT->cCodRefTra,7,4) == '14'+cNroMes
 *=============FIN ANALISIS DE DECISION
+
+*=============LOCALIZACION DEL TIPO DE MOVIMIENTO
+		lSumTra := .F.
+		IF lLocCodigo('cCodigoTra','TMV',EXT->cCodigoTra)
+		   lSumTra := TMV->lSumarTra
+		ENDIF
+		SELECT EXT
+*=============FIN LOCALIZACION DEL TIPO DE MOVIMIENTO
 
 *=============BUSQUEDA DEL ESTUDIANTE
 		IF lHayRec .OR. lHayAbo
@@ -2374,7 +2386,7 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 			      cCodBan,;
 			      EXT->dFechaTra,;
 			      0,; // nVlrPag
-			      EXT->nValorTra,;
+			      IF(lSumTra,EXT->nValorTra,-EXT->nValorTra),;
 			      1,; // Recibo de pago
 			      @aFilExt)
 
@@ -2508,7 +2520,7 @@ FUNCTION ValidarExt(cAnoUsr,cPatSis,aFilExt,nMesIni,cMaeAlu,aVlrDif)
 			      cCodBan,;
 			      EXT->dFechaTra,;
 			      0,; // nVlrPag
-			      EXT->nValorTra,;
+			      IF(lSumTra,EXT->nValorTra,-EXT->nValorTra),;
 			      2,; // Abono
 			      @aFilExt)
 

@@ -53,7 +53,7 @@ FUNCTION CreaDbfTmv(lShared,nModCry,PathTmv,FileTmv,fNtxTmv,aStrDbf)
 
        LOCAL aDbfTmv := {{"cCodigoTra","Character",03,0},;  // Codigo del tipo del Movimiento
 			 {"cNombreTmv","Character",40,0},;  // Nombre del tipo del Movimiento
-			 {"lSumarTra" ,"Logical  ",01,0}}    // .T. Credito .F. Debito
+			 {"lSumarTra" ,"Logical  ",01,0}}   // .T. Credito .F. Debito
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>RETORNO DE LA ESTRUCTURA

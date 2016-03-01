@@ -35,7 +35,7 @@ OBJETIVOS:
       Gerencia Electr¢nica
       Cartas para morosos */
 
-      LOCAL cVerSis := ' XML216.02'               // Versi¢n Actual
+      LOCAL cVerSis := ' XML216.03'               // Versi¢n Actual
 *>>>>FIN ARCHIVOS DEL SISTEMA
 
 /*
