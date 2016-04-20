@@ -367,7 +367,8 @@ FUNCTION ListasCarta(cNomEmp,cNomSis,cAnoUsr,cJorTxt,cMaeAct,lAnoAct)
 
 *>>>>ACTIVACION DE LA IMPRESORA
        SET DEVICE TO PRINT
-       @ PROW(),00 SAY INICIALIZA+PROPOR_OF+CONDEN_ON
+       SendCodes(PCL('Reset'))
+*       @ PROW(),00 SAY INICIALIZA+PROPOR_OF+CONDEN_ON
 *>>>>FIN ACTIVACION DE LA IMPRESORA
 
 *>>>>IMPRESION DEL CUERPO DEL INFORME
@@ -408,12 +409,14 @@ FUNCTION ListasCarta(cNomEmp,cNomSis,cAnoUsr,cJorTxt,cMaeAct,lAnoAct)
 *--------------FIN ENCABEZADOS DE COLUMNA
 
 *--------------IMPRESION DEL ENCABEZADO DE COLUMNA
-		 nLenPrn := n17Stan
-		 @ PROW(),00 SAY CONDEN_ON+DRAFT_ON+PICA
+		 nLenPrn := PCL('n17Stan')
+*		 @ PROW(),00 SAY CONDEN_ON+DRAFT_ON+PICA
+		 SendCodes(PCL({'DraftOn','Pica','CondenOn'}))
 		 @ PROW()+1,(nLenPrn-LEN(cTxtPrn))/2 SAY REPL('-',LEN(cTxtPrn))
 		 @ PROW()+1,(nLenPrn-LEN(cTxtPrn))/2 SAY cTxtPrn
 		 @ PROW()+1,(nLenPrn-LEN(cTxtPrn))/2 SAY REPL('-',LEN(cTxtPrn))
-		 @ PROW()  ,00 SAY NEGRA_OF+DOBGOL_OF
+*		 @ PROW()  ,00 SAY NEGRA_OF+DOBGOL_OF
+		 SendCodes(PCL({'NegraOf','DobGolOf'}))
 *--------------FIN IMPRESION DEL ENCABEZADO DE COLUMNA
 
 	    ENDIF
@@ -451,8 +454,10 @@ FUNCTION ListasCarta(cNomEmp,cNomSis,cAnoUsr,cJorTxt,cMaeAct,lAnoAct)
 			SPACE(06),;
 			SPACE(06)}
 
+	    SendCodes(PCL('SubryOn'))
 	    cTxtPrn := cRegPrint(aTitulo,aNroCol)
 	    @ PROW()+1,(nLenPrn-LEN(cTxtPrn))/2 SAY cTxtPrn
+	    SendCodes(PCL('SubryOf'))
 **********FIN IMPRESION DEL CONTENIDO DEL INFORME
 
 **********ANALISIS PARA EL CAMBIO DE PAGINA
@@ -534,7 +539,8 @@ FUNCTION ListaInteg(cNomEmp,cNomSis,cAnoUsr,cJorTxt,cMaeAct)
 
 *>>>>ACTIVACION DE LA IMPRESORA
        SET DEVICE TO PRINT
-       @ PROW(),00 SAY INICIALIZA+PROPOR_OF+CONDEN_ON
+*       @ PROW(),00 SAY INICIALIZA+PROPOR_OF+CONDEN_ON
+       SendCodes(PCL('Reset'))
 *>>>>FIN ACTIVACION DE LA IMPRESORA
 
 *>>>>IMPRESION DEL CUERPO DEL INFORME
@@ -575,12 +581,14 @@ FUNCTION ListaInteg(cNomEmp,cNomSis,cAnoUsr,cJorTxt,cMaeAct)
 *--------------FIN ENCABEZADOS DE COLUMNA
 
 *--------------IMPRESION DEL ENCABEZADO DE COLUMNA
-		 nLenPrn := n17Stan
-		 @ PROW(),00 SAY CONDEN_ON+DRAFT_ON+PICA
+		 nLenPrn := PCL('n17Stan')
+*		 @ PROW(),00 SAY CONDEN_ON+DRAFT_ON+PICA
+		 SendCodes(PCL({'DraftOn','Pica','CondenOn'}))
 		 @ PROW()+1,(nLenPrn-LEN(cTxtPrn))/2 SAY REPL('-',LEN(cTxtPrn))
 		 @ PROW()+1,(nLenPrn-LEN(cTxtPrn))/2 SAY cTxtPrn
 		 @ PROW()+1,(nLenPrn-LEN(cTxtPrn))/2 SAY REPL('-',LEN(cTxtPrn))
-		 @ PROW()  ,00 SAY NEGRA_OF+DOBGOL_OF
+*		 @ PROW()  ,00 SAY NEGRA_OF+DOBGOL_OF
+		 SendCodes(PCL({'NegraOf','DobGolOf'}))
 *--------------FIN IMPRESION DEL ENCABEZADO DE COLUMNA
 
 	    ENDIF
@@ -644,8 +652,10 @@ FUNCTION ListaInteg(cNomEmp,cNomSis,cAnoUsr,cJorTxt,cMaeAct)
 			SPACE(06),;
 			SPACE(06)}
 
+	    SendCodes(PCL('SubryOn'))
 	    cTxtPrn := cRegPrint(aTitulo,aNroCol)
 	    @ PROW()+1,(nLenPrn-LEN(cTxtPrn))/2 SAY cTxtPrn
+	    SendCodes(PCL('SubryOf'))
 **********FIN IMPRESION DEL CONTENIDO DEL INFORME
 
 **********ANALISIS PARA EL CAMBIO DE PAGINA
@@ -665,6 +675,7 @@ FUNCTION ListaInteg(cNomEmp,cNomSis,cAnoUsr,cJorTxt,cMaeAct)
 *>>>>FIN IMPRESION DEL CUERPO DEL INFORME
 
 *>>>>IMPRESION DERECHOS
+      SendCodes(PCL('SubryOf'))
        DerechosPrn(cNomSis,cNomEmp,n17Stan)
        @ PROW()-PROW(),00 SAY ' '
       *Saca la ultima linea
