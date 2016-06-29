@@ -57,6 +57,7 @@ FUNCTION CreaDbfBan(lShared,nModCry,PathBan,FileBan,fNtxBan,aStrDbf)
 			 {"cEanCtaBan","Character",13,0},; // C¢digo EAN-13 de la Empresa
 			 {"nNroCtaBan","Numeric"  ,03,0},; // Posici¢n archivo plano N£mero de la Cuenta
 			 {"nLenCtaBan","Numeric"  ,03,0},; // Posici¢n archivo plano Longitud N£mero de la Cuenta
+			 {"cChrSepBan","Character",02,0},; // Caracter Seperador
 			 {"nCodEstBan","Numeric"  ,03,0},; // Posici¢n archivo plano del c¢digo del Estudiante
 			 {"nLenRefBan","Numeric"  ,03,0},; // Posici¢n archivo plano de la longitud del C¢digo de la Referencia.
 			 {"nCodRf2Ban","Numeric"  ,03,0},; // Posici¢n archivo plano del c¢digo del Estudiante
@@ -514,6 +515,11 @@ FUNCTION oDefBrwBan(lShared,nFilSup,nColSup,nFilInf,nColInf)
        oBrwBan:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 
+       oColumn	     := TBCOLUMNNEW('CARACTER;SEPRADOR', {||BAN->cChrSepBan})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','BAN'},{'FIELD','cChrSepBan'},;
+			 {'PICTURE','@!'}}
+       oBrwBan:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
 
        oColumn	     := TBCOLUMNNEW('POSICION;REFERENCIA1', {||BAN->nCodEstBan})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','BAN'},{'FIELD','nCodEstBan'},;

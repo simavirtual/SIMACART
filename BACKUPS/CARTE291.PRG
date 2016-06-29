@@ -118,7 +118,7 @@ FUNCTION Carte_291(aP1,aP2,aP3)
        CASE SCA->nPagOnlCar == 0
 	    cError('NO SE HA DEFINIDO EL FORMATO PARA PAGOS EN LINEA')
 
-       CASE SCA->nPagOnlCar > 6
+       CASE SCA->nPagOnlCar > 7
 	    cError('FORMATO PARA PAGOS EN LINEA No.'+;
 		   STR(SCA->nPagOnlCar,2)+' '+'NO ESTA HABILITADO')
 
@@ -197,6 +197,12 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 
 	    cError('SE VA A GENERAR EL ARCHIVO CON EL FORMATO '+;
 		   'PARA PAGOS INTELIGENTES')
+	    cForPag := ''
+
+       CASE SCA->nPagOnlCar == 7  // Pagos Virtuales Davivienda
+
+	    cError('SE VA A GENERAR EL ARCHIVO CON EL FORMATO '+;
+		   'PARA PAGOS VIRTURALES DE DAVIVIENDA')
 	    cForPag := ''
 
        ENDCASE
@@ -305,7 +311,6 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 
 
        CASE SCA->nPagOnlCar == 5       // Avisor
-
 						  // Ini:Fin:Len
 	    cRegIni := '1'+;                      // 001:001:001 Registro de control
 		       ''+;                       // 002:009:008 Fecha de Corte del Archivo
@@ -317,9 +322,11 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 		       REPL(SPACE(01),54)         // Filler
 	  *ÀEncabezado
 
+       CASE SCA->nPagOnlCar == 6  // Pagos Inteligentes - www.pagosinteligentes.com
+
 	    cRegIni := ''
 
-       CASE SCA->nPagOnlCar == 6  // Pagos Inteligentes - www.pagosinteligentes.com
+       CASE SCA->nPagOnlCar == 7  // Pagos Virtuales - Davivienda
 
 	    cRegIni := ''
 
@@ -328,23 +335,27 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 *>>>>REGISTRO ENCABEZADO DE ARCHIVO
 
 *>>>>GRABACION REGISTRO ENCABEZADO DE ARCHIVO
-       IF ONL->(lRegLock(lShared,.T.))
+       IF !EMPTY(cRegIni)
 
-	  REPL ONL->cCodigoEst WITH 'INICIO'
-	  REPL ONL->nPagOnlCar WITH SCA->nPagOnlCar
-	  REPL ONL->cForPagOnl WITH cForPag
-	  REPL ONL->cRegistTxt WITH cRegIni
+	  IF ONL->(lRegLock(lShared,.T.))
 
-	  REPL ONL->cNomUsrOnl WITH cNomUsr
-	  REPL ONL->dFecUsrOnl WITH DATE()
-	  REPL ONL->cHorUsrOnl WITH TIME()
+	     REPL ONL->cCodigoEst WITH 'INICIO'
+	     REPL ONL->nPagOnlCar WITH SCA->nPagOnlCar
+	     REPL ONL->cForPagOnl WITH cForPag
+	     REPL ONL->cRegistTxt WITH cRegIni
 
-	  ONL->(DBCOMMIT())
-       ELSE
-	  cError('NO SE GRABA EL REGISTRO INICIAL DE LA CONFIGURACION')
-       ENDIF
-       IF lShared
-	  ONL->(DBUNLOCK())
+	     REPL ONL->cNomUsrOnl WITH cNomUsr
+	     REPL ONL->dFecUsrOnl WITH DATE()
+	     REPL ONL->cHorUsrOnl WITH TIME()
+
+	     ONL->(DBCOMMIT())
+	  ELSE
+	     cError('NO SE GRABA EL REGISTRO INICIAL DE LA CONFIGURACION')
+	  ENDIF
+	  IF lShared
+	     ONL->(DBUNLOCK())
+	  ENDIF
+
        ENDIF
 *>>>>FIN GRABACION REGISTRO ENCABEZADO DE ARCHIVO
 
@@ -391,6 +402,10 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 	    cRegIni := ''
 
        CASE SCA->nPagOnlCar == 6  // Pagos Inteligentes - www.pagosinteligentes.com
+
+	    cRegIni := ''
+
+       CASE SCA->nPagOnlCar == 7  // Pagos Virtuales - Davivienda
 
 	    cRegIni := ''
 
@@ -482,6 +497,10 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 
 	    cRegIni := ''
 
+       CASE SCA->nPagOnlCar == 7  // Pagos Virtuales - Davivienda
+
+	    cRegIni := ''
+
        ENDCASE
 *>>>>FIN REGISTRO DE CONTROL DE LOTE
 
@@ -568,6 +587,10 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 	    cRegFin := ''
 
        CASE SCA->nPagOnlCar == 6  // Pagos Inteligentes - www.pagosinteligentes.com
+
+	    cRegFin := ''
+
+       CASE SCA->nPagOnlCar == 7  // Pagos Virtuales - Davivienda
 
 	    cRegFin := ''
 
@@ -946,6 +969,7 @@ FUNCTION RegOnline(aP1,aP2,aP3,nMesIni,cForPag,aTotErr,;
        LOCAL cRefPal := ''                  // Referencia principal del Usuario
        LOCAL cRefSec := ''                  // Referencia secundaria del Usuario
        LOCAL cIdeCli := ''                  // N£mero de Identificaci¢n del Cliente
+       LOCAL cDescri := ''                  // Descripci¢n
 
        LOCAL aIniOpo := {}                  // Fecha Inicail para pago oportuno
        LOCAL cIniOpo := ''                  // Fecha Inicial para pago oportuno
@@ -1473,7 +1497,44 @@ FUNCTION RegOnline(aP1,aP2,aP3,nMesIni,cForPag,aTotErr,;
 		 cRegExt += ';'
 		 cRegExt += cCodOnl               // 12=>C¢digo de Servicio para PSE
 
+	    CASE SCA->nPagOnlCar == 7  // Pagos Virtuales - Davivienda
 
+		 cDescri := 'RECIBO DE '+;
+			    cMes(nMesIni,3)+' '+cAnoUsr+'.'+;
+			    ALLTRIM(SCA->cSerFacCar)
+
+		 cVlrOpo := ALLTRIM(STR(PAG->nVlrPagPag,10,0))
+		 cVlrOpo := cVlrOpo
+		 nVlrOpo := PAG->nVlrPagPag
+
+		 cFecOpo := aFecOpo[2]+'/'+aFecOpo[1]+'/'+aFecOpo[3]
+	       *ÀDDMMAAAA
+
+		 cVlrExt := ALLTRIM(STR(PAG->nVlrPagPag+nVlrInt,10,0))
+		 cVlrExt := cVlrExt
+
+
+		 cFecExt := aFecExt[2]+'/'+aFecExt[1]+'/'+aFecExt[3]
+	       *ÀDDMMAAAA
+
+		 cRegTxt := cCodFac+ALLTRIM(SCA->cCodFacCar)+cAnoSis+'|'+;         // 01. ID_UNICO_PAGO
+			    PAG->cCodigoEst+'|'+;                                  // 02. ID_CLIENTE
+			    cVlrOpo+'|'+;	                                   // 03. VALOR_CON_IVA
+			    '0|'+;                                                 // 04. VALOR_IVA
+			    cDescri+'.PAGO OPORTUNO|'+;                                          // 05. CONCEPTO
+			    cFecOpo+'|'+;                                          // 06. FECHA_VENCIMIENTO
+			    ' |'+;	                                           // 07. EMAIL
+			    ' |'+;	                                           // 08. CLAVE_PAGO
+			    ALLTRIM(cNombreTes)+'|'+;                              // 09. NOMBRE
+			    ALLTRIM(cApelliTes)+'|'+;                              // 10. APELLIDO
+			    ' |'+;	                                           // 11. TELEFONO
+			    ALLTRIM(SCO->cCodEmpCon)+'|'+;                         // 12. CAMPO_OPCIONAL1
+			    cCodFac+cAnoUsr+ALLTRIM(SCA->cCodFacCar)+cNroFac+'|'+; // 13. CAMPO_OPCIONAL2
+			    GRU->cCodigoGru+'|'+;	                           // 14. CAMPO_OPCIONAL3
+			    cFecExt+'|'+;		                           // 15. FECHA EXTEMPORANEO
+			    cVlrExt+'|'+;                                          // 16. VALOR EXTEMPORANEO. VALOR CON IVA 2
+			    '0|'+;                                                 // 17. VALOR_IVA 2
+			    cDescri+'.PAGO EXTEMPORANEO'                           // 18. CONCEPTO 2
 	    ENDCASE
 **********DETALLES DE LA FACTURACION
 

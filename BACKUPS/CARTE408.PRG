@@ -129,13 +129,13 @@ FUNCTION Carte_408(aP1,aP2,aP3)
        aMenus := {}
        AADD(aMenus,'1<FACTURACION MAS PAGOS>')
        AADD(aMenus,'2<PAGOS POR CONCEPTOS  >')
-       AADD(aMenus,'3<FACTURACION POR MESES>')
+       AADD(aMenus,'3<IMPUESTO ICA         >')
        AADD(aMenus,'4<INICIALIZACION       >')
 
        aAyuda := {}
        AADD(aAyuda,'Imprime el comportamiento de pagos de acuerdo a la forma de pago')
        AADD(aAyuda,'Imprime el comportameitno de pagos mes a mes')
-       AADD(aAyuda,'Imprime el comportamiento de pagos de acuerdo a la forma de pago por meses')
+       AADD(aAyuda,'Imprime el informe para pagar el impuesto del ICA')
        AADD(aAyuda,'Inicializa los totales en cero')
 *>>>>FIN DECLARACION Y EJECUCION DEL MENU
 
@@ -2138,11 +2138,12 @@ FUNCTION Carte_483(aParam1,aParam2,aParam3)
        LOCAL nVlrPag := 0                   // Valor de los pagos
        LOCAL nTotPag := 0                   // Valor temporal
        LOCAL nTotFac := 0                   // Total Facturado
+       LOCAL nVlrIca := 0                   // Valor impuesto Ica.
+       LOCAL nTotIca := 0                   // Total Impuesto Ica.
 
        LOCAL nOpcRep := 0                   // Opci¢n del Reporte
        LOCAL lHayAlu := .F.                 // .T. Existe el Estudiante
        LOCAL lPrnFec := .F.                 // .T. Imprimir por Fechas
-       LOCAL dFecPrn := CTOD('00/00/00')    // Fecha de Corte de Impresi¢n
        LOCAL nSdoAct := 0                   // Saldo Actual
 
        LOCAL cDocPad := ''                  // N£mero del Documento
@@ -2210,7 +2211,6 @@ FUNCTION Carte_483(aParam1,aParam2,aParam3)
        LOCAL nFilPal := 0                   // Fila Inferior Men£ principal
        LOCAL nFilInf := 0                   // Fila Inferior del SubMen£
        LOCAL nColInf := 0                   // Columna Inferior del SubMen£
-       LOCAL lConMat := .F.                 // .T. Conceptos de Matricula
      *ÀDetalles Tecnicos
 
        LOCAL PathW01 := ''                  // Sitio del Sistema No.01
@@ -2303,6 +2303,9 @@ FUNCTION Carte_483(aParam1,aParam2,aParam3)
        CASE CAA->nMesFinCaA == 0
 	    cError('SE DEBE DEFINIR EL MES FINAL DE LA FACTURACION')
 
+       CASE CAA->nImpIcaCaA == 0
+	    cError('NO SE HA DEFINIDO EL PORCENTAJE DEL IMPUESTO ICA')
+
        OTHERWISE
 	    lHayErr :=.F.
        ENDCASE
@@ -2311,21 +2314,6 @@ FUNCTION Carte_483(aParam1,aParam2,aParam3)
 	  RETURN NIL
        ENDIF
 *>>>>FIN VALIDACION DE CONTENIDOS DE ARCHIVOS
-
-*>>>>ANALISIS DE DECISION
-      lConMat := .F.
-      IF EMPTY(CAA->cConMatCaA)
-	 cError('EN LA CONFIGURACION DEL A¥O SE HABILITAN',;
-		'NO SE INCLUYE LA FACTURACION DE LAS MATRICULAS')
-	 IF !lPregunta('DESEA CONTINUAR? No Si')
-	    CloseAll(aUseDbf)
-	    RETURN NIL
-	 ENDIF
-      ELSE
-	 lConMat := lPregunta('DESEA INCLUIR LOS CONCEPTOS DE MATRICULA:'+;
-			      ALLTRIM(CAA->cConMatCaA)+'? No Si')
-      ENDIF
-*>>>>FIN ANALISIS DE DECISION
 
 *>>>>CAPTURA DE LOS MESES A FACTURAR
        nMesIniTpa := 0 ; nMesFinTpa := 0
@@ -2344,26 +2332,13 @@ FUNCTION Carte_483(aParam1,aParam2,aParam3)
        lCorrecion(@cMesFin)
 *>>>>FIN CAPTURA DE LOS MESES A FACTURAR
 
-*>>>>LECTURA DE LA FECHA DE CORTE
-       dFecPrn := CTOD('00/00/00')
-
-       cSavPan := SAVESCREEN(0,0,24,79)
-       @ 21,10 SAY 'PARA LOS MOROROS DE LA FACTURACION DE '+;
-		   cMes(CAA->nMesFinCaA)+':(MM/DD/AA)'
-       @ nFilInf+1,nColInf SAY 'FECHA DE CORTE:' GET dFecPrn PICT '@D'
-       READ
-       RESTSCREEN(0,0,24,79,cSavPan)
-
-       IF EMPTY(dFecPrn)
+*>>>>ANALISIS DE DECISION
+       IF !lPregunta('IMPUESTO ICA:'+STR(CAA->nImpIcaCaA,5,2)+;
+		     '% .DESEA CONTINUAR? No Si')
 	  CloseAll(aUseDbf)
 	  RETURN NIL
        ENDIF
-
-       IF !lPregunta('DESEA CONTINUAR? No Si')
-	  CloseAll(aUseDbf)
-	  RETURN NIL
-       ENDIF
-*>>>>LECTURA DE LA FECHA DE CORTE
+*>>>>FIN ANALISIS DE DECISION
 
 *>>>>LOCALIZACION DE LA IMPRESORA
        IF !lLocCodigo('nCodigoPrn','PRN',SCA->nCodigoPrn)
@@ -2416,9 +2391,9 @@ FUNCTION Carte_483(aParam1,aParam2,aParam3)
        nTotReg := 0
 
        aCabPrn := {cNomEmp,cNomSis,;
-		   'TOTAL PAGOS POR ESTUDIANTES',;
-		   '',;
-		   ''}
+		   'IMPUESTO ICA:'+STR(CAA->nImpIcaCaA,5,2)+'%',;
+		   'A¥O:'+cAnoUsr,;
+		   'MESES:'+cMes(nMesIniTpa,3)+' A '+cMes(nMesIniTpa,3)}
 
        aCabeza := {aCabPrn[1],aCabPrn[2],aCabPrn[3],aCabPrn[4],aCabPrn[5],;
                    nNroPag++,;
@@ -2440,8 +2415,6 @@ FUNCTION Carte_483(aParam1,aParam2,aParam3)
 
        AADD(aNroCol,6)
        AADD(aTitPrn,'GRUPO')
-
-/*
 
        IF nOpcPrn == 7 .OR. nOpcPrn == 8
 
@@ -2549,19 +2522,11 @@ FUNCTION Carte_483(aParam1,aParam2,aParam3)
 
        ENDIF
 
-*/
-
        AADD(aNroCol,12)
        AADD(aTitPrn,'PAGADO')
 
        AADD(aNroCol,12)
-       AADD(aTitPrn,'DEUDA')
-
-       AADD(aNroCol,12)
-       AADD(aTitPrn,'FACTURADO')
-
-       AADD(aNroCol,12)
-       AADD(aTitPrn,'PAGADO')
+       AADD(aTitPrn,'IMP ICA')
 
        cCabCol := cRegPrint(aTitPrn,aNroCol)
 *>>>>FIN ENCABEZADOS DE COLUMNA
@@ -2594,11 +2559,14 @@ FUNCTION Carte_483(aParam1,aParam2,aParam3)
        nHanXml := CreaFrmPrn(lShared,FilePrn,aNroCol,nOpcPrn,aCabPrn,aTitPrn)
 *>>>>FIN IMPRESION DEL ENCABEZADO
 
-cMaeAlu := 'BTO' // ojo
+*cMaeAlu := 'BTO' // ojo
 
 *>>>>RECORRIDO POR NIVELES
        SET DEVICE TO SCREEN
-       nNroFil := nMarco(03,'ESTUDIANTES')
+       nNroFil := nMarco(03,'A¥O:'+cAnoUsr+;
+			    '.IMPUESTO ICA:'+STR(CAA->nImpIcaCaA,5,2)+'%'+;
+			    '.MESES:'+cMes(nMesIniTpa,3)+' A '+;
+				      cMes(nMesIniTpa,3))
 
        FOR i := 1 TO LEN(cMaeAlu)/3
 
@@ -2617,7 +2585,7 @@ cMaeAlu := 'BTO' // ojo
 	     SELECT GRU
 	     GRU->(DBGOTOP())
 
-lLocCodigo('cCodigoGru','GRU','1104')  // ojo
+*lLocCodigo('cCodigoGru','GRU','1104')  // ojo
 
 	     DO WHILE .NOT. GRU->(EOF())
 
@@ -2643,7 +2611,7 @@ lLocCodigo('cCodigoGru','GRU','1104')  // ojo
 *===============RECORRIDO POR CLIENTES
 		  CLI->(DBGOTOP())
 
-lLocCodigo('cCodigoEst','CLI','212158')  // ojo
+*lLocCodigo('cCodigoEst','CLI','212158')  // ojo
 
 
 		  DO WHILE .NOT. CLI->(EOF())
@@ -2691,14 +2659,6 @@ lLocCodigo('cCodigoEst','CLI','212158')  // ojo
 		       ENDIF
 *--------------------FIN ANALISIS SI ESTUDIANTE ESTA RETIRADO
 
-*--------------------LOCALIZACION RECIBO MATRICULA
-		       IF lConMat
-			  SELECT PMT
-			  LOCATE FOR PMT->cCodigoEst == cCodigoTes .AND.;
-				     PMT->cMatricPag == '1'
-		       ENDIF
-*--------------------LOCALIZACION RECIBO MATRICULA
-
 *--------------------TARIFAS DE MATRICULAS
 		       nTotFac := 0
 		       nTotPag := 0
@@ -2706,17 +2666,6 @@ lLocCodigo('cCodigoEst','CLI','212158')  // ojo
 		       aVlrCon := {}
 		       nTotFac := 0
 		       nVlrMtr := 0
-
-		       IF lConMat
-
-			  IF PMT->(FOUND())
-			     VlrTarMtr(PMT->cConcepPag,GRU->cCodigoGru,;
-				       aVlrCon,.F.)
-			     nVlrMtr := nSuma(aVlrCon,3)
-			     nTotFac += nVlrMtr
-			  ENDIF
-
-		       ENDIF
 *--------------------FIN TARIFAS DE MATRICULAS
 
 *--------------------TARIFAS SERVICIOS EDUCATIVOS
@@ -2731,6 +2680,13 @@ lLocCodigo('cCodigoEst','CLI','212158')  // ojo
 		       ENDIF
 *--------------------FIN TARIFAS SERVICIOS EDUCATIVOS
 
+*--------------------ANALISIS DECISION
+		       IF nTotPag == 0
+			  CLI->(DBSKIP())
+			  LOOP
+		       ENDIF
+*--------------------FIN ANALISIS DECISION
+
 *--------------------TOTAL FACTURADO
 		       IF lHayAlu
 			  nVlrFac := nFacConMes(CLI->cCodigoEst,;
@@ -2738,7 +2694,6 @@ lLocCodigo('cCodigoEst','CLI','212158')  // ojo
 			  nTotFac += nVlrFac
 		       ENDIF
 *--------------------FIN TOTAL FACTURADO
-
 
 *--------------------GRABACION DEL TOTAL PAGADO
 		       SELECT &cMaeAct
@@ -2924,10 +2879,13 @@ lLocCodigo('cCodigoEst','CLI','212158')  // ojo
 *--------------------CALCULO DEL SALDO ACTUAL
 		       lPrnFec := .T.
 
-		       nSdoAct := nSdoActEst(CLI->cCodigoEst,lRetadoTes,;
-					     cMaeAlu,CAA->nMesFinCaA,;
-					     lPrnFec,dFecPrn)
+		       nSdoAct := 0
 *--------------------FIN CALCULO DEL SALDO ACTUAL
+
+*--------------------CALCULO IMPUESTO ICA
+		       nVlrIca := ROUND((nTotPag * CAA->nImpIcaCaA)/100,0)
+		       nTotIca += nVlrIca
+*--------------------FIN CALCULO IMPUESTO ICA
 
 *--------------------IMPRESION DEL REGISTRO
 		       IF lHayAlu
@@ -2939,7 +2897,6 @@ lLocCodigo('cCodigoEst','CLI','212158')  // ojo
 			  AADD(aRegPrn,CLI->cCodigoEst)   // 2
 			  AADD(aRegPrn,GRU->cCodigoGru)   // 3
 
-/*
 
 			  IF nOpcPrn == 7 .OR. nOpcPrn == 8
 
@@ -2988,18 +2945,8 @@ lLocCodigo('cCodigoEst','CLI','212158')  // ojo
 
 			  ENDIF
 
-*/
-
-			  IF nTotFac > nTotPag
-			     AADD(aRegPrn,TRANS(nTotFac,"##########")) // 13
-			  ELSE
-			     AADD(aRegPrn,TRANS(nTotPag,"##########")) // 13
-			  ENDIF
-
-			  AADD(aRegPrn,TRANS(nSdoAct,"##########")) // 14
-
-			  AADD(aRegPrn,TRANS(nTotFac,"##########")) // 15
-			  AADD(aRegPrn,TRANS(nTotPag,"##########")) // 16
+			  AADD(aRegPrn,TRANS(nTotPag,"##########"))
+			  AADD(aRegPrn,TRANS(nVlrIca,"##########"))
 
 			  SET DEVICE TO PRINT
 			  lPrnOpc(lShared,nOpcPrn,FilePrn,nHanXml,01,nColCab,;
@@ -3016,7 +2963,11 @@ lLocCodigo('cCodigoEst','CLI','212158')  // ojo
 					TRANS(nTotPag,"##########")
 		       nNroFil++
 		       IF nNroFil == 21
-			  nNroFil := nMarco(03,'ESTUDIANTES')
+			  nNroFil := nMarco(03,'A¥O:'+cAnoUsr+;
+					       '.IMPUESTO ICA:'+;
+					       STR(CAA->nImpIcaCaA,5,2)+'%'+;
+					       '.MESES:'+cMes(nMesIniTpa,3)+' A '+;
+							 cMes(nMesIniTpa,3))
 		       ENDIF
 *--------------------FIN VISUALIZACION
 
@@ -3027,7 +2978,7 @@ lLocCodigo('cCodigoEst','CLI','212158')  // ojo
 
 		GRU->(DBSKIP())
 
-EXIT
+*EXIT
 *ojo
 
 	     ENDDO
@@ -3035,6 +2986,13 @@ EXIT
 
        ENDFOR
 *>>>>FIN RECORRIDO POR NIVELES
+
+*>>>>IMPRESION DE LOS TOTALES
+       IF !(nOpcPrn == 7 .OR. nOpcPrn == 8)
+	  SET DEVICE TO PRINT
+	  @ PROW()+2,00 SAY 'TOTAL IMPUESTO ICA...$ '+TRANS(nTotIca,"####,###,###")
+       ENDIF
+*>>>>FIN IMPRESION DE LOS TOTALES
 
 *>>>>IMPRESION DERECHOS
        EVAL(bDerAut)
@@ -3081,6 +3039,7 @@ FUNCTION lVlrConMes(aVlrCon,lSiCert,fNtxDes,nMesIni,nMesFin)
        LOCAL aRegPag := {}                  // Registro de Pagos
        LOCAL nRegDes := 0                   // Registro del Descuento
        LOCAL nRegPag := 0                   // Registro de Pagos
+       LOCAL lPago   := .F.                 // .T. Pago el recibo
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>IMPRESION DE LOS PAGOS
@@ -3090,18 +3049,29 @@ FUNCTION lVlrConMes(aVlrCon,lSiCert,fNtxDes,nMesIni,nMesFin)
 
        DO WHILE .NOT. PAG->(EOF())
 
-	  IF !(PAG->nMesIniPag >= nMesIni .AND.;
-	       PAG->nMesIniPag <= nMesFin)
+**********VALIDACION DEL MES
+	    IF !(PAG->nMesIniPag >= nMesIni .AND.;
+		 PAG->nMesIniPag <= nMesFin)
 
+		 PAG->(DBSKIP())
+		 LOOP
+
+	    ENDIF
+**********FIN VALIDACION DEL MES
+
+**********VALIDACION DEL PAGO DEL RECIBO
+	    lPago := (PAG->cEstadoPag == 'P' .OR.;
+		      PAG->cEstadoPag == 'A') .AND. !EMPTY(PAG->dFecPagPag)
+	    IF !lPago
 	       PAG->(DBSKIP())
 	       LOOP
+	    ENDIF
 
-	  ENDIF
-
-	  nRegPag := PAG->(RECNO())
-	  DES->(DBSETINDEX(fNtxDes))
-	  lHayErr := !lVlrConRec(aVlrCon,lSiCert)
-	  DES->(DBCLEARINDEX())
+	    nRegPag := PAG->(RECNO())
+	    DES->(DBSETINDEX(fNtxDes))
+	    lHayErr := !lVlrConRec(aVlrCon,lSiCert)
+	    DES->(DBCLEARINDEX())
+**********FIN VALIDACION DEL PAGO DEL RECIBO
 
 **********FILTRACION DE LOS DESCUENTOS,RECARGOS Y ABONOS DEL ESTUDIANTE
 	    SELECT DES

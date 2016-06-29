@@ -109,7 +109,8 @@ FUNCTION CreaCarAno(lShared,nModCry,PathCaA,FileCaA,fNtxCaA,lGrabar,aStrDbf)
 			 {"nDiaConCaA","Numeric"  ,02,0},; // D¡a para conciliar la contabilidad.
 			 {"nMtdFacCaA","Numeric"  ,02,0},; // M‚todo de facturaci¢n. 0=Por defecto. 1=Virrey 2010. 2=Tabla de Tarifas por meses.
 			 {"nMtdSdoCaA","Numeric"  ,02,0},; // M‚todo para el c lculo de Saldos. 00=Por defecto se acumala el saldo. 98=No se acumula saldo por no pago.
-			 {"nDiaMorCaA","Numeric"  ,03,0}}  // D¡as en Mora para Bloquear estudiantes
+			 {"nDiaMorCaA","Numeric"  ,03,0},; // D¡as en Mora para Bloquear estudiantes
+			 {"nImpIcaCaA","Numeric"  ,05,2}}  // Porcentaje Impuesto del Ica
 *>>>>FIN DECLARACION DE VARIABLES
 
 *>>>>RETORNO DE LA ESTRUCTURA
@@ -939,6 +940,12 @@ FUNCTION oBrwCarAno(lShared,cAnoUsr,nFilSup,nColSup,nFilInf,nColInf)
 			      {||CAA->nDiaMorCaA})
        oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CAA'},;
 			 {'FIELD','nDiaMorCaA'},{'PICTURE','999'}}
+       oBrwCaA:ADDCOLUMN(oColumn)
+     *ÀDefinici¢n Columna
+
+       oColumn	     := TBCOLUMNNEW('IMPUESTO;ICA %',{||CAA->nImpIcaCaA})
+       oColumn:Cargo := {{'MODI',.T.},{'ALIAS','CAA'},;
+			 {'FIELD','nImpIcaCaA'},{'PICTURE','99.99'}}
        oBrwCaA:ADDCOLUMN(oColumn)
      *ÀDefinici¢n Columna
 

@@ -311,7 +311,6 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 
 
        CASE SCA->nPagOnlCar == 5       // Avisor
-
 						  // Ini:Fin:Len
 	    cRegIni := '1'+;                      // 001:001:001 Registro de control
 		       ''+;                       // 002:009:008 Fecha de Corte del Archivo
@@ -322,8 +321,6 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 			   aFecHoy[2]+;           //
 		       REPL(SPACE(01),54)         // Filler
 	  *ÀEncabezado
-
-	    cRegIni := ''
 
        CASE SCA->nPagOnlCar == 6  // Pagos Inteligentes - www.pagosinteligentes.com
 
@@ -338,23 +335,27 @@ FUNCTION Carte_291(aP1,aP2,aP3)
 *>>>>REGISTRO ENCABEZADO DE ARCHIVO
 
 *>>>>GRABACION REGISTRO ENCABEZADO DE ARCHIVO
-       IF ONL->(lRegLock(lShared,.T.))
+       IF !EMPTY(cRegIni)
 
-	  REPL ONL->cCodigoEst WITH 'INICIO'
-	  REPL ONL->nPagOnlCar WITH SCA->nPagOnlCar
-	  REPL ONL->cForPagOnl WITH cForPag
-	  REPL ONL->cRegistTxt WITH cRegIni
+	  IF ONL->(lRegLock(lShared,.T.))
 
-	  REPL ONL->cNomUsrOnl WITH cNomUsr
-	  REPL ONL->dFecUsrOnl WITH DATE()
-	  REPL ONL->cHorUsrOnl WITH TIME()
+	     REPL ONL->cCodigoEst WITH 'INICIO'
+	     REPL ONL->nPagOnlCar WITH SCA->nPagOnlCar
+	     REPL ONL->cForPagOnl WITH cForPag
+	     REPL ONL->cRegistTxt WITH cRegIni
 
-	  ONL->(DBCOMMIT())
-       ELSE
-	  cError('NO SE GRABA EL REGISTRO INICIAL DE LA CONFIGURACION')
-       ENDIF
-       IF lShared
-	  ONL->(DBUNLOCK())
+	     REPL ONL->cNomUsrOnl WITH cNomUsr
+	     REPL ONL->dFecUsrOnl WITH DATE()
+	     REPL ONL->cHorUsrOnl WITH TIME()
+
+	     ONL->(DBCOMMIT())
+	  ELSE
+	     cError('NO SE GRABA EL REGISTRO INICIAL DE LA CONFIGURACION')
+	  ENDIF
+	  IF lShared
+	     ONL->(DBUNLOCK())
+	  ENDIF
+
        ENDIF
 *>>>>FIN GRABACION REGISTRO ENCABEZADO DE ARCHIVO
 
@@ -1503,36 +1504,37 @@ FUNCTION RegOnline(aP1,aP2,aP3,nMesIni,cForPag,aTotErr,;
 			    ALLTRIM(SCA->cSerFacCar)
 
 		 cVlrOpo := ALLTRIM(STR(PAG->nVlrPagPag,10,0))
-		 cVlrOpo := cVlrOpo+'.00'
+		 cVlrOpo := cVlrOpo
 		 nVlrOpo := PAG->nVlrPagPag
 
-		 cFecOpo := aFecOpo[3]+aFecOpo[1]+aFecOpo[2]
+		 cFecOpo := aFecOpo[2]+'/'+aFecOpo[1]+'/'+aFecOpo[3]
 	       *ÀDDMMAAAA
 
 		 cVlrExt := ALLTRIM(STR(PAG->nVlrPagPag+nVlrInt,10,0))
-		 cVlrExt := cVlrExt+'.00'
+		 cVlrExt := cVlrExt
 
 
-		 cFecExt := aFecExt[3]+aFecExt[1]+aFecExt[2]
+		 cFecExt := aFecExt[2]+'/'+aFecExt[1]+'/'+aFecExt[3]
 	       *ÀDDMMAAAA
 
-		 cRegTxt := cCodFac+'|'+;                  // 01. ID_UNICO_PAGO
-			    PAG->cCodigoEst+'|'+;          // 02. ID_CLIENTE
-			    cVlrOpo+'|'+;	           // 03. VALOR_CON_IVA
-			    '0|'+;                         // 04. VALOR_IVA
-			    cDescri+'|'+;                  // 05. CONCEPTO
-			    cFecOpo+'|'+;                  // 06. FECHA_VENCIMIENTO
-			    ' |'+;	                   // 07. EMAIL
-			    ' |'+;	                   // 08. CLAVE_PAGO
-			    ALLTRIM(cNombreTes)+'|'+;      // 09. NOMBRE
-			    ALLTRIM(cApelliTes)+'|'+;      // 10. APELLIDO
-			    ' |'+;	                   // 11. TELEFONO
-			    ALLTRIM(SCA->cCodFacCar)+'|'+; // 12. CAMPO_OPCIONAL1
-			    GRU->cCodigoGru+'|'+;	   // 13. CAMPO_OPCIONAL2
-			    ' |'+;	                   // 14. CAMPO_OPCIONAL2
-			    cVlrExt+'|'+;                  // 15. VALOR EXTEMPORANEO
-			    cFecExt                        // 16. FECHA EXTEMPORANEO
-
+		 cRegTxt := cCodFac+ALLTRIM(SCA->cCodFacCar)+cAnoSis+'|'+;         // 01. ID_UNICO_PAGO
+			    PAG->cCodigoEst+'|'+;                                  // 02. ID_CLIENTE
+			    cVlrOpo+'|'+;	                                   // 03. VALOR_CON_IVA
+			    '0|'+;                                                 // 04. VALOR_IVA
+			    cDescri+'.PAGO OPORTUNO|'+;                                          // 05. CONCEPTO
+			    cFecOpo+'|'+;                                          // 06. FECHA_VENCIMIENTO
+			    ' |'+;	                                           // 07. EMAIL
+			    ' |'+;	                                           // 08. CLAVE_PAGO
+			    ALLTRIM(cNombreTes)+'|'+;                              // 09. NOMBRE
+			    ALLTRIM(cApelliTes)+'|'+;                              // 10. APELLIDO
+			    ' |'+;	                                           // 11. TELEFONO
+			    ALLTRIM(SCO->cCodEmpCon)+'|'+;                         // 12. CAMPO_OPCIONAL1
+			    cCodFac+cAnoUsr+ALLTRIM(SCA->cCodFacCar)+cNroFac+'|'+; // 13. CAMPO_OPCIONAL2
+			    GRU->cCodigoGru+'|'+;	                           // 14. CAMPO_OPCIONAL3
+			    cFecExt+'|'+;		                           // 15. FECHA EXTEMPORANEO
+			    cVlrExt+'|'+;                                          // 16. VALOR EXTEMPORANEO. VALOR CON IVA 2
+			    '0|'+;                                                 // 17. VALOR_IVA 2
+			    cDescri+'.PAGO EXTEMPORANEO'                           // 18. CONCEPTO 2
 	    ENDCASE
 **********DETALLES DE LA FACTURACION
 
